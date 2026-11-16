@@ -1,0 +1,15 @@
+import * as T from './toon.js';
+import { bulu, tuku, taapoi, moonFace, bean, C } from './cast.js';
+const cv = document.createElement('canvas'); cv.width = 1080; cv.height = 1920; document.getElementById('stage').appendChild(cv); T.init(cv);
+await document.fonts.load('800 40px "Baloo 2"');
+window.render = t => { T.frame(t); T.screenRect('#2f2a6e'); T.bands(['#2b2a6e', '#3a3488', '#4a3f9c'], 0, 900);
+  T.fillOnly(T.rect(0, 1300, 1080, 620), '#1e1b4a', { boil: 0 });
+  moonFace(830, 260, 120, { eyes: 'closed' });
+  bulu({ x: 300, y: 1000, s: 1.1, eyes: { mode: 'open', look: [.3, 0] }, mouth: { o: .35, sm: .9 }, t });
+  tuku({ x: 760, y: 1000, s: 1.1, eyes: { mode: 'open', look: [-.4, 0] }, t });
+  taapoi({ x: 200, y: 1700, s: 1.0 });
+  bulu({ x: 560, y: 1780, s: .7, eyes: { mode: 'pop' }, hairUp: true, mouth: { o: .9, sm: -.2 }, armL: { h: [-80, -60], bend: 20 }, armR: { h: [80, -60], bend: -20 }, t });
+  bulu({ x: 900, y: 1780, s: .7, eyes: { mode: 'spiral' }, belly: 1, mouth: { o: .3, sm: .5, drool: true }, t });
+  for (let k = 0; k < 6; k++) bean(80 + k * 50, 1250, .45, k + 3, { laugh: k % 2 });
+};
+window.DUR = 1; window.render(.3); window.READY = true;

@@ -1,0 +1,10 @@
+{
+  "lemolab": {
+    "source": {
+      "source": "github",
+      "repo": "lemomo-ai/lemo-opuscar"
+    },
+    "installLocation": "/root/.claude/plugins/marketplaces/lemolab",
+    "lastUpdated": "2026-11-11T04:36:55.330Z"
+  }
+}

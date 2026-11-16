@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "plugins": {
+    "lemo-opuscar@lemolab": [
+      {
+        "scope": "user",
+        "installPath": "/root/.claude/plugins/cache/lemolab/lemo-opuscar/9eb7739a0fca",
+        "version": "9eb7739a0fca",
+        "installedAt": "2026-11-11T04:36:55.864Z",
+        "lastUpdated": "2026-11-11T04:36:55.864Z",
+        "gitCommitSha": "9eb7739a0fca4c6990fe966cb8b87b1930f7193a"
+      }
+    ]
+  }
+}
