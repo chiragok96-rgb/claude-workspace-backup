@@ -1,0 +1,11 @@
+Megha Kadamba: lyric film. Every picture element is drawn in code.
+
+Music: "Megha Kadamba" (from Rakta Golapa), supplied by the user. It is the only audio and is used as provided; the user is responsible for its rights.
+Lyrics: Odia text supplied by the user.
+
+Fonts (SIL Open Font License 1.1, files and licences in fonts/):
+- Noto Serif Oriya (Google / Noto project), github.com/google/fonts/ofl/notoseriforiya
+- Baloo Bhaina 2 (Ek Type), github.com/google/fonts/ofl/baloobhaina2
+- Cormorant Garamond (Christian Thalmann), github.com/google/fonts/ofl/cormorantgaramond (bundled, not used on screen)
+
+Code: the watercolor stroke engine (engine_wc.js) is adapted from the Lemo-Opuscar library (MIT licence). Paper, pulp and fibre textures are generated procedurally (tools/textures.py).

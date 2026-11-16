@@ -1,0 +1,13 @@
+Radha Pada: an Instagram reel. Every picture element is drawn in code (paper-cut lightbox, Canvas 2D).
+
+Voice-over and script: supplied by the user (Odia); used as provided. The user is responsible for its rights.
+Story: the folk account of Radhapada darshan at Sakshigopal on Aonla Navami, as narrated in the user's script.
+Deities appear only as small stylised paper silhouettes; no temple image, photograph or real idol is reproduced.
+
+Music (original score for this reel): synthesised tanpura drone; sampled instruments:
+- VS Chamber Orchestra: Community Edition (Versilian Studios), CC0 1.0: flute, violins, violas, cellos, contrabass
+- Versilian Community Sample Library (Versilian Studios), CC0 1.0: hand chimes, tubular bells, frame drum
+Foley: procedural (paper, cloth, steps, crickets, conch-like tone).
+
+Font: Noto Serif Oriya (Google / Noto project), SIL Open Font License 1.1 (fonts/OFL-NotoSerifOriya.txt).
+Code: the paper and fibre textures are procedural; the stroke-engine helpers come from the Lemo-Opuscar library (MIT).
