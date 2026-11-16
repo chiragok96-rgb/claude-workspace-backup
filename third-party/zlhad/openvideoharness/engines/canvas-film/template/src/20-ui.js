@@ -1,0 +1,190 @@
+// canvas-film · pieces films reuse: a label that counts as a read, a piece that drops in, a stamp; and what
+// src/90-main.js draws over every frame: the chapter bar and the caption.
+
+// a line of text that comes in at `at` (rising 12 px over o.fade s) and stays to the end of its shot, or fades out by
+// o.until. From the moment it is fully in it is a read (window.film.texts, judged by bin/vh textcheck), unless
+// o.texture; o.overlay: a card that stays across a cut (each shot it spans draws it), one read over all of it (read()).
+// The other o go to txt().
+function label(t, at, s, x, y, o = {}) {
+  const fi = o.fade ?? 0.4, until = o.until ?? Infinity;
+  if (!o.texture) read(s, at + fi, until - fi, { overlay: !!o.overlay });
+  const k = show(t, at, fi), a = Math.min(k, until === Infinity ? 1 : 1 - eIn(seg(t, until - fi, until)));
+  if (a <= 0) return;
+  txt(s, x, y + 12 * (1 - k), { ...o, alpha: a * (o.alpha ?? 1) });
+}
+// a piece that drops into place at `at`: fades in, falls o.fall px and settles its tilt over o.d s. fn(u) draws it
+// about (cx, cy). An event (o.kind, default "drop") at `at`.
+function drop(t, at, cx, cy, fn, o = {}) {
+  cue(o.kind || "drop", at, { x: cx, y: cy });
+  const u = eOut(seg(t, at, at + (o.d ?? 0.45)));
+  if (u <= 0) return 0;
+  X.save(); X.globalAlpha *= Math.min(1, u * 1.6);
+  X.translate(cx, cy - (o.fall ?? 14) * (1 - u)); X.rotate((o.spin ?? 0.05) * (1 - u)); X.translate(-cx, -cy);
+  fn(u); X.restore();
+  return u;
+}
+// a stamp pressed at `at`: in 0.12 s from 1.25x down to its size, a framed word; an event (o.kind, default "stamp") and,
+// once it has landed, a read
+function stamp(t, at, cx, cy, s, o = {}) {
+  cue(o.kind || "stamp", at, { x: cx, y: cy });
+  read(s, at + 0.15, Infinity);
+  const u = seg(t, at, at + 0.12);
+  if (u <= 0) return;
+  // the weights film.html declares: sans 400 and 600, serif 700 and 900
+  const family = o.family || "sans", size = o.size || 56, f = { size, weight: o.weight ?? (family === "serif" ? 900 : 600), family };
+  const col = o.color || FILM.ui.accent, k = lerp(1.25, 1, eOut(u));
+  const w = measure(s, f) + 56, h = size * 1.5;
+  X.save(); X.translate(cx, cy); X.rotate(o.rot ?? -0.07); X.scale(k, k);
+  rect(-w / 2, -h / 2, w, h, { stroke: col, w: 5, r: 6 });
+  txt(s, 0, size * 0.36, { ...f, color: col, align: "center" });
+  X.restore();
+}
+
+// ---- the chapter bar (top): a cell per chapter, sized to its title; the current one fills as the chapter goes and its
+// title always shows; every title shows for BAR.all s from each chapter's start (when they fit side by side) ----
+const BAR = { y: 64, size: 44, gap: 20, pad: 56, all: 3.0, margin: 120 };
+let BAR_CELLS = [], BAR_ALL = true;
+function layoutBar() {   // once, in ready (it measures the titles)
+  const n = CHAPTER_T.length;
+  BAR_CELLS = [];
+  if (n < 2) return;
+  const ws = CHAPTER_T.map((c) => measure(c.title, { size: BAR.size }) + BAR.pad), room = W - 2 * BAR.margin;
+  BAR_ALL = ws.reduce((s, w) => s + w, 0) + BAR.gap * (n - 1) <= room;
+  const cw = BAR_ALL ? ws : ws.map(() => (room - BAR.gap * (n - 1)) / n);   // too many to name at once: even cells, the current title only
+  let x = (W - cw.reduce((s, w) => s + w, 0) - BAR.gap * (n - 1)) / 2;
+  for (const w of cw) { BAR_CELLS.push({ x, w }); x += w + BAR.gap; }
+}
+function barState(t) {   // how much the bar shows (vis), the current chapter (ci), how much the other titles show (all)
+  const vis = BAR_CELLS.length ? win(t, BAR_SPAN[0], BAR_SPAN[1], BAR_SPAN[0] > 0 ? 0.5 : 0, 0.6) : 0;   // already up on frame 0 when it starts the film
+  let ci = 0, all = 0;
+  CHAPTER_T.forEach((c, i) => { if (t >= c.t) ci = i; });
+  if (BAR_ALL) for (const c of CHAPTER_T) all = Math.max(all, win(t, c.t - 0.2, c.t + BAR.all, c.t > 0 ? 0.4 : 0, 0.6));
+  return { vis, ci, all };
+}
+// where the bar puts its ink at t (window.film.ui): the row of cells from the dot's top to below the titles while every
+// title shows; else the row of cells, and the current title on its own
+function barBoxes(t) {
+  const { vis, ci, all } = barState(t);
+  if (vis < 0.05) return [];
+  const first = BAR_CELLS[0], last = BAR_CELLS[BAR_CELLS.length - 1], cur = BAR_CELLS[ci];
+  const tw = measure(CHAPTER_T[ci].title, { size: BAR.size }) / 2 + 6, cx = cur.x + cur.w / 2, bottom = BAR.y + 58 + BAR.size * 0.3;
+  if (all > 0.01) return [{ name: "chapter bar", box: [Math.min(first.x - 8, cx - tw), BAR.y - 9, Math.max(last.x + last.w + 8, cx + tw), bottom] }];
+  return [{ name: "chapter bar", box: [first.x - 8, BAR.y - 9, last.x + last.w + 8, BAR.y + 12] },
+    { name: "chapter title", box: [cx - tw, BAR.y + 58 - BAR.size * 0.95, cx + tw, bottom] }];
+}
+function chapterBar(t) {
+  if (!BAR_CELLS.length) return;
+  const { vis, ci, all } = barState(t);
+  if (vis <= 0) return;
+  X.save(); X.globalAlpha *= vis;
+  const g = X.createLinearGradient(0, 0, 0, 190);
+  g.addColorStop(0, `rgba(${FILM.ui.dark},${0.55 + 0.15 * all})`); g.addColorStop(1, `rgba(${FILM.ui.dark},0)`);
+  X.fillStyle = g; X.fillRect(0, 0, W, 190);
+  CHAPTER_T.forEach((c, i) => {
+    const { x, w } = BAR_CELLS[i], now = i === ci, p = i < ci ? 1 : now ? seg(t, c.t, c.b) : 0;
+    rect(x, BAR.y, w, 4, { fill: FILM.ui.text, alpha: 0.28 });
+    if (p > 0) rect(x, BAR.y, w * p, 4, { fill: now ? FILM.ui.accent : FILM.ui.text, alpha: now ? 1 : 0.8 });
+    if (now) circle(x + w * p, BAR.y + 2, 7, { fill: FILM.ui.accent });
+    const a = now ? 1 : 0.75 * all;
+    if (a > 0.01) txt(c.title, x + w / 2, BAR.y + 58, { size: BAR.size, align: "center", alpha: a, stroke: 6, strokeColor: `rgba(${FILM.ui.dark},0.55)`, shadow: `rgba(${FILM.ui.dark},0.6)`, blur: 10 });
+  });
+  X.restore();
+}
+
+// ---- a cover's title: lines in the heaviest Chinese sans this machine has ("Film Heavy" in film.html), with a dark
+// outline and a darker band behind them, so they read at the size of a feed tile. title: { text: [lines], size: [px per
+// line] or px, x, y (the first line's baseline), align, color, band: true | false, gap, family, weight }. A line is a
+// string, or a list of runs in one line, each a string or { text, color } (a run without a colour takes the line's);
+// color is one colour or one per line; family a key of FAMILIES or a CSS family list ("heavy", weight 900, by default).
+// bw: the width the band spans (the frame's; a ratio cover's own, src/90-main.js) ----
+const pickAt = (v, i, d) => { const a = [].concat(v ?? d); return a[i] ?? a[a.length - 1]; };   // a value per line, the last for the rest
+const titleRuns = (line) => (Array.isArray(line) ? line : [line]).map((r) => (r && typeof r === "object" ? { text: String(r.text ?? ""), color: r.color } : { text: String(r ?? "") }));
+const titleText = (line) => titleRuns(line).map((r) => r.text).join("");
+const titleFont = (o, size) => ({ size, weight: o.weight ?? 900, family: o.family || "heavy" });
+const coverLineWidth = (line, size, o) => titleRuns(line).reduce((w, r) => w + measure(r.text, titleFont(o, size)), 0);
+function coverTitle(o, bw = W) {
+  const lines = [].concat(o.text || []), sizes = lines.map((_, i) => pickAt(o.size, i, 200));
+  if (!lines.length) return;
+  const x = o.x ?? 120, y0 = o.y ?? 700, gap = o.gap ?? 0.18, align = o.align || "left";
+  const ys = []; let y = y0;
+  sizes.forEach((s, i) => { if (i) y += s * (1 + gap); ys.push(y); });
+  if (o.band !== false) {   // darker behind the block, fading out away from it
+    const top = y0 - sizes[0] * 1.2, bottom = ys[ys.length - 1] + sizes[sizes.length - 1] * 0.5;
+    const g = X.createLinearGradient(0, top - 120, 0, bottom + 120);
+    g.addColorStop(0, `rgba(${FILM.ui.dark},0)`); g.addColorStop(0.25, `rgba(${FILM.ui.dark},0.55)`);
+    g.addColorStop(0.75, `rgba(${FILM.ui.dark},0.55)`); g.addColorStop(1, `rgba(${FILM.ui.dark},0)`);
+    X.fillStyle = g; X.fillRect(0, top - 120, bw, bottom - top + 240);
+  }
+  lines.forEach((line, i) => {
+    const f = titleFont(o, sizes[i]), color = pickAt(o.color, i, FILM.ui.text);
+    const look = { ...f, stroke: Math.max(8, sizes[i] * 0.06), strokeColor: `rgba(${FILM.ui.dark},0.85)`, shadow: `rgba(${FILM.ui.dark},0.6)`, blur: 18, dy: 4 };
+    if (typeof line !== "object" || line === null) return txt(line, x, ys[i], { ...look, align, color });
+    // runs: laid end to end from the line's start; every run's outline first, then the letters, so an outline never
+    // lies over the next run's letters
+    const runs = titleRuns(line), ws = runs.map((r) => measure(r.text, f)), xs = [];
+    let at = x - (align === "center" ? 0.5 : align === "right" ? 1 : 0) * ws.reduce((a, w) => a + w, 0);
+    for (const w of ws) { xs.push(at); at += w; }
+    runs.forEach((r, k) => txt(r.text, xs[k], ys[i], { ...look, color: "rgba(0,0,0,0)", shadow: null }));
+    runs.forEach((r, k) => txt(r.text, xs[k], ys[i], { ...look, stroke: 0, color: r.color || color }));
+  });
+}
+// a title for a ratio whose cover gives none: the cover's own lines and colours, centred, scaled down together to fit 88 %
+// of the width (never up, never under FILM.minText: the size txt() really draws), a line still too wide broken into more
+// (as wrap() breaks, colours kept), the last baseline at 80 % of the height. Throws when even that does not fit (a word
+// wider than the cover, or more lines than its height takes). A starting point to look at (bin/vh cover-preview), not a
+// layout: ratios[r].title places it
+function ratioTitle(o, nw, nh) {
+  const src = [].concat(o.text || []), gap = o.gap ?? 0.18, room = 0.88 * nw, sizes = src.map((_, i) => pickAt(o.size, i, 200));
+  const k = Math.min(1, ...src.map((l, i) => room / Math.max(1, coverLineWidth(l, sizes[i], o))));
+  const lines = [], size = [], CLOSE = "，。、；：！？）」』”’》,.;:!?)";
+  src.forEach((line, i) => {
+    const px = Math.max(FILM.minText, Math.round(sizes[i] * k)), f = titleFont(o, px), color = pickAt(o.color, i, FILM.ui.text);
+    if (coverLineWidth(line, px, o) <= room) { lines.push(line); size.push(px); return; }
+    // too wide at the size drawn: tokens as wrap() makes them, each with its run's colour, packed into lines
+    const toks = titleRuns(line).flatMap((r) => (r.text.match(/[A-Za-z0-9'’.,:;!?%-]+\s*|\s+|./gu) || []).map((text) => ({ text, color: r.color || color })));
+    let cur = [], w = 0;
+    const flush = () => {
+      while (cur.length && !cur[cur.length - 1].text.trim()) cur.pop();
+      if (cur.length) { lines.push(cur.reduce((rs, t) => { const l = rs[rs.length - 1]; if (l && l.color === t.color) l.text += t.text; else rs.push({ ...t }); return rs; }, [])); size.push(px); }
+      cur = []; w = 0;
+    };
+    for (const tk of toks) {
+      const tw = measure(tk.text, f);
+      if (cur.length && w + tw > room && !CLOSE.includes(tk.text[0])) { flush(); if (!tk.text.trim()) continue; }
+      cur.push(tk); w += tw;
+    }
+    flush();
+  });
+  const wide = lines.findIndex((l, i) => coverLineWidth(l, size[i], o) > room), span = size.slice(1).reduce((a, v) => a + v * (1 + gap), 0);
+  const y = Math.round(nh * 0.8 - span);
+  if (wide >= 0 || y - size[0] < 0.05 * nh)
+    throw new Error(`the cover's title does not fit ${nw} x ${nh} at ${FILM.minText} px or more (FILM.minText), even on ${lines.length} lines` +
+      `${wide >= 0 ? ` ("${titleText(lines[wide])}" alone is too wide)` : ""}: give it ratios["…"].title`);
+  return { ...o, text: lines, size, x: nw / 2, y, align: "center" };
+}
+
+// ---- the caption (bottom): one line on a soft dark band; on a plate where the shot says light: true (a pale picture) ----
+const captionAlpha = (t, c) => Math.min(c.joinPrev ? 1 : show(t, c.start, 0.15), c.joinNext ? 1 : 1 - eIn(seg(t, c.end - 0.12, c.end)));
+function captionBox(t) {   // where the caption's letters are at t (window.film.ui), the band under them left out; null when none shows
+  const c = captionAt(t), C = FILM.caption;
+  if (!c || captionAlpha(t, c) < 0.05) return null;
+  const w = measure(c.text, { size: C.size }) / 2 + 6;
+  return [W / 2 - w, C.y - C.size * 0.95, W / 2 + w, C.y + C.size * 0.3];
+}
+function captionBand(t) {
+  const c = captionAt(t);
+  if (!c) return;
+  const C = FILM.caption, a = captionAlpha(t, c);
+  if (a <= 0) return;
+  X.save(); X.globalAlpha *= a;
+  if (SHOT_T[shotAt(t)].shot.light) {
+    const w = measure(c.text, { size: C.size }) + 56;
+    rect(W / 2 - w / 2, C.y - C.size - 4, w, C.size + 30, { fill: `rgba(${FILM.ui.dark},0.72)`, r: 14 });
+  } else {
+    const g = X.createLinearGradient(0, C.y - 100, 0, H);
+    g.addColorStop(0, `rgba(${FILM.ui.dark},0)`); g.addColorStop(1, `rgba(${FILM.ui.dark},0.6)`);
+    X.fillStyle = g; X.fillRect(0, C.y - 100, W, H - C.y + 100);
+  }
+  txt(c.text, W / 2, C.y, { size: C.size, align: "center", stroke: 6, strokeColor: `rgba(${FILM.ui.dark},0.55)`, shadow: `rgba(${FILM.ui.dark},0.5)`, blur: 8 });
+  X.restore();
+}

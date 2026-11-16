@@ -1,0 +1,156 @@
+# 参与改进本仓库
+
+这份规则管的是"改这个仓库本身"：`bin/vh`、`tools/`、引擎、文档、风格库。用这个仓库做视频，按 [CLAUDE.md](CLAUDE.md) 走，视频项目都在 `projects/` 里，不进版本库。
+
+规则对人和 agent（Claude Code、Codex）一样适用。agent 那几条写得更细，因为它们推送时用的就是仓库主人的身份。
+
+## 分支和推送
+
+- **main 只接受 PR 合并。** 谁都不能直接推 main，包括仓库主人，也包括代表主人推送的 agent。这一条由 GitHub 规则集强制执行，见文末。
+- **一批相关的改动一个分支、一个 PR。** 里面一条一个提交，每一条在 CHANGELOG 里各记一笔。合并前分支要同步到最新的 main、再跑一遍 CI；PR 叠着开、一个一个合的话，每合进一个，后面的每一个都要再同步、再跑一遍，所以放得进一个 PR 的不拆开。分支名：人用 `<名字>/<主题>`，agent 用 `claude/<主题>` 或 `codex/<主题>`。
+- **PR 先开成草稿**，写清改了什么、为什么、怎么验证的。人看过以后转成正式 PR，用 squash 合并。合并后分支自动删除。
+- **合并用 `tools/land.py`。** `python3 tools/land.py ready <PR>` 把分支同步到最新的 main，核对它改了什么、加了什么，用它加的那条 CHANGELOG 写 squash 说明，再打开 auto-merge：两项检查都过了，GitHub 自己合。叠在另一个 PR 上、那个已经 squash 进 main 的，加 `--after <那个 PR 最后的 head>`，同步时不会在同样的几行上冲突。合并以后 `python3 tools/land.py done <PR> --clean`：核对 main 上落下的就是测过的那棵树，把本地的 main 往前挪，删掉这个 PR 的分支和它干净的工作树。两步都可以先加 `--dry-run`，只说要做什么。`.git/info/land-deny` 里一行一个正则，PR 加的内容、提交信息、标题、说明和 squash 说明碰上任何一条都不合；这个文件在 `.git` 里、不进版本库，各人写各人的（不想要的署名行、私人的名字和路径）。
+- **合并条件**：CI 的两项检查（Linux、macOS）都通过，分支已同步到最新的 main，评审里的对话都已解决。
+- **不改写已经推送的历史。** 不 rebase、不 amend、不 force push 已经推送的分支。main 往前走了，就把 main 合进自己的分支，冲突在分支上解决。只有一种例外：自己的分支在 PR 合并后还要接着用，这时从最新的 main 重开，用 `git push --force-with-lease`。
+
+## 给 agent 的规则
+
+1. 只推自己的分支。不推 main，不删分支，不动 tag。
+2. 推送前跑 `tools/ci.sh --committed`，全部通过才推。它在一份干净的检出上检查 HEAD，结果和 CI 一致；工作区里没提交的改动不算数。修 bug 要先复现，再证明修好，前后对比写进 PR。
+3. PR 一律开成草稿。先核对 `LOCAL.md` 的维护偏好，区分自己账号的开发与外部贡献；外部贡献必须按下节逐个介绍并取得明确批准。用户可以长期授权自己账号的日常开发 PR 检查通过后合并；没有对应授权时交付草稿等人决定。授权范围内，agent 审过 diff 后用 `python3 tools/land.py ready <PR>` 转正式 PR、排上 squash 自动合并，必需的检查都通过后由 GitHub 合并；合并后用 `python3 tools/land.py done <PR> --clean` 核对和清理。旧批量授权不覆盖新来的外部贡献。管理员“绕过规则合并”只留给人用，agent 不碰。
+4. 不提交 API key、`LOCAL.md`、`projects/` 和渲染产物。测试时改动了受版本管理的样片（`styles/<slug>/media/`），推送前要还原。视频不进 git（风格样片 `swatch.mp4` 除外）：成片、样片集锦这类文件放在 GitHub Release `media`，`tools/media.txt` 登记它们在仓库里的路径、文件名和 sha256，`tools/fetch_media.sh` 按它下载。往这个 Release 里放文件是维护者的事，agent 只在维护者要求时做。换一个文件时用新文件名上传（例如 `intro-film-1080p-v2.mp4`），在同一个 PR 里改 `tools/media.txt` 和引用它的链接，合并以后再删旧文件；不要覆盖 main 还在引用的文件，否则在合并之前，按 main 的校验和下载会失败。README 里要直接播放的短片段走 GitHub 的附件链接（每个不到 10 MB）。`tools/ci.sh` 会拦住视频和超过 8 MB 的文件。
+5. 用户能感知到的改动，在 `CHANGELOG.md` 的 Unreleased 里记一笔。改了 `CLAUDE.md` 或 `tools/commands.json`，跑 `bin/vh sync-agents`：它按命令表写好 `CLAUDE.md` 的命令行，再重新生成 `AGENTS.md`。
+6. 提交信息写清改了什么、为什么。末尾可以带 `Co-Authored-By:` 署名行。
+7. PR 说明里写"其余都没问题"之前，把涉及的每个子命令真跑一遍。只改措辞的 PR 也要逐句查行为变没变（#62 的评审就查出过一条底线和类型文档的阅读范围被顺手改了）。
+8. 改了配方的草图（`recipes/` 里"实现"一节定义 `renderAt` 的那段代码），用 `bin/vh recipes sample <id> --draft` 重渲它的联系表：`bin/vh recipes check`（CI 也跑）要求有草图的配方都带联系表，而且 `sketch_sha` 对得上现在的草图。渲联系表要风格样片的渲染器：`styles/_swatch` 里 `npm ci`，再加 ffmpeg、uv 和 Chrome（`bin/vh doctor` 会说缺哪样）；CI 不渲，只核对。
+
+### 外部贡献先主动交接
+
+外部贡献包括维护者以外账号发起的 PR，以及带入自己 PR 的外部提交；来源不清时先查明，不只看 PR 最后显示谁的账号。发现时先介绍一次，准备接收时交付最新的逐项结论。每个 PR 至少说清：
+
+- 编号、链接、作者，以及要解决的具体问题。
+- 实际改变什么，是否新增第三方依赖、安装步骤、费用或权限。
+- 哪些行为已验证，哪些仍未验证；CI 通过不能替代这些说明。
+- 建议接收、修改后接收还是关闭，以及理由；点明接下来由谁执行合并。
+
+外部贡献的批准必须明确指向其编号或提交及外部来源；不要把它混在“其余检查通过”里，不把“继续优化”“推到贡献者分支”或对自己 PR 的长期授权当成批准。批准后出现新的实质改动，重新介绍并确认。外部 fork 运行 CI 的许可与接收代码是两件事：未经用户批准，agent 不替人批准运行，也不开启该外部 PR 的 auto-merge。仅批准运行 CI 不等于批准合并。
+
+## 加命令、加状态
+
+`bin/vh` 的命令都登记在 `tools/commands.json`：名字、一句话、什么时候用、读什么写什么、属于 playbook/01 总表的哪个阶段（0–9；不属于某支片子的记 `env`，任何阶段都用的记 `any`）、用法和子命令。`bin/vh -h`、`bin/vh <命令> -h`、`bin/vh commands` 和 `CLAUDE.md` 的"命令行："那一行都从它生成。加一条命令：在 `bin/vh` 末尾的分发里加一个分支，在表里加一项，再跑 `bin/vh sync-agents`；`tools/ci.sh` 查这三处对得上。这张表是 agent 找工具的入口，以后也是 Studio 命令面板的入口，`bin/vh commands --json` 的字段只加不改。
+
+命令的 `--json` 输出是契约：字段只加不改，schema 在 `tools/schemas/output/`，`tools/ci.sh` 的 `contract_checks`（`tools/test_contract.py`）跑一遍真命令来对；少了字段、改了类型会红，新字段要写进 schema，失败一律是 `tools/jsonerr.py` 的形状。
+
+- **新命令按阶段或题目成组，不再往顶层加动词。** 一组相关的事做成一条命令带子命令，像 `assets add|list|check`、`scout`、`sfx` / `bgm` 这样；子命令记进表里的 `subcommands`。
+- **新命令的参数只写在 `-h` 和 `--json` 里。** 说明写进表里的 `usage`（`bin/vh <命令> -h` 打印它）或工具自己的 `-h`；机读的输出给 `--json`，字段名写进 `-h`，以后只加不改。README 里每条命令最多一行，说它干什么，不解释参数。
+- **新的状态写进机器可读的文件，项目根目录不再加 markdown。** 给工具读的放 JSON（追加的记录用 JSONL，像 `.ovh/activity.jsonl`），带 `"version": 1`，`bin/vh status --json` 能汇总；人写的想法和决定仍然写在模板现有的那几份 markdown 里。版本字段新文件一律拼 `version`；已有文件的 `v`（`edit.json`、台账、活动记录这些）不改名。
+- **新的中间文件在 `tools/artifacts.json` 登记一项。** 一支片子里多了一种文件（命令写的，或者工具开始读的），就加一项：路径、谁写谁读、什么时候必须有、怎么判过期（`stale`，判不了就是 `null`）、`bin/vh clean` 怎么处理它。工具和客户端要靠它的形状时，在 `tools/schemas/` 放一份 schema 和好坏两种 fixture，只用 `tools/schemalite.py` 读得懂的关键字；字段只加不改，所以 schema 只钉必需的字段和类型，允许多字段。`bin/vh artifacts check` 查表和命令表、schema、`tools/clean.py` 对得上：`tools/commands.json` 的 `writes`、`reads` 里 `<project>/…` 的路径没有对应的一项，CI 就不过。反过来，一项里列的 writer，在 `tools/commands.json` 里要有一行 `writes` 写到它的路径（自由文本说不清的，在 `tools/artifacts.py` 的 `NOT_SAID` 里写明原因）。
+- **检查给出路。** `bin/vh check` 新报一类问题（checkrec.py 的一种 kind）时，在 `tools/remedies.json` 给它配一两条出路：能解决它的配方筛选、命令或文档的一节。检查只报告，出路只给选项；`tools/remedies.py check` 查每条都真有其物。
+- **外接模块记在 `tools/modules.json`。** 别人在维护、我们只是调用的东西（程序、npm 和 Python 包、模型、联网的服务、agent），在第一次有命令用它的那个 PR 里登记一项：用途；版本（`pin` 钉死的，`min` 最低，`range`，`tested` 测过的，服务写默认模型，按日期发版的工具可以给 `max_age_days`）；许可；要什么账号、key、平台，以及依赖这张表里的哪些模块（`needs`，模块名写在 `programs` 里，只在某个平台能用的再写 `elsewhere`：别处用什么）；适配文件在哪（`adapter`）；哪些命令用它（`commands`）；`bin/vh doctor` 怎么查它（`check`）。联网的服务再给一个不花钱的探测（`probe`，`bin/vh doctor --probe` 调它）。key 只放进 header，不进 URL，不跟着重定向走，只走 https（本机除外），不打印，失败时也只报状态码和错误码。改钉的版本时表里的 `pin` 一起改：HyperFrames 的，CI 拿它和 `bin/vh`、`styles/_swatch/package.json` 对。表本身用 `python3 tools/doctor.py --check` 查。
+
+## 改文档：四个绑定点
+
+真正改变一支片子怎么做的只有四样：必读的文档、模板里必填的格子、流程的形状（在哪停、停下来交什么）、评审的尺子。改其中一样，所有片子都跟着变，所以要单独改、写明理由；配方、风格、案例这些卡片，工具的默认值，样片，用到才起作用，加多少都不碍事。
+
+- **必读**：CLAUDE.md 路由到的那几篇，读量见下面 `tools/readpath.py` 打印的表。每加一段，每支片子都多读一段、多被它锚住一点；新知识先做成卡片或工具的默认值，必读里留一行指向。
+- **模板**：BRIEF 的 Content 这类"想"的部分保持散文；工具要读的字段照上一节放进 JSON 文件，不再往 markdown 表里加结构，`gate-<n>.json` 就是这样。BRIEF Spec 里一行一个的 `Key: value`（`Effort:`、`Budget:` 这些）是现有的约定，不算新加的结构。
+- **流程的形状**：关卡是底线，停下来交的东西可以换形式，例如草图立意卡（`playbook/12-ideation.md` 第 7 节）。
+- **评审的尺子**：`templates/TASTE_CHECKLIST.md` 的底线条目和打分层。reviewer 先写这支片子想做什么，再对着它打分；作者不采纳它的建议、写一行理由，是正当的结果。
+
+## 推送前自查：`tools/ci.sh`
+
+本地和 CI 跑的是同一个脚本。整套在一台 M3 Max 上要 10 分钟左右；CI 的 Linux 机器一次跑完，约 15 分钟；CI 的 macOS 机器慢约 1.9 倍（2026-10-29 实测，同一套检查 29 分钟对 15.4 分钟），分成两个 shard 并排跑，按实测秒数分好以后每个约 14.5 分钟（头一次估的两半是 16.3 和 12.7 分钟）：
+
+```bash
+tools/ci.sh                        # 全部检查；没装 shellcheck、pyflakes、ffmpeg 时，相应几项会跳过
+tools/ci.sh --committed            # 只检查已提交的内容（HEAD），和 CI 看到的一样；推送前用这个
+LC_ALL=en_US.UTF-8 VH_BASH=/bin/bash /bin/bash tools/ci.sh   # macOS：系统自带的 bash 3.2 加 UTF-8 locale，Mac 用户默认就是这样，CI 的 macOS 也是
+tools/ci.sh --shard 1/2            # 只跑两个 shard 里的第 1 个，CI 的 macOS 就是这样分两半跑的
+```
+
+跑完会打印总时长、每组检查各用了几秒，和最慢的十项。分组和每组的秒数记在 `tools/ci-shards.txt` 里，秒数按 CI 的 macOS 机器算：`--shard i/n` 照这些秒数把组分给各个 shard，长的先分，每次分给目前秒数最少的那个，同一张表永远分得一样。新加一组检查（`tools/ci.sh` 里一个 `*_checks` 函数）要在表里加一行，`tools/ci.sh` 会查表和函数对不对得上。两个 macOS shard 的用时差出一两分钟以上，就把两个 shard 日志末尾的各组秒数抄回表里，重新分匀。
+
+本地没装 shellcheck 和 pyflakes 时，这两项会跳过，CI 的 Linux 机器却会查，推上去才红。有 `uv` 的话不用装（shellcheck-py 的版本可能和 CI 的不同，以 CI 为准）：
+
+```bash
+d=$(mktemp -d) && printf '#!/bin/sh\nexec uvx --from shellcheck-py shellcheck "$@"\n' > "$d/shellcheck" && chmod +x "$d/shellcheck" && PATH="$d:$PATH" uv run --no-project --with pyflakes -- bash tools/ci.sh --committed
+```
+
+每组检查都对应 v0.2.1 复查时发现的一类问题：
+
+| 检查 | 防的是什么 |
+|---|---|
+| shell 语法、shellcheck | 语法错误、未加引号、ffmpeg 在 `while read` 循环里吃掉 stdin |
+| 只在一个平台存在的命令 | `sed -i ''`、`stat -f`、`md5 -q` 这类只在 macOS 能用的写法（在 Linux 上会让样片渲染和建项目直接失败），以及只在 Linux 能用的 `stat -c`、`readlink -f`、`grep -P` |
+| Python、JS 语法和 pyflakes | 语法错误、未定义的名字 |
+| 文档和命令行一致 | 命令表 `tools/commands.json`、`CLAUDE.md` 的命令行和 `bin/vh` 实际分发的命令对不上；表里缺一句话、阶段或用法，阶段名和 playbook/01 的总表不一致；文档里写了不存在的 `bin/vh` 子命令；`AGENTS.md` 没有同步 |
+| 外接模块表 | `tools/modules.json` 里写了不存在的命令或适配文件、不认识的字段；探测不走 https、把 key 放进 URL；HyperFrames 钉的版本在 `bin/vh`、`styles/_swatch/package.json` 和表里不一样；`bin/vh doctor` 把 key 的值打出来 |
+| 产物表 | `tools/artifacts.json` 写了不存在的命令、文档或 schema；`tools/schemas/` 里有一份 schema 没有项指向它；说 `bin/vh clean` 怎么处理一种文件，和 `tools/clean.py` 在一棵假树上实际做的不一样；`tools/commands.json` 写的项目里的路径，表里没有；schema 和真的 jsonschema、`tools/schemalite.py` 三者在 fixture 上说法不一 |
+| README 和官网的数字和链接 | 两份 README、`docs/assets/overview.*.svg`、`install.sh` 和官网写的命令数、风格数、配方数这类数字和仓库对不上（`python3 tools/readme.py` 列出现在的数）；链接或图片指向不存在的文件，`#锚点` 不是那一页的标题；中英两份 README 的小节数或链接的文件对不上；官网的风格列表不是仓库里的那些风格、中英文段数不一样，或者页面一打开就从别的网站加载字体、脚本、图片 |
+| 研究笔记两种语言对齐 | `docs/research/` 的一篇笔记缺了英文版或中文版，两版的节数（`##`、`###`）、表格行数、图的张数，或者某一节（`##`）里的列表条目数对不上；中英两份索引漏了一篇、多列了不存在的一篇，或顺序不对 |
+| `bin/vh` 冒烟测试 | 打错命令也返回 0；`--effort`、`--style` 没写进项目；字幕语言被文件夹名带偏（`/home/zhang/…` 下的英文字幕被标成中文）；音频比画面短时被截断；gif 输出名算错 |
+
+另外，`tools/ci.sh` 会打印一张读量表（`tools/readpath.py`）：按 CLAUDE.md 的路由和 quick 卡，估算每一档、每一类片子要读多少字符（`start` 一列是 `standard` 开工前读的，不含有声片才读的 `playbook/04-audio.md`；`standard` 是到第一版之前陆续读完的总量），用来看文档有没有越写越长，上限以后再定。数字本身不判失败；它要数的文件或章节不见了，CI 会报错，免得这张表悄悄变小。
+
+## 联网的命令怎么测
+
+下载素材、调生成服务、查平台数据的命令（`bin/vh assets add <url>`，批 1 的 footage、image、声音库）要联网，有的还调付费接口；CI 里被测的命令不联网、不花钱（CI 自己会用 uv 装测试用的包）。所以每条这样的命令都守三条：
+
+- **配一份录好的响应。** 请求都走 `tools/assets/fetch.py`：`download` 管断点续传、限速和 sha256，`get_json` 管接口。`bin/vh doctor --probe` 是例外：探活用它自己的 urllib，也有 `--offline`，读的是同一种录音。设 `OVH_RECORD=<文件夹>` 在线跑一次，每个响应存进那个文件夹的 `responses.json`；挑出要用的，放进这条命令自己的 `fixtures/`。录下来的不含请求头（key 在请求头里），也不含 cookie；正文超过 256 kB 只留前 256 kB。进仓库的正文用合成的字节或很小的 JSON，不放别人的整份作品。
+- **有 `--offline <文件夹>`。** 命令照常跑，只是响应从录音里取（`fetch.Replay`；Range 照样回答，续传也能离线测）。找不到对应的 URL 就失败，不会偷偷联网。
+- **CI 只测解析、台账写入和许可分类。** 用录好的响应跑命令，查三样：解析出的字段；写进 `assets/ledger.json` 的记录，对着 `tools/assets/asset.schema.json` 查；许可落进哪一类（`tools/assets/licenses.py`，对照表是 `tools/assets/fixtures/licenses.tsv`）。活的接口不进 CI，由 `bin/vh doctor --probe` 探（`tools/modules.json` 里登记的服务）。
+
+调付费接口的命令还要守预算：每次调用都包在 `tools/assets/budget.py` 的 `with budget.hold(项目, 估价, 币种, 做什么) as h:` 里。它在锁里检查并预占这笔估价，没有预算或者超了就拒绝，并说差多少；几个进程同时调用也不会一起越过预算。调用完用 `h.settle(实际花费)` 结算，没计费就记 0；出了异常没结算，按估价算。登记产物时把花费交给 `ledger.add(…, cost=…)`，花费记录里已有的不会重记。key 只从环境变量读，放在请求头里，不进 URL、录音和日志；记录和报错里的 URL 都去掉 query 的值（`fetch.redact`），带 key、token、签名的 URL 不录。
+
+## 在 GitHub 上启用规则集
+
+规则集的配置在 [`.github/rulesets/main.json`](.github/rulesets/main.json)。本仓库已经在 2026-09-30 按这个文件启用了规则集 `main-via-pr`，同一天打开了 Allow auto-merge（见下面第 3 步）。改了文件以后，把线上配置同步过去：`gh api --method PUT repos/ZLHad/OpenVideoHarness/rulesets/<id> --input .github/rulesets/main.json`，`<id>` 用 `gh api repos/ZLHad/OpenVideoHarness/rulesets` 查。
+
+新仓库或 fork 从头启用时，按这个顺序来：
+
+1. **先让 CI 跑起来。** 合并带 `.github/workflows/ci.yml` 的 PR，并确认它在一个 PR 上跑出过两项检查。要是 CI 还没跑过就启用规则集，它要求的两项检查永远等不到，所有 PR 都合不了。
+2. **导入规则集。** Settings → 规则集（Rules → Rulesets）→ 新建规则集（New ruleset）→ 导入规则集（Import a ruleset），选 `main.json`。也可以在"新分支规则集"页面里手动填：
+
+   | 页面上的项 | 填什么 |
+   |---|---|
+   | 规则集名称 | `main-via-pr` |
+   | 执行状态 | 已启用（Active） |
+   | 绕过列表 | 添加旁路 → 角色 → Repository admin，模式选"仅限拉取请求"（For pull requests only） |
+   | 目标分支 | 添加目标 → 包括默认分支（Include default branch） |
+   | 限制删除（Restrict deletions） | 勾选 |
+   | 要求线性历史（Require linear history） | 勾选 |
+   | 合并前需要拉取请求（Require a pull request before merging） | 勾选。所需批准数填 0；勾"合并前需要解决对话"（Require conversation resolution）；允许的合并方式只留 Squash |
+   | 需要状态检查通过（Require status checks to pass） | 勾选。勾"合并前要求分支是最新的"（Require branches to be up to date）；添加 `checks (ubuntu-latest)` 和 `checks (macos-latest)` |
+   | 阻止强制推送（Block force pushes） | 勾选 |
+
+3. **仓库设置。** Settings → General → Pull Requests：只保留 Allow squash merging；勾选 Always suggest updating pull request branches、Allow auto-merge 和 Automatically delete head branches。命令行：`gh api -X PATCH repos/ZLHad/OpenVideoHarness -F allow_squash_merge=true -F allow_merge_commit=false -F allow_rebase_merge=false -F allow_update_branch=true -F allow_auto_merge=true -F delete_branch_on_merge=true`。
+
+### 为什么这样设计
+
+- **绕过模式选"仅限拉取请求"，不选"始终"。** agent 在这个仓库里推送时用的是主人的身份，[第一个 PR](https://github.com/ZLHad/OpenVideoHarness/pull/1) 的作者显示的就是仓库主人。给管理员开"始终绕过"，agent 也就能直接推 main。选"仅限拉取请求"以后，谁都不能直接推 main；主人在 PR 里仍然可以绕过检查强行合并，留作应急。
+- **两项检查只认 GitHub Actions 报的结果**（`integration_id` 15368）。agent 拿着主人的 token，能给提交写一个同名的"成功"状态；指定来源以后，这种伪造的状态不算数。
+- **提交关联不到 GitHub 账号时要多一个批准**（`require_extra_approval_for_unattributed_changes`）。GitHub 创建规则集时默认就会打开，文件里写明是为了和线上一致。agent 的提交要用关联了账号的邮箱，否则这个 PR 需要管理员在 PR 里绕过才能合并。
+- **批准数填 0。** GitHub 不允许批准自己的 PR，而 agent 开的 PR 作者也是主人自己。要求 1 个批准的话，没有第二个人就什么都合不了。以后有了协作者，改成 1。
+- **CI 同时跑 Linux 和 macOS。** 这次最严重的几个 bug 都只在一个平台上出现：维护者在 Mac 上一切正常，Linux 用户却渲染不了样片。在 macOS 上还专门用系统的 bash 3.2 跑 `bin/vh`。
+- **macOS 那一项是汇总。** macOS 的检查分两个 shard 并排跑（`macos shard 1/2`、`macos shard 2/2`），规则集要求的 `checks (macos-latest)` 是另一个 job：等所有 shard 跑完，shard 那一组 job 的结果是通过（每个 shard 都通过）才算通过。它带 `if: always()`，shard 失败、被取消、没启动时照样运行并报失败。GitHub 把被跳过的必需检查当成通过，汇总 job 要是能被跳过，红的 PR 也可能被自动合并。`tools/ci.sh` 的 doc_checks 会查：规则集要求的两项都是 ci.yml 里某个 job 的名字，`checks (macos-latest)` 带着 `if: always()`。
+- **要求分支是最新的。** [第一个 PR](https://github.com/ZLHad/OpenVideoHarness/pull/1) 开着的时候 main 发了 v0.2.1，两边改了同一个文件。要求同步到最新以后，CI 检查的是合并后的真实结果，不是过期的分支。
+- **CI 只在 PR 上跑，main 每晚跑一次。** 合进 main 的 PR 都在同步到最新 main 的分支上过了两项检查，squash 落下的就是那棵树（`tools/land.py done` 核对这一点），合并以后在 main 上再跑一遍，测的还是同一棵树。每晚跑一次为两件事：PR 只能用它自己的和 main 的缓存，main 长期不跑，缓存会过期；runner 的系统、Chrome、brew 的 ffmpeg 会变，每晚跑能早点发现。手动跑：Actions 页面的 Run workflow，或 `gh workflow run ci.yml --ref <分支>`。
+- **squash 加线性历史。** 一个 PR 在 main 上只留一个提交，说明取自它在 CHANGELOG 里加的条目。
+- **打开 auto-merge。** 它只是"检查过了就合并"的排队，规则集的每一项照样要满足，合并方式也只能是 squash；好处是 CI 要跑几分钟时，人和 agent 都不用守着。
+
+**账号权限与本人操作要分开。** agent 用主人的 GitHub 凭据时，GitHub 无法区分主人和 agent；文档约定和关闭 auto-merge 都不构成凭据隔离。只去掉 Administration 也不能阻止合并：[合并 API 需要的是 Contents 写权限](https://docs.github.com/en/rest/pulls/pulls#merge-a-pull-request)。
+
+要在技术上把合并留给本人，agent 的运行环境不能再访问主人的 token、SSH 密钥或已登录浏览器。可选做法是给 agent 独立身份，只向它自己的 fork 推送、向主仓库提 PR，不授予主仓库 Contents 写权限；主人的合并凭据留在人自己的环境。若 agent 必须推主仓库的工作分支，则还需用分支规则限制该独立身份更新 main，不能仅凭“低权限 token”就宣称它无法合并。部署后分别以 agent 身份验证能提 PR、不能更新 main 或合并，再以主人身份验证能在检查通过后合并。
+
+### 版本 tag 和 Release
+
+2026-09-30 起，版本 tag（`refs/tags/v*`）由两个规则集保护。GitHub 的绕过权限按规则集算，不按单条规则算，所以拆成两个：
+
+- `release-tags-create`（[`.github/rulesets/tags-create.json`](.github/rulesets/tags-create.json)）：限制创建，仓库管理员可以绕过，用来发新版本；
+- `release-tags-immutable`（[`.github/rulesets/tags-immutable.json`](.github/rulesets/tags-immutable.json)）：限制更新和删除，没有任何人能绕过，包括管理员和用管理员 token 的 agent。真要改，只能由人临时停用这个规则集。
+
+同一天补打了 `v0.1.0`、`v0.2.0`、`v0.2.1` 三个 Release，说明取自 `CHANGELOG.md` 对应的一节。
+
+另有一个不是版本的 Release `media`（tag `media`，2026-10-04 由 agent 在维护者同意后建）：放样片和风格集锦的视频文件，规则见上面第 4 条。它的 tag 不移动，也不受上面两个规则集保护（规则集只管 `v*`）；换文件按第 4 条用新文件名，不覆盖。
+
+发新版本的做法：把 `CHANGELOG.md` 的 Unreleased 改成 `## vX.Y.Z — 日期`，经 PR 合并进 main，然后由维护者在合并后的提交上建 Release（`gh release create vX.Y.Z --target <提交> --latest --notes-file <这一节>`；`media` 也是一个 Release，不写 `--latest` 它可能还标着 Latest）。这一节太长时（GitHub 的说明上限是 125,000 字符），在这一节开头写一段摘要，说明只用摘要，末尾链到这个 tag 的 `CHANGELOG.md`。tag 一旦建好就不再移动；发错了就发一个新的补丁版本。改了这两个文件以后，用 `gh api --method PUT repos/ZLHad/OpenVideoHarness/rulesets/<id> --input <文件>` 同步线上配置，`<id>` 用 `gh api repos/ZLHad/OpenVideoHarness/rulesets` 查。

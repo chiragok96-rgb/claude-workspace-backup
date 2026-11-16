@@ -1,0 +1,82 @@
+"""bin/vh desk: the review desk, a local page where the reviewer ticks, comments and submits each stop.
+
+  bin/vh desk <project> [--port N] [--idle s]   serve the desk (127.0.0.1; default: the first free port of 8780–8799;
+                                                --port 0: any free port). Already serving this project: print its URL.
+                                                --idle s: stop after s seconds without a request (bin/vh gate: 12 h)
+  bin/vh desk wait <project> [--timeout s]      block until the reviewer submits, print the feedback, exit 0 (3 on
+                                                timeout; default 7100 s). An agent runs it in the background after each
+                                                stop: its exit is the wake-up call. A submission for the current page that
+                                                came in before it was armed, and was never handed over, is printed at once.
+  bin/vh desk feedback <project> [--round r] [--json]   print the latest submission (exit 1 when there is none); it then
+                                                counts as handed over (out/review/feedback/.consumed)
+  bin/vh desk data <project>                    print the data the desk shows, as JSON (what reader.py makes of the files)
+
+The desk reads the same out/review/gate-<n>.json as bin/vh review, plus the project's markdown (the contract is in
+tools/desk/README.md). A submission goes to out/review/feedback/<round>-<time>.json and .md, and its text into
+REVIEW.md as a dated section. <project> is a folder, or a name under $OVH_PROJECTS / projects/ (date prefix optional).
+"""
+import argparse, json, sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parent))
+import jsonerr   # noqa: E402
+
+
+def find(arg):
+    from vhdraw import project_dir   # the lookup bin/vh new, storyboard and review use (no pillow needed)
+    try:
+        return project_dir(arg)
+    except SystemExit as e:
+        print(e, file=sys.stderr)
+        return None
+
+
+def main(argv):
+    sub = argv[0] if argv and argv[0] in ("wait", "feedback", "data") else "serve"
+    rest = argv[1:] if sub != "serve" else argv
+    ap = argparse.ArgumentParser(prog="bin/vh desk" + ("" if sub == "serve" else " " + sub),
+                                 description=__doc__.split("\n\n")[0], formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("project", help="project folder, or its name under projects/")
+    if sub == "serve":
+        ap.add_argument("--port", type=int, help="port on 127.0.0.1 (default: the first free of 8780–8799; 0: any free)")
+        ap.add_argument("--idle", type=float, help="stop after this many seconds without a request (an open desk page asks every "
+                                                   "few seconds); default: never. bin/vh gate starts it with 43200 (12 h)")
+    elif sub == "wait":
+        ap.add_argument("--timeout", type=float, default=7100, help="seconds to wait (default 7100, under Claude Code's 2 h)")
+    elif sub == "feedback":
+        ap.add_argument("--round", help="only this gate page (1, 2b, E3 …)")
+        ap.add_argument("--json", action="store_true", help="print the JSON record instead of the text")
+    else:
+        jsonerr.force()   # bin/vh desk data speaks JSON: a failure too
+        ap.add_argument("--json", action="store_true", help="it always is (a client may say so)")
+    a = ap.parse_args(rest)
+    project = find(a.project)
+    if not project:
+        jsonerr.mark("no_project")
+        return 2
+    if sub == "serve":
+        import server
+        return server.serve(project, a.port, a.idle if a.idle and a.idle > 0 else None)
+    import feedback as F
+    if sub == "wait":
+        return F.wait(project, a.timeout)
+    if sub == "feedback":
+        path, rec = F.latest(project, a.round)
+        if not path:
+            return jsonerr.fail("not_found", f"no feedback{' for round ' + a.round if a.round else ''} in {project}/out/review/feedback/", rc=1)
+        if a.json:
+            print(json.dumps(rec, ensure_ascii=False, indent=1))
+        else:
+            F.show(path, rec)
+        F.mark_consumed(project, [path])   # handed over: a later bin/vh desk wait doesn't print it again
+        return 0
+    import reader
+    print(json.dumps(reader.read_project(project), ensure_ascii=False, indent=1))
+    return 0
+
+
+if __name__ == "__main__":
+    import activity   # tools/activity.py: bin/vh exec's into this, so this process writes the run's end
+    sys.exit(activity.exiting(lambda: jsonerr.guard(lambda: main(sys.argv[1:]))))

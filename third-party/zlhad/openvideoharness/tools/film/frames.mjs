@@ -1,0 +1,292 @@
+// frames: still frames, a range or a strip of every frame, drawn from a page's source through the page contract
+// (engines/CONTRACT.md), for any engine that is a web page: ClaudeAnimationBase (studio.html), a page that writes
+// window.film, and HyperFrames compositions. No render and no video encode: each frame is the page drawn at t and
+// captured as a lossless PNG.
+//
+// usage: node tools/film/frames.mjs <project | page.html> --browser <chrome>
+//          (--at t[,t…] | --range a:b[:step] | --strip a:b | --covers[=id,…] [--no-title] [--ratios 9:16,…]) [--entry S03] [--fps 30] [--cols 6] [--cell 320]
+//          [--motion-blur N [--shutter 0.5]] [--out dir] [--size WxH] [--dpr 1] [--real-clock] [--soft-gl] [--runtime auto|on|off]
+//          [--frame-timeout 120] [--timeout 600]
+//        (bin/vh frames finds the browser: CHROME_PATH, HyperFrames' chrome-headless-shell, then Chrome or Chromium)
+//
+//   --at 1.2,3.4        the frames at these seconds (to the millisecond)
+//   --range 2:4[:0.5]   every 0.5 s (default 1 s) from 2 s to 4 s, the end left out when it is the film's end
+//   --strip 2:2.5       every frame (--fps, default 30) from 2 s up to 2.5 s, and one picture of them all
+//                       (--cols per row, each --cell px wide), left to right, top to bottom. When a falls on a frame,
+//                       each is drawn at k / fps exactly, the t bin/vh render draws (an engine that floors t would
+//                       draw another picture at a t rounded to the millisecond)
+//   --covers[=A,B]      the page's covers (window.film.covers: [{ id, t }], picked by cue in canvas-film), each drawn by
+//                       the page's cover(id) when it has one (its own camera nudge and title), else as the frame at its t;
+//                       written to <out>/<id>.png, out defaulting to <project>/out/covers
+//   --motion-blur 8     with --at, --range or --strip: each frame the mean of 8 sub-frames over --shutter (0.5 of a frame,
+//                       centred on its time), as bin/vh render --motion-blur draws it (tools/film/blur.mjs: the same times,
+//                       cut short at the film's ends, at an edit list's cuts and at the page's shot boundaries; give the
+//                       render's --fps; an --at time within half a millisecond of a frame is that frame), averaged by
+//                       ffmpeg into the lossless PNG. A look at the blur before a render
+//   --no-title          the covers without their title: a clean background, <id>-clean.png (the film's frames have none)
+//   --ratios 9:16,3:4   each cover in these aspect ratios as well, <id>-9x16.png: a crop of the cover's picture (nothing
+//                       outside the film's frame is drawn) around the focus the page gives, with a title the page lays
+//                       out for that ratio; short side 1080 px x --dpr (a 1920x1080 film). The page draws at the device
+//                       pixel ratio the crop needs, so nothing is scaled up. Needs a page whose cover(id, { ratio })
+//                       returns the crop (canvas-film: ratios in COVERS, engines/canvas-film/README.md)
+//   --size 1080x1920    the viewport; without it, HyperFrames' data-width and data-height, else the page's meta viewport,
+//                       else 1920x1080. A page's window.film.width and height win over all of these
+//   --dpr 2             the device pixel ratio: twice the pixels for a page that sizes its canvas by devicePixelRatio, as
+//                       the contract asks (4K for a 1920x1080 page); a fixed-size canvas is only scaled up
+//   --real-clock        no clock pinning (tools/film/clock.js), only window.filmHost: to see what a page does without it
+//   --runtime           HyperFrames' runtime for a composition: auto (when it writes no window.film or window.__vh), on, off
+//   --frame-timeout 120 a frame or a cover not back after this many seconds stops the run at once (exit 2), naming it: the
+//                       page's frame never returned, or the browser stopped painting; --timeout bounds the whole run, and
+//                       given without --frame-timeout it is a frame's cap too (a page whose frames are that slow)
+//   OVH_PAGE_TIMEOUT=S  how long the page may take to set window.film and to be ready (tools/film/host.mjs): by default
+//                       --frame-timeout's seconds, at least 30 s for window.film and 120 s for each of ready and the fonts
+//
+// A project folder means its film.html, else index.html, else studio.html; the page is served from its own folder.
+// A project with an edit list (edit.json, engines/EDIT.md) means the film it lays out: each time is drawn the way the
+// entry it falls in is (its page at the film's time or its own, its image, its slate), the frame rate and size are the
+// edit list's (--fps and --size are not taken), and the files are <out>/edit-t<seconds>.png.
+//   --entry S03         with --at, --range or --strip: the times are seconds into that entry (0 is its first frame),
+//                       not the film's (<out>/edit-S03-t<seconds>.png)
+// A page shorter than its entry, without "hold", is refused when it is opened (exit 2). --covers is not taken there yet.
+// Writes <out>/<page>-t<seconds>.png (out defaults to <project>/out/frames) and, for --strip, <out>/<page>-strip-<a>-<b>.jpg
+// with the frames in a folder beside it. Exit: 0 drawn · 1 a frame threw, or the page reported an error or a failed
+// load (while loading, while drawing, or just after the last frame) · 2 could not draw (no page, no window.film, not
+// ready, no browser, a time outside the film).
+import fs from "node:fs";
+import path from "node:path";
+import { spawnSync } from "node:child_process";
+import { openFilm, findPage, readPage, HostError } from "./host.mjs";
+import { EditError, editProject, openEdit, build as buildEdit } from "./edit.mjs";   // an edit list's film (engines/EDIT.md)
+import { MAX_SAMPLES, blurs, meanFilter, offsets, pageBounds, runBounds } from "./blur.mjs";   // --motion-blur, as bin/vh render draws it
+import { frameAt, frameFrom } from "./timegrid.mjs";
+import "./activity.mjs";   // bin/vh exec's into this: the run's end line in the project's activity log
+
+process.stdout.on("error", (e) => { if (e.code !== "EPIPE") throw e; });
+const HELP = fs.readFileSync(new URL(import.meta.url), "utf8").split("\nimport ")[0].replace(/^\/\/ ?/gm, "");
+const argv = process.argv.slice(2);
+if (!argv.length || argv.includes("-h") || argv.includes("--help")) { process.stdout.write(HELP.trimEnd() + "\n"); process.exit(argv.length ? 0 : 2); }
+let film = null;
+// every way out closes the browser (and its profile folder) first
+const finish = async (code, msg) => {
+  if (msg) console.error("frames: " + msg);
+  if (film) { const f = film; film = null; try { await f.close(); } catch { /* gone */ } }
+  process.exit(code);
+};
+const die = (msg) => finish(2, msg);
+process.on("unhandledRejection", (e) => finish(2, (e && e.message) || String(e)));
+const o = { fps: 30, cols: 6, cell: 320, dpr: 1, timeout: 600, frameTimeout: 120, runtime: "auto", blur: 1, shutter: 0.5 };
+let target = null, at = null, range = null, strip = null, covers = null, out = null, size = null, ratios = null, noTitle = false, entry = null, fpsGiven = false, shutterGiven = false, blurGiven = false;
+let frameCap = null, timeoutGiven = false;   // where a frame's cap came from: --frame-timeout, --timeout, else the default
+const r3 = (t) => Math.round(t * 1000) / 1000;
+for (let i = 0; i < argv.length; i++) {
+  const a = argv[i], [k, inline] = a.startsWith("--") && a.includes("=") ? [a.slice(0, a.indexOf("=")), a.slice(a.indexOf("=") + 1)] : [a, undefined];
+  const val = () => { const v = inline !== undefined ? inline : argv[++i]; if (v === undefined) bail(`${k} needs a value`); return v; };
+  const num = (v, what, min = 0) => { const x = Number(v); if (v === "" || !Number.isFinite(x) || x < min) bail(`${what}: ${v === "" ? "(empty)" : v} is not a number ≥ ${min}`); return x; };
+  if (k === "--at") { at = val().split(",").map((v) => r3(num(v.trim(), "--at"))); }
+  else if (k === "--range") range = val().split(":").map((v) => num(v, "--range"));
+  else if (k === "--strip") strip = val().split(":").map((v) => num(v, "--strip"));
+  else if (k === "--covers") covers = inline !== undefined ? [...new Set(inline.split(",").map((x) => x.trim()).filter(Boolean))] : [];
+  else if (k === "--no-title") noTitle = true;
+  else if (k === "--ratios") ratios = [...new Set(val().split(",").map((x) => x.trim()).filter(Boolean))];
+  else if (["--fps", "--cols", "--cell", "--timeout"].includes(k)) { o[k.slice(2)] = num(val(), k, 1); if (k === "--timeout") timeoutGiven = true; if (k === "--fps") fpsGiven = true; }
+  else if (k === "--entry") entry = val();
+  else if (k === "--motion-blur") { o.blur = num(val(), k, 1); blurGiven = true; if (!Number.isInteger(o.blur) || o.blur > MAX_SAMPLES) bail(`--motion-blur: a whole number of sub-frames a frame, 1 to ${MAX_SAMPLES} (1: no blur)`); }
+  else if (k === "--shutter") { o.shutter = num(val(), k, 0); shutterGiven = true; if (!(o.shutter > 0 && o.shutter <= 1)) bail("--shutter: a fraction of a frame, more than 0 and at most 1 (0.5: a 180° shutter)"); }
+  else if (k === "--frame-timeout") { o.frameTimeout = num(val(), k, 1); frameCap = "--frame-timeout"; }
+  else if (k === "--dpr") o.dpr = num(val(), k, 0.25);
+  else if (k === "--out") out = val();
+  else if (k === "--size") { const m = val().match(/^(\d+)x(\d+)$/); if (!m || !+m[1] || !+m[2]) bail("--size: write it as 1920x1080"); size = [+m[1], +m[2]]; }
+  else if (k === "--browser") o.browser = val();
+  else if (k === "--real-clock") o.realClock = true;
+  else if (k === "--soft-gl") o.softGl = true;
+  else if (k === "--runtime") { o.runtime = val(); if (!["auto", "on", "off"].includes(o.runtime)) bail("--runtime: auto, on or off"); }
+  else if (k.startsWith("-")) bail(`unknown option ${k} (-h for the options)`);
+  else if (target) bail(`one project or page, got ${target} and ${a}`);
+  else target = a;
+}
+if (!frameCap && timeoutGiven) { o.frameTimeout = o.timeout; frameCap = "--timeout"; }   // a raised --timeout raises a frame's cap with it
+// argument errors come before any browser: exit at once
+function bail(msg) { console.error("frames: " + msg); process.exit(2); }
+if (!target) bail("which project or page? (-h for the usage)");
+if (!o.browser) bail("no browser: pass --browser <chrome>, or run it as bin/vh frames");
+if ([at, range, strip, covers].filter(Boolean).length !== 1) bail("say which frames: one of --at, --range, --strip or --covers");
+if (at && !at.length) bail("--at needs at least one time");
+if (range && (range.length < 2 || range.length > 3 || range[1] < range[0] || (range.length === 3 && !(range[2] > 0)))) bail("--range a:b[:step], b ≥ a, step > 0");
+if (strip && (strip.length !== 2 || strip[1] <= strip[0])) bail("--strip a:b, b > a");
+if ((noTitle || ratios) && !covers) bail(`${noTitle ? "--no-title" : "--ratios"} goes with --covers`);
+if (shutterGiven && !blurGiven) bail("--shutter goes with --motion-blur N: the sub-frames it spreads");
+if (o.blur > 1 && covers) bail("--motion-blur goes with --at, --range or --strip: a cover is a still");
+const RATIO = /^(\d+(?:\.\d+)?):(\d+(?:\.\d+)?)$/, ratioOf = (r) => { const m = r.match(RATIO); return m && +m[1] > 0 && +m[2] > 0 ? +m[1] / +m[2] : 0; };
+if (ratios && (!ratios.length || ratios.some((r) => !ratioOf(r)))) bail(`--ratios: write them as 9:16,3:4,4:3 (got ${ratios.join(",") || "nothing"})`);
+// an edit list's film: its frame rate and size, and --entry's times from that entry's first frame
+const editRoot = editProject(target);
+let doc = null, ent = null;
+if (editRoot) {
+  if (covers) bail("--covers on an edit list's film is not taken yet: draw a cover's moment with --at <t>, or run --covers on the page of its entry");
+  if (size) bail("--size: an edit list's film is drawn at its own size (edit.json's size)");
+  try { doc = buildEdit(editRoot, false); } catch (e) { bail(e.message); }
+  if (fpsGiven && o.fps !== doc.fps) bail(`--fps ${o.fps}: an edit list's film runs at its own ${doc.fps} fps (edit.json)`);
+  o.fps = doc.fps;
+  if (entry) { ent = doc.entries.find((x) => x.id === entry); if (!ent) bail(`no entry ${entry} (the edit list has ${doc.entries.map((x) => x.id).slice(0, 20).join(", ")})`); }
+} else if (entry) bail("--entry names an entry of an edit list (edit.json): this is a page");
+
+let times = at ? [...new Set(at)] : covers ? [] : null;
+if (range) { const step = range[2] || 1; times = []; for (let k = 0; range[0] + k * step <= range[1] + 1e-9; k++) times.push(r3(range[0] + k * step)); }
+if (strip) {   // on render's frame grid when the strip starts on it: t = k / fps, not rounded
+  const n = Math.max(1, Math.round((strip[1] - strip[0]) * o.fps)), f0 = strip[0] * o.fps, on = Math.abs(f0 - Math.round(f0)) < 1e-6;
+  times = Array.from({ length: n }, (_, k) => (on ? (Math.round(f0) + k) / o.fps : strip[0] + k / o.fps));
+}
+if (times.length > 2000) bail(`${times.length} frames is a render, not a check: use a shorter span`);
+
+const watchdog = setTimeout(() => finish(2, `stopped after ${o.timeout} s (--timeout); a frame function that never returns?`), o.timeout * 1000);
+watchdog.unref();
+// one frame or cover: back within --frame-timeout, or the run stops there and says which (a page or a browser that
+// stopped painting does not come back, and what is queued behind it would not either)
+const timely = (p, what) => {
+  let timer;
+  p.catch(() => { /* given up on: what it says once the browser closes is not news */ });
+  return Promise.race([p, new Promise((_, no) => { timer = setTimeout(() => no(Object.assign(new Error(`${what}: no picture after ${o.frameTimeout} s ` +
+    `(${frameCap || "--frame-timeout"}): the page's frame never returned, or the browser stopped painting`), { stuck: true })), o.frameTimeout * 1000); })]).finally(() => clearTimeout(timer));
+};
+// a ratio cover is a crop: the page draws at the device pixel ratio that gives the crop its full size (a 9:16 crop of a
+// 1920x1080 frame is about 600 px wide, 1080 px x --dpr in the output: about 1.8 x --dpr), so the picture is not scaled up.
+// The crop as the engine makes it (canvas-film coverBox): a x n by b x n px, a:b the ratio in whole numbers
+const gcd = (p, q) => (q ? gcd(q, p % q) : p);
+const dprFor = (fw, fh) => {
+  if (!ratios) return o.dpr;
+  const S = Math.min(fw, fh), need = ratios.map((r) => {
+    const [u, v] = r.split(":"), f = 10 ** Math.max((u.split(".")[1] || "").length, (v.split(".")[1] || "").length);
+    const p = Math.round(+u * f), q = Math.round(+v * f), a = p / gcd(p, q), b = q / gcd(p, q), n = Math.max(1, Math.floor(Math.min(fw / a, fh / b) + 1e-9));
+    return (a >= b ? (S * a) / b : S) / (a * n);
+  });
+  return o.dpr * Math.max(1, ...need);
+};
+let fw = size ? size[0] : 1920, fh = size ? size[1] : 1080;
+try { if (ratios && !size) ({ width: fw, height: fh } = readPage(findPage(target))); } catch { /* openFilm says what is wrong */ }
+let pageDpr = dprFor(fw, fh);
+try { film = editRoot ? await openEdit(editRoot, { ...o, doc }) : await openFilm(target, { ...o, dpr: pageDpr, width: size && size[0], height: size && size[1] }); } catch (e) { await die(e.message); }
+// the page's own size (window.film.width and height) wins over what its HTML says: a crop of another size needs another
+// pixel ratio, and a canvas is sized once, when the page starts, so the page is opened again at the right one
+if (ratios && Math.abs(dprFor(film.width, film.height) - pageDpr) > 1e-9) {
+  const w = film.width, h = film.height, f = film; film = null;
+  try { await f.close(); } catch { /* gone */ }
+  pageDpr = dprFor(w, h);
+  try { film = await openFilm(target, { ...o, dpr: pageDpr, width: w, height: h }); } catch (e) { await die(e.message); }
+}
+const stem = path.basename(film.page, path.extname(film.page)) + (ent ? `-${ent.id}` : "");
+const outDir = path.resolve(out || path.join(film.root, "out", covers ? "covers" : "frames"));
+try { fs.mkdirSync(outDir, { recursive: true }); } catch (e) { await die(`cannot write ${outDir}: ${e.message}`); }
+const rel = (f) => { const r = path.relative(process.cwd(), f); return r && !r.startsWith("..") ? r : f; };
+const kindSaid = film.kind === "edit" ? `an edit list, ${doc.entries.length} entr${doc.entries.length === 1 ? "y" : "ies"}${ent ? `, from ${ent.id} (${ent.kind}, ${ent.start}–${ent.end} s)` : ""}`
+  : film.kind === "film" ? "window.film" : film.kind === "__vh" ? "window.__vh" : "HyperFrames runtime";
+console.log(`frames: ${rel(film.page)} · ${kindSaid} · ` +
+  `${film.width}x${film.height}${o.dpr !== 1 ? ` @${o.dpr}x` : ""}${pageDpr !== o.dpr ? ` (drawn @${+pageDpr.toFixed(3)}x for the crops)` : ""} · ${film.duration ? film.duration + " s" : "no duration"} · ${film.version}` +
+  (frameCap ? ` · a frame may take ${o.frameTimeout} s (${frameCap})` : "") +
+  (o.blur > 1 ? ` · motion blur: ${o.blur} sub-frames over a ${o.shutter} frame shutter at ${o.fps} fps, as bin/vh render --motion-blur ${o.blur}${o.shutter !== 0.5 ? ` --shutter ${o.shutter}` : ""} draws them` : ""));
+let failed = 0;
+for (const p of film.loadProblems) { console.log(`  while loading: ${p}`); failed++; }
+// the film's own end is not a frame (0 ≤ t < duration): a --range that reaches it leaves it out (--entry: the entry's end)
+const span = ent ? (ent.frames[1] - ent.frames[0]) / doc.fps : film.duration;
+if (range && span > 0) times = times.filter((t) => t < span || t !== r3(range[1]));
+const bad = times.filter((t) => t < 0 || (span > 0 && t >= span));
+if (bad.length) await die(`${bad.join(", ")} s: outside the ${ent ? `entry ${ent.id}` : "film"} (0 up to ${+span.toFixed(6)} s)`);
+// --entry: a time into the entry → the film's (on the frame grid when it falls on it)
+const filmT = (t) => { if (!ent) return t; const j = t * doc.fps; return Math.abs(j - Math.round(j)) < 1e-6 ? (ent.frames[0] + Math.round(j)) / doc.fps : t + ent.frames[0] / doc.fps; };
+
+// --motion-blur: the frame at t as bin/vh render --motion-blur draws it, the mean of its sub-frames (tools/film/blur.mjs):
+// the same times (on render's frame grid when t falls on it), averaged here by ffmpeg into the PNG. bounds: where frame k's
+// shutter may reach (a page alone: the film's frames, its end, its shots; an edit list: the run's, and its page's as the
+// open page gives them); null for a run drawn as one picture (a slate, a colour, a still image, footage)
+const FPS = editRoot ? doc.fps : o.fps, info = new Map();
+let shotsAlone = null;
+async function bounds(k) {
+  if (!editRoot) {
+    if (shotsAlone === null) shotsAlone = (await film.list("shots").catch(() => null)) || [];
+    return pageBounds(frameFrom(film.duration, FPS), film.duration, FPS, shotsAlone);
+  }
+  const run = film.runAt(Math.min(frameAt(k / FPS, FPS), doc.frames - 1));
+  if (!blurs(run)) return null;
+  if (run.draw === "page" && !info.has(run.path)) { const p = await film.film(run); info.set(run.path, { duration: p.duration, shots: (await p.list("shots").catch(() => null)) || [] }); }
+  return runBounds(run, FPS, run.draw === "page" ? info.get(run.path) : null);
+}
+const mean = (pngs) => {   // the sub-frames' mean, as a PNG (one picture n times: that picture)
+  if (pngs.every((p) => p.equals(pngs[0]))) return pngs[0];
+  const r = spawnSync("ffmpeg", ["-v", "error", "-nostdin", "-f", "image2pipe", "-framerate", String(FPS * pngs.length), "-c:v", "png", "-i", "-",
+    "-vf", meanFilter(pngs.length, FPS), "-frames:v", "1", "-f", "image2pipe", "-c:v", "png", "-"], { input: Buffer.concat(pngs), maxBuffer: 1 << 30 });
+  if (r.status !== 0 || !r.stdout || !r.stdout.length) throw new Error(`averaging the sub-frames (ffmpeg): ${(r.stderr || "").toString().trim().split("\n")[0] || `exit ${r.status}`}`);
+  return r.stdout;
+};
+async function draw(t, what) {   // → { png, touched }
+  if (!(o.blur > 1)) return timely(film.frame(t), what);
+  // a time within half a millisecond of a frame (--at keeps milliseconds) is that frame, at render's exact k / fps
+  const kf = t * FPS, k = Math.abs(kf - Math.round(kf)) <= 0.0005 * FPS + 1e-9 ? Math.round(kf) : kf, b = await bounds(k);
+  if (!b) return timely(film.frame(t), what);
+  const pngs = [], touched = new Set();
+  for (const d of offsets(k, o.blur, o.shutter, b)) {
+    const r = await timely(editRoot && Number.isInteger(k) ? film.frameK(k, undefined, d) : film.frame((k + d) / FPS), `${what} (a sub-frame at ${at3((k + d) / FPS)} s)`);
+    pngs.push(r.png); for (const c of r.touched) touched.add(c);
+  }
+  return { png: mean(pngs), touched: [...touched] };
+}
+const readers = new Map(), written = [];
+const name = (t) => `${stem}-t${t.toFixed(3).padStart(8, "0")}.png`;
+const at3 = (t) => +t.toFixed(3);   // a strip's t is k / fps exactly; messages show it to the millisecond
+const stripDir = strip ? path.join(outDir, `${stem}-strip-${strip[0]}-${strip[1]}`) : null;
+if (stripDir) { fs.rmSync(stripDir, { recursive: true, force: true }); fs.mkdirSync(stripDir); }
+for (const t of times) {
+  const t0 = Date.now();
+  try {
+    const { png, touched } = await draw(filmT(t), `t=${at3(t)} s`);
+    // strip frames are numbered by the frames written, so a failed one leaves no gap for the picture to stop at
+    const f = stripDir ? path.join(stripDir, `${String(written.length + 1).padStart(4, "0")}.png`) : path.join(outDir, name(t));
+    fs.writeFileSync(f, png); written.push(f);
+    // Math.random only: libraries read the other clocks themselves (HyperFrames' runtime reads Date while it seeks)
+    if (touched.includes("Math.random")) readers.set("Math.random", [...(readers.get("Math.random") || []), t]);
+    const later = film.problems();
+    if (later.length) { failed++; console.log(`  t=${at3(t)} s: ${later.join(" | ")}`); }
+    if (!stripDir) console.log(`  ${rel(f)}  (${Date.now() - t0} ms)`);
+  } catch (e) { if (e.stuck || e instanceof EditError || e instanceof HostError) await finish(2, e.message); failed++; console.log(`  t=${at3(t)} s: ${e.message}`); }
+}
+if (covers) {   // the page's covers: [{ id, t }]
+  const all = (await film.list("covers").catch(() => null)) || [];
+  if (!all.length) await die(`${rel(film.page)} lists no covers (window.film.covers; canvas-film: COVERS in src/50-shots.js)`);
+  const want = covers.length ? covers.map((id) => all.find((c) => String(c.id) === id) || id) : all;
+  const unknown = want.filter((c) => typeof c === "string");
+  if (unknown.length) await die(`no cover ${unknown.join(", ")} (the page has ${all.map((c) => c.id).join(", ")})`);
+  const file = (id, r) => path.join(outDir, `${String(id).replace(/[^\w.-]+/g, "-")}${r ? "-" + r.replace(":", "x") : ""}${noTitle ? "-clean" : ""}.png`);
+  const said = { own: "its own title for it", cover: "its own title", default: "its title re-set for it" };
+  for (const c of want) {
+    for (const r of ratios || [null]) {
+      try {
+        const { png, reply, width: pw, height: ph } = await timely(film.cover(c.id, c.t, { title: noTitle ? false : undefined, ratio: r || undefined, dpr: o.dpr }), `cover ${c.id}${r ? ` ${r}` : ""}`);
+        const f = file(c.id, r);
+        fs.writeFileSync(f, png); written.push(f);
+        const later = film.problems();
+        if (later.length) { failed++; console.log(`  cover ${c.id}${r ? ` ${r}` : ""}: ${later.join(" | ")}`); }
+        let what = c.title && !noTitle ? `: ${c.title}` : noTitle ? ", no title" : "";
+        if (r) {
+          const [x, y, w, h] = reply.crop, whole = reply.layout === "cover" || (w >= film.width - 0.5 && h >= film.height - 0.5);
+          what = `, ${r} ${pw}x${ph}: ${whole ? "the whole frame" : `a crop of the ${film.width}x${film.height} picture, x ${Math.round(x)}–${Math.round(x + w)}, y ${Math.round(y)}–${Math.round(y + h)}`}` +
+            `${!reply.title ? ", no title" : `, ${said[reply.layout] || "a title"}${reply.layout === "default" ? `${reply.lines ? ` on ${reply.lines} line${reply.lines > 1 ? "s" : ""}` : ""} (a default: ratios[r].title places it)` : ""}`}${pw / w > pageDpr * 1.001 ? `, scaled up ${(pw / w / pageDpr).toFixed(2)}x from the page's pixels` : ""}`;
+        }
+        console.log(`  ${rel(f)}  (cover ${c.id} at ${(+c.t).toFixed(3)} s${what})`);
+      } catch (e) { if (e.stuck) await finish(2, e.message); failed++; console.log(`  cover ${c.id}${r ? ` ${r}` : ""}: ${e.message}`); }
+    }
+  }
+  if (ratios && written.length) console.log(`  in the feeds: bin/vh cover-preview ${written.map((f) => rel(f)).join(" ")}`);
+}
+const late = await timely(film.lateProblems(), "after the last frame").catch((e) => finish(2, e.message));
+if (late.length) { failed++; console.log(`  just after the last frame (an error a frame left behind, charged to no frame): ${late.join(" | ")}`); }
+if (stripDir && written.length) {
+  const cols = Math.min(o.cols, written.length), rows = Math.ceil(written.length / cols), pic = path.join(outDir, `${stem}-strip-${strip[0]}-${strip[1]}.jpg`);
+  const r = spawnSync("ffmpeg", ["-v", "error", "-y", "-framerate", "1", "-i", path.join(stripDir, "%04d.png"),
+    "-vf", `scale=${o.cell}:-2,tile=${cols}x${rows}:padding=4:color=0x202020`, "-frames:v", "1", "-q:v", "3", pic], { encoding: "utf8" });
+  if (r.status !== 0) { console.log(`  the strip picture failed (ffmpeg): ${(r.stderr || r.error || "").toString().trim()}`); failed++; }
+  else console.log(`  ${rel(pic)}: ${written.length} frames at ${o.fps} fps, ${strip[0]}–${strip[1]} s, ${cols} a row (the frames are in ${rel(stripDir)}/)`);
+}
+for (const [c, ts] of readers) {
+  console.log(`  warning: the page read ${c} while drawing (${ts.length} frame${ts.length > 1 ? "s" : ""}, first at ${at3(ts[0])} s). Hard rule 1: take ` +
+    `randomness from a seeded hash; here the host held it at t, so the frames still agree, but a renderer that does not will not.`);
+}
+console.log(`frames: ${written.length} of ${covers ? written.length + failed : times.length} drawn${failed ? `, ${failed} problem${failed > 1 ? "s" : ""}` : ""}`);
+await finish(failed ? 1 : written.length ? 0 : 2);

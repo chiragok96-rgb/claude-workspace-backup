@@ -1,0 +1,50 @@
+node_modules/
+out/
+!tools/desk/fixtures/*/out/
+renders/
+.venv/
+references/repos/
+.DS_Store
+*.env
+.env*
+
+LOCAL.md
+projects/*
+!projects/README.md
+__pycache__/
+*.pyc
+# bin/vh's activity log in a project (tools/activity.py): the showcases and the desk fixtures are projects too
+.ovh/
+# bin/vh mix: the build record and the lock beside a mix (tools/audio/mixstate.py)
+*.mix.json
+*.mix.lock
+# bin/vh assets: the lock beside a project's ledger (tools/assets/ledger.py)
+.ledger.lock
+
+# showcase 04: proxies rebuilt by tools/make_clips.sh from showcase 00–03; the film's regenerable audio;
+# the film atlases (tools/opening_export.sh, film_atlas.py, ai_atlas.py), the Blender frames and plate, the grid state
+showcase/04-intro-film/assets/clips/
+showcase/04-intro-film/audio/*.wav
+showcase/04-intro-film/audio/sfx/
+showcase/04-intro-film/audio/sfxlib/
+showcase/04-intro-film/audio/stems/
+showcase/04-intro-film/assets/plate.mp4
+showcase/04-intro-film/assets/state.json
+showcase/04-intro-film/assets/hero-earth.png
+showcase/04-intro-film/assets/films*.jpg
+showcase/04-intro-film/assets/films*.png
+showcase/04-intro-film/blender/out/
+showcase/04-intro-film/opening/node_modules
+
+# videos live in the GitHub release "media" (tools/fetch_media.sh puts them here; tools/media.txt lists them)
+showcase/*/media/final.mp4
+showcase/04-intro-film/v3/final.mp4
+styles/gallery.mp4
+styles/gallery-readme.mp4
+*.part
+# docs/site: the author's own films for the homepage stay local
+docs/site/media/
+
+# bin/vh components sample: the video and the poster beside the contact sheet (sheet.jpg is kept)
+components/*/sample/media/swatch.mp4
+components/*/sample/media/poster.jpg
