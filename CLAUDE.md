@@ -20,9 +20,14 @@ mainly vertical 9:16 Odia-culture reels (Cuttack Bali Jatra, Jagannath, Radha-Pa
 
 ## Toolchain facts (verified)
 - Opuscar root: `~/lemomo-ai/lemo-opuscar` (pinned commit in MANIFEST.md). Project pages expose `window.render(t)`,
-  `window.READY`, `window.DUR`. Stills: `LEMO_ANGLE=swiftshader node core/render/still.mjs <film> <t...> --size 1080x1920 --q "p=film"`.
+  `window.READY`, `window.DUR`. Stills: `LEMO_ANGLE=swiftshader node core/render/still.mjs films/<film> <t...> --size 1080x1920 --q "p=film"`
+  (first arg is the FOLDER holding index.html - a bare `<film>` fails with "no index.html").
   Video: `node core/render/video.mjs <film> --fps 30 --size 1080x1920 --workers 3 --q "p=film" --out x.mp4`
   (30 s per-frame screenshot timeout; reduce parallel workers if it trips; render ranges with `from`/`to` query params).
+- System ffmpeg is 6.1 and Opuscar's `setup.sh` will report "missing ffmpeg7+" against it; the bundled static
+  build at `~/tools/ffmpeg/bin` is 8.1 - put it on PATH first and the warning is harmless.
+- Blender is available as a Python module: `pip install bpy` (Cycles, headless, path-traced 3D). NOT in the
+  Opuscar stack - use the `code-motion` skill. Good for rule 5's "real things -> 2.5D/3D".
 - Mux/loudness: `sh core/render/mux.sh video.mp4 song.wav out.mp4 30 0` (needs **ffmpeg >= 7**: put `~/tools/ffmpeg/bin` on PATH).
 - Gate: `cd ~/.claude/skills/huashu-art-motion && uv run scripts/film_gate.py out.mp4` (fails on blue-violet "AI" palettes,
   long empty frames, no fast action). Share encode: two-pass 9 Mbps H.264, AAC 256k, yuv420p, faststart.

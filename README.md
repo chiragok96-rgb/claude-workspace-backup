@@ -3,6 +3,36 @@
 Backup of a Claude Code **cloud workspace** used to produce code-made films: skills, Opuscar films, projects, scripts,
 helper tools, source audio, and the final deliverables. Created from a live session; nothing was removed from the source.
 
+---
+
+## ⭐ Just the skills (the usual case)
+
+The skills are the portable part — they carry the know-how. Everything else (films, audio, deliverables)
+is ~597 MB of output you do **not** need on a new account.
+
+**Fast path — skills only, no big download:**
+```bash
+git clone --filter=blob:none --sparse https://github.com/chiragok96-rgb/claude-workspace-backup.git
+cd claude-workspace-backup
+git sparse-checkout set skills scripts
+bash scripts/install-skills.sh          # -> ~/.claude/skills/
+```
+Then start a new Claude Code session. That's it — no Opuscar, no ffmpeg, no venvs.
+
+**Already cloned the whole repo?** Just run `bash scripts/install-skills.sh`.
+
+| Skill | Size | What it does |
+|---|---|---|
+| `skills/huashu-art-motion/` | 74 MB | Art & video animation (v1.3.0). 36 built styles + 16 research recipes, 9 explainer grammars, storyboard lint → QA → delivery gate. Needs the Opuscar stack for rendering (see INSTALL.md). |
+| `skills/code-motion/` | 200 KB | Cinematic 3D & motion graphics from code. Blender-as-a-module (`pip install bpy`) + Cycles, headless Three.js, FFmpeg. Fast procedural geometry, a measured sun/sky rig, an engine-agnostic post-grade, and a worked example. Self-contained — no other setup. |
+
+> Adding to a skill is the point. When a session discovers something that will matter next time
+> (an API trap, a lighting rule, a measured constant), write it into the skill and push — not into chat.
+
+---
+
+## Full restore (only if you need the films too)
+
 | Path | What |
 |---|---|
 | `CLAUDE.md` | Owner's standing rules + toolchain facts. Copy to `~/CLAUDE.md` when restoring. |
