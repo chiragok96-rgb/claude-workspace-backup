@@ -72,13 +72,13 @@ export function boitaPath(cx, cy, s) {
 }
 function sails(x, cx, cy, s, open = 1) {
   const T = (px, py) => [cx + px * s, cy + py * s];
-  x.fillStyle = HIDE; x.fillRect(...T(-110, -470), 12 * s, 460 * s); x.fillRect(...T(120, -420), 12 * s, 410 * s);
-  for (const [mx, top, w, h] of [[-104, -450, 260, 330], [126, -400, 220, 290]]) {
+  x.fillStyle = HIDE; x.fillRect(...T(-66, -470), 12 * s, 460 * s); x.fillRect(...T(164, -420), 12 * s, 410 * s);
+  for (const [mx, top, w, h] of [[-60, -450, 240, 330], [170, -400, 200, 290]]) {
     const hh_ = h * open; x.beginPath(); x.moveTo(...T(mx - w / 2, top)); x.lineTo(...T(mx + w / 2, top)); x.quadraticCurveTo(...T(mx + w / 2 + 34 * open, top + hh_ / 2), ...T(mx + w / 2, top + hh_)); x.lineTo(...T(mx - w / 2, top + hh_)); x.quadraticCurveTo(...T(mx - w / 2 + 34 * open, top + hh_ / 2), ...T(mx - w / 2, top)); x.fill();
     if (open > .5) { x.save(); x.globalCompositeOperation = 'destination-out';   // filigree: a lattice of punched diamonds and rings
       for (let r = 1; r < 7; r++) for (let i = 1; i < 6; i++) { const px = mx - w / 2 + i * w / 6, py = top + r * hh_ / 7; const [X, Y] = T(px, py); x.beginPath(); if ((r + i) % 2) { x.moveTo(X, Y - 9 * s); x.lineTo(X + 7 * s, Y); x.lineTo(X, Y + 9 * s); x.lineTo(X - 7 * s, Y); x.closePath(); } else x.arc(X, Y, 5 * s, 0, 7); x.fill(); }
       x.restore(); } }
-  x.beginPath(); x.moveTo(...T(-104, -470)); x.lineTo(...T(-60, -500)); x.lineTo(...T(-104, -490)); x.fill();   // a pennant
+  x.beginPath(); x.moveTo(...T(-60, -470)); x.lineTo(...T(-16, -500)); x.lineTo(...T(-60, -490)); x.fill();   // a pennant
 }
 export function boitaHide(x, cx, cy, s, open = 1) {
   sails(x, cx, cy, s, open); x.fillStyle = HIDE; x.fill(boitaPath(cx, cy, s));

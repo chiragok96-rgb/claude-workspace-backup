@@ -25,14 +25,15 @@ function zpath(a, b, u) {   // log-zoom with a straight fixed-point path (the pu
   if (Math.abs(Math.log(b[2] / a[2])) > .3) { const f = (1 / z - 1 / b[2]) / (1 / a[2] - 1 / b[2]); return [b[0] + (a[0] - b[0]) * f, b[1] + (a[1] - b[1]) * f, z]; }
   return [lerp(a[0], b[0], u), lerp(a[1], b[1], u), z];
 }
-const A0 = [...sw(540, 960), S0], A1 = [...sw(540, 1740), S0], A2 = [540, 960, 1], A3 = [540, 985, 1.05], A4 = [480, 1711, 1.12], A5 = [540, KY - 30, 1], A6 = [540, KY - 30, 1.04];
-const AK = [[0, 3.6, A0, A1, eio], [7.75, 9.3, A1, A2, eio], [9.3, 15.3, A2, A3, ss], [15.2, 16.6, A3, A4, eio], [19.95, 21.8, A4, A5, eio], [21.8, 24.8, A5, A6, ss]];
+const A0 = [...sw(560, 1700), S0 * 1.1], A1 = [...sw(540, 1740), S0], A2 = [540, 960, 1], A3 = [540, 985, 1.05], A4 = [480, 1711, 1.12], A5 = [540, KY - 30, 1], A6 = [540, KY - 30, 1.04];
+const AK = [[0, 7.75, A0, A1, ss], [7.75, 9.3, A1, A2, eio], [9.3, 15.3, A2, A3, ss], [15.2, 16.6, A3, A4, eio], [19.95, 21.8, A4, A5, eio], [21.8, 24.8, A5, A6, ss]];
 function camA(t) { let c = A0; for (const [a, b, p, q, e] of AK) { if (t >= b) c = q; else if (t > a) return zpath(p, q, e(seg(t, a, b))); else return c; } return c; }
 const toS = (cam, x, y) => [(x - cam[0]) * cam[2] + 540, (y - cam[1]) * cam[2] + 960];
 // the fair (its own plate's pixels); the booth's cloth is at (290, 1060, 500 × 888.9) — exactly the frame's shape
 const SR = [290, 1060, 500, 500 * H / W], ZF = W / SR[2];
 const F0 = [SR[0] + SR[2] / 2, SR[1] + SR[3] / 2, ZF], F1 = [540, 680 + 960, 1], F2 = [540, 200 + 960, 1], F3 = [540, 960, 1];
-const FK = [[47.3, 49.4, F0, F1, eio], [50.6, 52.0, F1, F0, eio], [58.1, 59.7, F0, F2, eio], [61.9, 63.3, F2, F3, eio]];
+let FH = [600, 660, 2.3];
+const FK = [[47.3, 49.4, F0, F1, eio], [50.6, 52.0, F1, F0, eio], [58.1, 59.7, F0, F2, eio], [61.85, 63.6, F2, FH, eio]];
 function camF(t) { let c = F0; for (const [a, b, p, q, e] of FK) { if (t >= b) c = q; else if (t > a) return zpath(p, q, e(seg(t, a, b))); else return c; } return c; }
 
 // ———————————————— the verse: Raghuvamsha 6.57, in Odia script ————————————————
@@ -48,16 +49,16 @@ function verseLine(c, i, x, y, size, p, a, look) {
   const parts = Array.isArray(VERSE[i]) ? VERSE[i] : [VERSE[i]]; let xx = x0;
   parts.forEach((s, j) => {
     const hot = j === 1;
-    if (look === 'sky') { c.shadowColor = 'rgba(255,240,214,.9)'; c.shadowBlur = size * .35; c.fillStyle = gilt(c, y, size); }
+    if (look === 'sky') { c.shadowColor = 'rgba(60,20,6,.7)'; c.shadowBlur = size * .45; c.fillStyle = hot ? '#ffe4a6' : '#fff1d2'; }
     else if (look === 'night') { c.shadowColor = hot ? 'rgba(255,196,96,1)' : 'rgba(255,190,90,.75)'; c.shadowBlur = size * (hot ? .9 : .55); c.fillStyle = hot ? '#ffe1a0' : '#f0c46e'; }
     else { c.shadowColor = 'rgba(40,20,6,.55)'; c.shadowOffsetX = size * .04; c.shadowOffsetY = size * .05; c.shadowBlur = size * .06; c.fillStyle = gilt(c, y, size); }   // inlaid in stone
-    if (hot && look !== 'night') { c.fillStyle = look === 'sky' ? '#b0741a' : '#c89030'; }
+    if (hot && look === 'stone') c.fillStyle = '#c89030';
     c.fillText(s, xx, y); xx += c.measureText(s).width;
   });
   c.restore();
   return [x0 + w * p, y - size * .35];
 }
-const VSKY = { y: 300, dy: 70, size: 40 }, VBAND = { y: 128, dy: 46, size: 28 };
+const VSKY = { y: 330, dy: 66, size: 38 }, VBAND = { y: 128, dy: 46, size: 28 };
 function verseSky(c, t, cam) {   // 5.0–9.3: written in the dawn sky by the scent, then settles into the stone's top band
   if (t < 4.9 || t >= 9.3) return;
   const k = eio(seg(t, 7.75, 9.25));
@@ -71,11 +72,12 @@ function verseSky(c, t, cam) {   // 5.0–9.3: written in the dawn sky by the sc
 }
 
 // ———————————————— the stone: three sun angles crossfaded, the gilded name wiped in ————————————————
-let GB, GM, GBx;
-function relief(c, t) {   // drawn in world A (the stone's pixels)
+let GB, GM, GBx, GO;
+function relief(c, t, z = 1) {   // drawn in world A (the stone's pixels)
   const s = clamp((t - 8.6) / (15.2 - 8.6)) * 2;
   const pick = arr => s < 1 ? [arr[0], arr[1], s] : [arr[1], arr[2], s - 1];
   const [A, B, f] = pick(P.L); c.drawImage(A, 0, 0); if (f > .002) { c.globalAlpha = f; c.drawImage(B, 0, 0); c.globalAlpha = 1; }
+  const dk = 1 - ss(seg(z, .16, .6)); if (dk > 0) { c.globalAlpha = dk; c.drawImage(P.Ldark, 0, 0); c.globalAlpha = 1; }
   if (t >= 9.3) for (let i = 0; i < 4; i++) verseLine(c, i, 540, VBAND.y + i * VBAND.dy, VBAND.size, 1, 1, 'stone');
   const g = eio(seg(t, 11.2, 12.4));
   if (g > 0) {   // ମହୋଦଧିପତି: gold runs into the cut letters, left to right; then a glint crosses
@@ -84,7 +86,8 @@ function relief(c, t) {   // drawn in world A (the stone's pixels)
     GBx.globalCompositeOperation = 'destination-in'; GBx.drawImage(GM, 0, 0);
     const fx = lerp(-180, 1000, g), gr = GBx.createLinearGradient(fx, 0, fx + 180, 0); gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); GBx.fillStyle = gr; GBx.fillRect(0, 0, 912, 136);
     const sh = seg(t, 12.3, 13.4); if (sh > 0 && sh < 1) { GBx.globalCompositeOperation = 'source-atop'; const sx = lerp(-200, 1100, eio(sh)), sg = GBx.createLinearGradient(sx - 90, 0, sx + 90, 0); sg.addColorStop(0, 'rgba(255,240,200,0)'); sg.addColorStop(.5, 'rgba(255,246,220,.85)'); sg.addColorStop(1, 'rgba(255,240,200,0)'); GBx.fillStyle = sg; GBx.fillRect(0, 0, 912, 136); }
-    c.drawImage(GB, 84, 1104);
+    c.save(); c.beginPath(); c.rect(84, 1104, clamp(fx + 120, 0, 912), 136); c.clip(); c.globalAlpha = ss(seg(t, 11.2, 11.6)); c.drawImage(GO, 84, 1104); c.restore();
+    c.drawImage(GB, 84, 1104); c.save(); c.globalCompositeOperation = 'lighter'; c.globalAlpha = .28; c.drawImage(GB, 84, 1104); c.restore();
   }
   const w = seg(t, 13.55, 15.6);   // "emperor of the sea": the carved waves catch the sun, crest by crest
   if (w > 0 && w < 1) { c.save(); c.globalCompositeOperation = 'lighter';
@@ -162,8 +165,8 @@ function lay(i) { const x = LAY[i].getContext('2d'); x.setTransform(1, 0, 0, 1, 
 function putL(c, i, blur = 0, a = 1) { if (a <= .003) return; c.save(); c.globalAlpha = clamp(a); if (blur > .3) c.filter = `blur(${blur.toFixed(1)}px)`; c.drawImage(LAY[i], 0, 0); c.restore(); }
 function goldBoita(c, cx, cy, s, p, a) {   // the voyage remembered: hull, masts and the open sails traced in gold
   if (a <= 0 || p <= 0) return; const path = boitaPath(cx, cy, s), T = (x, y) => [cx + x * s, cy + y * s];
-  const sail = new Path2D(); for (const [mx, top, w, h] of [[-104, -450, 260, 330], [126, -400, 220, 290]]) { sail.moveTo(...T(mx - w / 2, top)); sail.lineTo(...T(mx + w / 2, top)); sail.quadraticCurveTo(...T(mx + w / 2 + 34, top + h / 2), ...T(mx + w / 2, top + h)); sail.lineTo(...T(mx - w / 2, top + h)); sail.quadraticCurveTo(...T(mx - w / 2 + 34, top + h / 2), ...T(mx - w / 2, top)); }
-  sail.moveTo(...T(-104, -470)); sail.lineTo(...T(-104, -20)); sail.moveTo(...T(126, -420)); sail.lineTo(...T(126, -20));
+  const sail = new Path2D(); for (const [mx, top, w, h] of [[-60, -450, 240, 330], [170, -400, 200, 290]]) { sail.moveTo(...T(mx - w / 2, top)); sail.lineTo(...T(mx + w / 2, top)); sail.quadraticCurveTo(...T(mx + w / 2 + 34, top + h / 2), ...T(mx + w / 2, top + h)); sail.lineTo(...T(mx - w / 2, top + h)); sail.quadraticCurveTo(...T(mx - w / 2 + 34, top + h / 2), ...T(mx - w / 2, top)); }
+  sail.moveTo(...T(-60, -470)); sail.lineTo(...T(-60, -20)); sail.moveTo(...T(170, -420)); sail.lineTo(...T(170, -20));
   c.save(); c.globalCompositeOperation = 'lighter'; c.globalAlpha = a; c.lineCap = 'round'; c.lineJoin = 'round';
   for (const [pp, L] of [[path, 2200 * s], [sail, 3600 * s]]) { c.setLineDash([L * p, L * 2]);
     c.strokeStyle = 'rgba(255,196,96,.35)'; c.lineWidth = 9; c.filter = 'blur(5px)'; c.stroke(pp); c.filter = 'none';
@@ -188,7 +191,7 @@ function drawSH(S, t) {
   if (bIn > 0 && bOut > 0) { const x = lay(1);
     const open = lerp(eo(seg(t, 38.55, 39.6)), .25, ss(seg(t, 43.6, 44.6)));
     boitaHide(x, bx, by, bs, open);
-    x.save(); x.fillStyle = HIDE; const [hx, hy] = sadhaba(x, bx - 150 * bs, by - 22 * bs - 300 * .34, .34, 1); potHide(x, hx + 6, hy - 22, .3, -.1); x.restore();
+    x.save(); x.fillStyle = HIDE; const [hx, hy] = sadhaba(x, bx - 248 * bs, by - 14 * bs - 300 * .36, .36, .5); potHide(x, hx + 6, hy - 22, .3, -.1); x.restore();
     const mem = ss(seg(t, 45.0, 46.2));
     putL(S, 1, (1 - bIn) * 14 + mem * 1.4, bIn * bOut * lerp(1, .5, mem));
   }
@@ -212,7 +215,7 @@ function drawSH(S, t) {
   // "and this year?": the kayon is planted; Odisha's puppet and Java's meet and bow; one gold thread between their hands
   if (t > 52.0) {
     const kk = eo(seg(t, 52.1, 53.0)); const x = lay(0); kayon(x, 540, 860 + (1 - kk) * 420, .85); putL(S, 0, (1 - kk) * 12, kk);
-    const pin = eo(seg(t, 52.7, 53.9)), bow = Math.sin(Math.PI * seg(t, 54.05, 55.6)) * .16, jn = ss(seg(t, 55.7, 56.6));
+    const pin = eo(seg(t, 52.7, 53.9)), bow = Math.sin(Math.PI * seg(t, 54.35, 55.9)) * .16, jn = ss(seg(t, 55.9, 56.7));
     const y = lay(1);
     y.save(); const ax = lerp(-200, 250, pin), wx = lerp(1290, 830, pin);
     y.translate(ax, 1380); y.rotate(bow); y.translate(-ax, -1380); const hA = sadhaba(y, ax, 1080, 1.0, jn * .55); y.restore();
@@ -220,10 +223,10 @@ function drawSH(S, t) {
     putL(S, 1, (1 - pin) * 10, pin);
     const tf = (u, a0, a1, b0, b1) => [lerp(a0, b0, u), lerp(a1, b1, u)];
     rod(S, hA[0], hA[1], hA[0] + 60, H, pin); rod(S, hW[0], hW[1], hW[0] - 60, H, pin);
-    const th = seg(t, 56.1, 57.3); if (th > 0) { const mid = [540, Math.min(hA[1], hW[1]) - 120]; const pts = chain(bez(hA, [hA[0] + 60, mid[1]], [mid[0] - 80, mid[1] - 30], mid, 24), bez(mid, [mid[0] + 80, mid[1] + 30], [hW[0] - 60, mid[1]], hW, 24));
+    const th = seg(t, 56.65, 57.6); if (th > 0) { const mid = [540, Math.min(hA[1], hW[1]) - 120]; const pts = chain(bez(hA, [hA[0] + 60, mid[1]], [mid[0] - 80, mid[1] - 30], mid, 24), bez(mid, [mid[0] + 80, mid[1] + 30], [hW[0] - 60, mid[1]], hW, 24));
       scent(S, pts, t, eio(th), 1, { w: 1.1 }); }
-    label(S, 'ଇଣ୍ଡୋନେସିଆ', 540, 420 + (1 - eo(seg(t, 54.05, 54.6))) * 12, 66, '#2a1406', 'rgba(255,224,170,.9)', eo(seg(t, 54.05, 54.6)));
-    label(S, 'ସହଯୋଗୀ ଦେଶ', 540, 508, 42, '#3a1c08', 'rgba(255,224,170,.9)', eo(seg(t, 55.55, 56.1)), 600);
+    label(S, 'ଇଣ୍ଡୋନେସିଆ', 540, 420 + (1 - eo(seg(t, 54.4, 54.95))) * 12, 66, '#2a1406', 'rgba(255,224,170,.9)', eo(seg(t, 54.4, 54.95)));
+    label(S, 'ସହଯୋଗୀ ଦେଶ', 540, 508, 42, '#3a1c08', 'rgba(255,224,170,.9)', eo(seg(t, 56.6, 57.1)), 600);
   }
 }
 
@@ -252,16 +255,17 @@ function paper(c, t) {   // the drafting sheet, slid up over the section; faint 
 function drawing(c, t) {   // the two halves; they lock; the scent becomes the gold seam
   const [cx, cy] = KC, s = KS, INK = '#2a1c12', INK2 = '#5a2414';
   c.save();
-  const ax = seg(t, 25.55, 26.1); if (ax > 0) { c.strokeStyle = 'rgba(42,28,18,.55)'; c.lineWidth = 1.4; c.setLineDash([10, 6, 2, 6]); c.beginPath(); c.moveTo(cx, cy - 250 * s); c.lineTo(cx, lerp(cy - 250 * s, cy + 160 * s, eo(ax))); c.stroke(); c.setLineDash([]); }
-  inkHalf(c, -1, cx, cy, s, seg(t, 25.8, 27.1), INK);
-  const r = seg(t, 26.95, 28.05); if (r > 0) { const dx = (1 - backOut(r)) * 520; c.globalAlpha = ss(seg(t, 26.95, 27.4)); inkHalf(c, 1, cx + dx, cy, s, 1, INK2); c.globalAlpha = 1; }
-  const lock = Math.exp(-Math.pow((t - 28.05) / .12, 2)); if (lock > .02) { c.save(); c.globalCompositeOperation = 'multiply'; c.fillStyle = `rgba(120,70,30,${.15 * lock})`; c.fillRect(cx - 4, cy - 200 * s, 8, 330 * s); c.restore(); }
-  label(c, 'ମାଣିକପାଟଣା', cx - 200, cy + 252, 40, INK, 'rgba(246,238,222,.9)', eo(seg(t, 26.8, 27.3)), 600);
-  label(c, 'ବାଲି · ଜାଭା', cx + 200, cy + 252, 40, INK2, 'rgba(246,238,222,.9)', eo(seg(t, 28.1, 28.6)), 600);
-  c.save(); c.globalAlpha = eo(seg(t, 26.8, 27.3)) * .85; c.font = 'italic 500 26px "CormorantG"'; c.textAlign = 'center'; c.fillStyle = INK; c.fillText('Odisha', cx - 200, cy + 300); c.globalAlpha = eo(seg(t, 28.1, 28.6)) * .85; c.fillStyle = INK2; c.fillText('Indonesia', cx + 200, cy + 300); c.restore();
-  const sm = seg(t, 30.15, 30.9); if (sm > 0) { const pts = [[cx, cy - 196 * s], [cx, cy + 124 * s]].map(([x, y]) => [x, y]);
-    const line = Array.from({ length: 30 }, (_, i) => [cx, lerp(cy - 196 * s, cy + 124 * s, i / 29)]); scent(c, line, t, eio(sm), 1, { w: .9, op: 'source-over', col: [196, 140, 46], wob: .25 });
-    c.save(); c.globalCompositeOperation = 'lighter'; const g = c.createRadialGradient(cx, cy, 0, cx, cy, 320 * s); const pk = Math.exp(-Math.pow((t - 30.6) / .35, 2)); g.addColorStop(0, `rgba(255,214,140,${.32 * pk})`); g.addColorStop(1, 'rgba(255,200,120,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H); c.restore(); }
+  const ax = seg(t, 24.85, 25.4); if (ax > 0) { c.strokeStyle = 'rgba(42,28,18,.55)'; c.lineWidth = 1.4; c.setLineDash([10, 6, 2, 6]); c.beginPath(); c.moveTo(cx, cy - 250 * s); c.lineTo(cx, lerp(cy - 250 * s, cy + 160 * s, eo(ax))); c.stroke(); c.setLineDash([]); }
+  inkHalf(c, 1, cx, cy, s, seg(t, 24.95, 26.4), INK2);   // the Bali · Java kendi (its half with the spout)
+  const gh = ss(seg(t, 26.9, 27.6)) * (1 - ss(seg(t, 29.5, 29.9))); if (gh > 0) { c.save(); c.globalAlpha = gh * .45; c.setLineDash([5, 7]); inkHalf(c, -1, cx, cy, s, seg(t, 26.9, 28.4), INK); c.restore(); }   // "a matching pot": its mirror, waiting
+  const r = seg(t, 29.5, 30.3); if (r > 0) { const dx = -(1 - backOut(r)) * 520; c.globalAlpha = ss(seg(t, 29.5, 29.8)); inkHalf(c, -1, cx + dx, cy, s, 1, INK); c.globalAlpha = 1; }   // …found at Manikapatna: it locks in
+  const lock = Math.exp(-Math.pow((t - 30.3) / .12, 2)); if (lock > .02) { c.save(); c.globalCompositeOperation = 'multiply'; c.fillStyle = `rgba(120,70,30,${.15 * lock})`; c.fillRect(cx - 4, cy - 200 * s, 8, 330 * s); c.restore(); }
+  label(c, 'ବାଲି · ଜାଭା', cx + 200, cy + 252, 40, INK2, 'rgba(246,238,222,.9)', eo(seg(t, 24.85, 25.35)), 600);
+  label(c, 'ମାଣିକପାଟଣା', cx - 200, cy + 252, 40, INK, 'rgba(246,238,222,.9)', eo(seg(t, 29.6, 30.1)), 600);
+  c.save(); c.font = 'italic 500 26px "CormorantG"'; c.textAlign = 'center'; c.globalAlpha = eo(seg(t, 24.85, 25.35)) * .85; c.fillStyle = INK2; c.fillText('Indonesia', cx + 200, cy + 300); c.globalAlpha = eo(seg(t, 29.6, 30.1)) * .85; c.fillStyle = INK; c.fillText('Odisha', cx - 200, cy + 300); c.restore();
+  const sm = seg(t, 30.5, 31.0); if (t > 30.05) { const pts = [[cx, cy - 196 * s], [cx, cy + 124 * s]].map(([x, y]) => [x, y]);
+    const line = Array.from({ length: 30 }, (_, i) => [cx, lerp(cy - 196 * s, cy + 124 * s, i / 29)]); if (sm > 0) scent(c, line, t, eio(sm), 1, { w: .9, op: 'source-over', col: [196, 140, 46], wob: .25 });
+    c.save(); c.globalCompositeOperation = 'lighter'; const g = c.createRadialGradient(cx, cy, 0, cx, cy, 320 * s); const pk = Math.exp(-Math.pow((t - 30.8) / .3, 2)); g.addColorStop(0, `rgba(255,214,140,${.32 * pk})`); g.addColorStop(1, 'rgba(255,200,120,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H); c.restore(); }
   c.restore();
 }
 
@@ -303,6 +307,7 @@ function fairScene(c, t, cam) {
   fairLights(c, t, B, I);
   c.drawImage(SH, SR[0], SR[1], SR[2], SR[3]);   // the cloth is in front of every lamp behind it
   if (t > 58.2) for (let i = 0; i < 4; i++) verseLine(c, i, 540, 520 + i * 70, 40, eo(seg(t, 58.35 + i * .45, 58.35 + i * .45 + .8)), 1, 'night');
+  HOT = [(FH[0] - cx) * z + 540, (FH[1] - cy) * z + 960];
   if (t > 60.9) { c.save(); c.globalCompositeOperation = 'lighter'; for (let k = 0; k < 60; k++) { const u = seg(t, 60.95 + hh(k) * .5, 62.6 + hh(k) * .6); if (u <= 0 || u >= 1) continue; const x = 540 + (hh(k * 3) - .5) * 900 * eo(u), y = 960 - 600 * eo(u) + 160 * u * u; bulb(c, x, y, 2.4, '255,214,140', Math.sin(u * Math.PI)); } c.restore(); }
   c.setTransform(1, 0, 0, 1, 0, 0);
 }
@@ -318,8 +323,9 @@ function dawnWash(c, t) {   // night → dawn: a wet wash runs down from the top
 
 // ———————————————— captions: a premium sans with one gold italic word; only in calm bands (y 1340–1470) ————————————————
 const CAPS = [
-  [2.15, 4.9, ['On Kalinga’s *shore*…', 'the scent of cloves from distant isles!'], 'ink'],
-  [5.0, 7.75, ['So Kalidasa describes it', 'in his *Raghuvamsha*.'], 'ink'],
+  [.3, 2.0, ['On Kalinga’s *shore*…'], 'dawn'],
+  [2.05, 4.9, ['the scent of *cloves* from distant isles!'], 'dawn'],
+  [5.0, 7.75, ['So Kalidasa describes it', 'in his *Raghuvamsha*.'], 'dawn'],
   [9.4, 11.15, ['There the great poet calls', 'the king of *Kalinga*'], 'stone'],
   [11.2, 12.8, ['*Mahodadhipati*'], 'stone'],
   [12.85, 15.25, ['that is, the *emperor* of the sea.'], 'stone'],
@@ -342,11 +348,11 @@ const CAPS = [
   [58.1, 60.3, ['Kalidasa kept it in *poetry*…'], 'night'],
   [60.35, 63.0, ['we keep it in a *fair*!'], 'night'],
 ];
-const CL = { ink: ['#2a1d14', 'rgba(248,241,228,.92)', '#94621a'], stone: ['#26160c', 'rgba(240,222,198,.8)', '#86561a'], earth: ['#f6ead6', 'rgba(26,14,6,.85)', '#ebc06c'],
+const CL = { dawn: ['#fff4e4', 'rgba(36,14,6,.8)', '#ffd27e'], ink: ['#2a1d14', 'rgba(248,241,228,.92)', '#94621a'], stone: ['#26160c', 'rgba(240,222,198,.8)', '#86561a'], earth: ['#f6ead6', 'rgba(26,14,6,.85)', '#ebc06c'],
   screen: ['#f4e6cc', 'rgba(8,3,1,.92)', '#ebb866'], night: ['#f3e8d4', 'rgba(8,4,14,.9)', '#efc571'] };
-function capLine(c, ln, y, look) {
+function capLine(c, ln, y, look, sz = 1) {
   const [col, halo, gold] = CL[look]; const parts = ln.split('*'), solo = parts.length === 3 && !parts[0] && !parts[2];
-  const fnt = j => j % 2 ? `italic 600 ${solo ? 64 : 50}px "CormorantG"` : '400 39px "InterT"';
+  const fnt = j => j % 2 ? `italic 600 ${Math.round((solo ? 64 : 50) * sz)}px "CormorantG"` : `${sz > 1 ? 500 : 400} ${Math.round(39 * sz)}px "InterT"`;
   c.letterSpacing = '0.3px'; const ws = parts.map((p, j) => { c.font = fnt(j); return c.measureText(p).width; }); let x = 540 - ws.reduce((a, b) => a + b, 0) / 2;
   parts.forEach((p, j) => { if (!p) return; c.font = fnt(j); c.fillStyle = j % 2 ? gold : col; c.shadowColor = halo; c.shadowBlur = 18; c.fillText(p, x, y); c.shadowBlur = 0; c.fillText(p, x, y); x += ws[j]; });
 }
@@ -359,9 +365,103 @@ function captions(c, t) {
 
 // ———————————————— the opening scent and its later threads (world A points, drawn in screen space) ————————————————
 const SC1 = chain(bez(sw(930, 1592), sw(900, 1300), sw(700, 1060), sw(470, 1110), 40), bez(sw(470, 1110), sw(250, 1160), sw(260, 1700), sw(330, 1950), 40), bez(sw(330, 1950), sw(380, 2120), sw(430, 2200), sw(430, 2276), 30));
-const SC2 = chain(bez([330, 1728], [450, 1690], [600, 1745], [700, 1716], 30), bez([700, 1716], [740, 1700], [736, 1660], [744, 1640], 16), bez([744, 1640], [756, 1574], [850, 1566], [860, 1630], 28), bez([860, 1630], [868, 1690], [800, 1688], [800, 1740], 24), [[800, 1760], [800, 1782]]);
-const SC3 = chain(bez([800, 1850], [840, 2100], [700, 2500], [640, 2900], 40), bez([640, 2900], [600, 3200], [520, 3300], [540, KY - 196 * 1.35], 40));
+const SC2 = chain(bez([330, 1728], [400, 1700], [452, 1690], [470, 1640], 20), bez([470, 1640], [470, 1520], [650, 1480], [648, 1570], 30), bez([648, 1570], [646, 1640], [560, 1650], [560, 1720], 24), [[560, 1745], [560, 1770]]);
+const SC3 = chain(bez([560, 1890], [700, 2100], [700, 2500], [640, 2900], 40), bez([640, 2900], [600, 3200], [520, 3300], [540, KY - 196 * 1.35], 40));
 function threadS(c, t, cam, pts, p, a, o) { scent(c, pts.map(([x, y]) => toS(cam, x, y)), t, p, a, o); }
+
+
+// ———————————————— the hook: one clove, close and turning in the dawn; then the shore it was blown to ————————————————
+let CLOVE = [], BOKEH, BOK = [], GLIT = [], HOT = [540, 900];
+const CLV = { W: 360, H: 954 }, HERO = { x: 540, y: 1010, h: 660, rot: .24, glow: .6 };
+const spinAt = tau => 24 + tau * 16;
+function cloveSprite(c, x, y, h, rot, spin, a = 1, glow = 0) {   // the ray-marched clove (45 views, 2° apart, 4-fold symmetric)
+  if (a <= 0 || !CLOVE.length) return; const f = (((spin % 90) + 90) % 90) / 2, i0 = Math.floor(f) % 45, i1 = (i0 + 1) % 45, w1 = f - Math.floor(f);
+  const s = h / CLV.H; c.save(); c.translate(x, y); c.rotate(rot); c.scale(s, s);
+  if (glow > 0) { c.globalCompositeOperation = 'lighter'; const g = c.createRadialGradient(0, -260, 0, 0, -260, 560); g.addColorStop(0, `rgba(255,196,110,${.3 * glow * a})`); g.addColorStop(1, 'rgba(255,170,90,0)'); c.fillStyle = g; c.fillRect(-560, -820, 1120, 1120); c.globalCompositeOperation = 'source-over'; }
+  c.globalAlpha = a; c.drawImage(CLOVE[i0], -CLV.W / 2, -CLV.H / 2); if (w1 > .02) { c.globalAlpha = a * w1; c.drawImage(CLOVE[i1], -CLV.W / 2, -CLV.H / 2); }
+  c.restore();
+}
+function wisps(c, tau, x, y, h, rot, a) {   // its scent, curling up off the bud
+  if (a <= 0) return; const s = h / CLV.H, hx = x + Math.sin(rot) * 353 * s, hy = y - Math.cos(rot) * 353 * s;
+  c.save(); c.filter = 'blur(2.5px)';
+  for (let k = 0; k < 2; k++) { const ph = tau * .8 + k * 2.6, d = k ? 1 : -.4;
+    const pts = bez([hx, hy], [hx + 40 * Math.sin(ph) + d * 50, hy - 90], [hx + 110 * d - 60 * Math.cos(ph * .8), hy - 170], [hx + d * 170 + 30 * Math.sin(ph * .6), hy - 250], 30);
+    scent(c, pts, tau, 1, a * (.55 - k * .12), { w: .8, wob: 1.2 }); }
+  c.restore();
+}
+function bokehDiscs(c, tau, a) {
+  if (a <= 0) return; c.save(); c.globalCompositeOperation = 'lighter';
+  for (const b of BOK) { const tw = .55 + .45 * Math.sin(tau * b.w + b.ph); const g = c.createRadialGradient(b.x, b.y, b.r * .55, b.x, b.y, b.r); g.addColorStop(0, `rgba(${b.c},${.16 * tw * a})`); g.addColorStop(.85, `rgba(${b.c},${.24 * tw * a})`); g.addColorStop(1, `rgba(${b.c},0)`); c.fillStyle = g; c.fillRect(b.x - b.r, b.y - b.r, b.r * 2, b.r * 2); }
+  c.restore();
+}
+const DONGA = [[250, 2030, 1, 0], [470, 1995, .85, 1.3], [700, 2055, 1.1, 2.2], [905, 1985, .8, 3.1], [585, 2085, 1.15, 4.4]];
+function donga(c, x, y, s, ph) {   // a lamp-boat: banana-bark hull, a diya, its flame and its light on the water
+  c.save(); c.translate(x, y); c.scale(s, s);
+  c.globalCompositeOperation = 'lighter'; const r = c.createLinearGradient(0, 2, 0, 70); r.addColorStop(0, 'rgba(255,170,80,.42)'); r.addColorStop(1, 'rgba(255,150,60,0)'); c.fillStyle = r; c.fillRect(-6 - 2 * Math.sin(ph * 3), 4, 12, 66);
+  c.globalCompositeOperation = 'source-over'; c.fillStyle = '#22100a';
+  c.beginPath(); c.moveTo(-38, -9); c.quadraticCurveTo(-22, 9, 0, 9); c.quadraticCurveTo(22, 9, 38, -9); c.quadraticCurveTo(0, -1, -38, -9); c.fill();
+  c.strokeStyle = 'rgba(255,184,104,.55)'; c.lineWidth = 1.3; c.beginPath(); c.moveTo(-36, -8); c.quadraticCurveTo(0, -1, 36, -8); c.stroke();
+  c.fillStyle = '#3a1c0e'; c.beginPath(); c.ellipse(0, -4, 7, 3, 0, 0, 7); c.fill();
+  const f = 1 + .14 * Math.sin(ph * 13) + .08 * Math.sin(ph * 7.3), fl = c.createRadialGradient(0, -9, 0, 0, -9, 11 * f);
+  fl.addColorStop(0, '#fffbe6'); fl.addColorStop(.45, '#ffd56a'); fl.addColorStop(1, 'rgba(255,120,30,.0)');
+  c.fillStyle = fl; c.beginPath(); c.moveTo(0, -5); c.quadraticCurveTo(6, -9, 0, -5 - 17 * f); c.quadraticCurveTo(-6, -9, 0, -5); c.fill();
+  c.globalCompositeOperation = 'lighter'; const g = c.createRadialGradient(0, -12, 0, 0, -12, 52); g.addColorStop(0, 'rgba(255,176,86,.5)'); g.addColorStop(1, 'rgba(255,150,60,0)'); c.fillStyle = g; c.fillRect(-52, -64, 104, 104);
+  c.restore();
+}
+const SCK = chain(bez(sw(930, 1596), sw(880, 1330), sw(700, 1250), sw(480, 1300), 34), bez(sw(480, 1300), sw(200, 1360), sw(120, 1700), sw(110, 2080), 34), bez(sw(110, 2080), sw(104, 2230), sw(230, 2278), sw(430, 2284), 24));
+function opening(c, t, cam) {
+  const zS = cam[2] / S0, P2S = (x, y) => toS(cam, ...sw(x, y));
+  c.save(); c.globalCompositeOperation = 'lighter';   // the sun path glitters
+  for (const g of GLIT) { const a = Math.pow(Math.max(0, Math.sin(t * g.w + g.ph)), 8) * g.b; if (a < .03) continue; const [x, y] = P2S(g.x, g.y), L = g.l * zS; c.fillStyle = `rgba(255,238,196,${a})`; c.fillRect(x - L / 2, y - zS, L, 2 * zS); }
+  c.restore();
+  const bx = lay(0); for (const [x0, y0, bs, ph] of [[612, 1708, .17, 0], [868, 1669, .105, 1.7]]) { const [X, Y] = P2S(x0 + t * 2.2, y0 + Math.sin(t * 1.3 + ph) * 1.4); boitaHide(bx, X, Y, bs * zS, 1); } putL(c, 0, 0, 1);
+  for (const [x0, y0, ds, ph] of DONGA) { const [X, Y] = P2S(x0 + t * 3.2, y0 - t * .9 + Math.sin(t * 1.6 + ph) * 1.2); donga(c, X, Y, ds * zS, t + ph); }
+  const pts = SCK.map(([x, y]) => toS(cam, x, y)), pr = (t - .9) / 3.7, tip = eio(clamp(pr)), sa = 1 - ss(seg(t, 4.75, 5.4));
+  if (pr > 0 && sa > 0) {   // the scent: a gold stream from the far isle, cloves riding it to the stone
+    scent(c, pts, t, Math.max(tip, .001), sa, { w: 1.5, wob: .8 });
+    const gl = Math.exp(-Math.pow((t - 3.65) / .45, 2));   // "ଲବଙ୍ଗ"
+    for (let i = 0; i < 12; i++) { const u = eio(clamp(pr - (i + 1) * .055)); if (u <= 0) continue; const fa = 1 - ss(seg(u, .93, 1)); if (fa <= 0) continue; const [x, y] = at(pts, u);
+      cloveSprite(c, x + Math.sin(t * 2 + i) * 7, y + Math.cos(t * 1.7 + i) * 7, (62 + hh(i) * 30) * lerp(.8, 1.1, u), t * (1.1 + hh(i * 3)) + i, t * 60 + i * 17, fa * sa, .45 + gl); }
+  }
+  const land = Math.exp(-Math.pow((t - 4.68) / .16, 2)); if (land > .02) { const [x, y] = P2S(430, 2282); c.save(); c.globalCompositeOperation = 'lighter'; const g = c.createRadialGradient(x, y, 0, x, y, 120); g.addColorStop(0, `rgba(255,222,150,${.7 * land})`); g.addColorStop(1, 'rgba(255,190,100,0)'); c.fillStyle = g; c.fillRect(x - 120, y - 120, 240, 240); c.restore(); }
+  const foc = 1 - ss(seg(t, 1.0, 2.35));   // the rack focus: from the clove to the world
+  if (foc > 0) { c.save(); c.globalAlpha = foc; c.drawImage(BOKEH, 0, 0); c.restore(); bokehDiscs(c, t, foc); }
+  if (t < 4.9) {   // the hero clove: close, then it joins the stream at its tip and lands on the stone
+    const u = eio(seg(t, 1.05, 2.75)), tp = pr > 0 ? at(pts, tip) : pts[0];
+    const h = Math.exp(lerp(Math.log(HERO.h), Math.log(64), u)), x = lerp(HERO.x, tp[0], u), y = lerp(HERO.y, tp[1], u), rot = lerp(HERO.rot, HERO.rot + t * 1.3, u);
+    const a = 1 - ss(seg(t, 4.5, 4.75));
+    cloveSprite(c, x, y, h, rot, spinAt(t) + u * t * 50, a, lerp(HERO.glow, 1, u)); wisps(c, t, x, y, h, rot, 1 - ss(seg(t, .9, 1.6)));
+  }
+}
+function hookTitle(c, t) {   // the question the film answers — on screen while the clove turns
+  const k = ss(seg(t, .12, .5)) * (1 - ss(seg(t, 2.15, 2.6))); if (k <= 0) return;
+  c.save(); c.globalAlpha = k; const dy = (1 - eo(seg(t, .12, .75))) * 14;
+  c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.font = '600 24px "InterT"'; c.letterSpacing = '9px'; c.fillStyle = 'rgba(255,232,190,.95)'; c.shadowColor = 'rgba(36,12,4,.85)'; c.shadowBlur = 16;
+  c.fillText('BALI JATRA', 544, 318 + dy); c.restore();
+  c.save(); c.globalAlpha = k; c.textAlign = 'left'; c.textBaseline = 'alphabetic'; const d2 = (1 - eo(seg(t, .2, .85))) * 14;
+  capLine(c, 'Why is Odisha’s fair', 398 + d2, 'dawn', 1.38); capLine(c, 'named after *Bali*?', 474 + d2, 'dawn', 1.38); c.restore();
+}
+function endLoop(c, t) {   // the clove word of the night verse becomes a clove; dawn blooms out of it; we are back at frame 0
+  if (t < 61.7) return; const tau = t - DUR, u = seg(t, 61.75, DUR), e = eio(u);
+  const x = lerp(HOT[0], HERO.x, e), y = lerp(HOT[1], HERO.y, e);
+  const R = lerp(0, 2700, ss(seg(t, 62.05, 63.45)));
+  if (R > 1) { const w = WASH.getContext('2d'); w.setTransform(1, 0, 0, 1, 0, 0); w.globalCompositeOperation = 'source-over'; w.globalAlpha = 1; w.clearRect(0, 0, W, H); w.drawImage(BOKEH, 0, 0); bokehDiscs(w, tau, 1);
+    w.globalCompositeOperation = 'destination-in'; const g = w.createRadialGradient(x, y, 0, x, y, R); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(clamp((R - 520) / R, 0, .999), 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)'); w.fillStyle = g; w.fillRect(0, 0, W, H); w.globalCompositeOperation = 'source-over';
+    c.drawImage(WASH, 0, 0); }
+  const h = Math.exp(lerp(Math.log(16), Math.log(HERO.h), e)), rot = lerp(1.1, HERO.rot, e);
+  cloveSprite(c, x, y, h, rot, spinAt(tau), ss(seg(t, 61.75, 62.05)), lerp(1.2, HERO.glow, e)); wisps(c, tau, x, y, h, rot, ss(seg(t, 62.7, 63.5)));
+}
+async function initOpening(base) {
+  CLOVE = await Promise.all(Array.from({ length: 45 }, (_, k) => load(base + `plates/clove/c_${String(k).padStart(2, '0')}.png`)));
+  for (let i = 0; i < 560; i++) { const k = Math.pow(hh(i * 1.37), 1.7), y = 1634 + (2140 - 1634) * k, cw = 30 + 300 * k; GLIT.push({ x: 700 + (hh(i * 2.9) + hh(i * 5.3) + hh(i * 7.1) - 1.5) * cw * 1.25, y, l: 4 + 16 * k, w: 2 + hh(i * 9.1) * 5, ph: hh(i * 4.4) * 7, b: .95 - .4 * k }); }
+  const sharp = mk(), g = sharp.getContext('2d'), [cx, cy, z] = A0; g.setTransform(z, 0, 0, z, 540 - cx * z, 960 - cy * z); g.drawImage(P.shore, -SX0 / S0, -SY0 / S0, W / S0, 2700 / S0); g.drawImage(P.Ldark, 0, 0);
+  g.setTransform(1, 0, 0, 1, 0, 0); const zS = z / S0, P2S = (x, y) => toS(A0, ...sw(x, y));
+  for (const [x0, y0, ds] of DONGA) { const [X, Y] = P2S(x0, y0); donga(g, X, Y, ds * zS, 0); }
+  BOKEH = mk(); const b = BOKEH.getContext('2d'); b.filter = 'blur(34px)'; b.drawImage(sharp, -90, -90, W + 180, H + 180); b.filter = 'none';
+  b.globalCompositeOperation = 'multiply'; const v = b.createRadialGradient(540, 980, 200, 540, 980, 1300); v.addColorStop(0, 'rgba(255,240,225,1)'); v.addColorStop(1, 'rgba(120,70,50,1)'); b.fillStyle = v; b.fillRect(0, 0, W, H); b.globalCompositeOperation = 'source-over';
+  for (let i = 0; i < 34; i++) { const gg = GLIT[(i * 37) % GLIT.length]; const [X, Y] = P2S(gg.x, gg.y); BOK.push({ x: X + (hh(i * 3) - .5) * 160, y: Y + (hh(i * 5) - .5) * 60, r: 24 + hh(i * 7) * 64, w: 1.2 + hh(i) * 2.4, ph: hh(i * 9) * 6, c: '255,226,170' }); }
+  for (const [x0, y0, ds] of DONGA) { const [X, Y] = P2S(x0, y0 - 10); BOK.push({ x: X, y: Y, r: 60 * ds, w: 2.6, ph: x0, c: '255,170,90' }); }
+}
 
 // ———————————————— the frame ————————————————
 window.render = t => {
@@ -374,14 +474,17 @@ window.render = t => {
       ctx.drawImage(P.shore, -SX0 / S0, -SY0 / S0, W / S0, 2700 / S0);
       const sb = ss(seg(z, .25, .6)); if (sb > 0) { ctx.globalAlpha = sb; ctx.drawImage(P.sandBG, (260 - SX0) / S0, (2160 - SY0) / S0, 300 / S0, 540 / S0); ctx.globalAlpha = 1; }
       if (z > .95) ctx.drawImage(P.earthF, 0, E0);
-      relief(ctx, t);
+      relief(ctx, t, z);
       fieldNotes(ctx, t, cam);
       ctx.setTransform(1, 0, 0, 1, 0, 0);
-      threadS(ctx, t, cam, SC1, eio(seg(t, .5, 4.7)), 1 - ss(seg(t, 4.9, 6.2)), { w: 1, op: 'source-over', col: [184, 124, 40], wob: .7 });
+      if (t < 9.6) opening(ctx, t, cam);
       verseSky(ctx, t, cam);
       if (t > 16.4 && t < 23.5) {
-        threadS(ctx, t, cam, SC2, eio(seg(t, 16.6, 19.0)), 1 - ss(seg(t, 21.0, 22.6)), { w: 2.8, op: 'source-over', col: [214, 156, 52], wob: .25 });
-        const dk = ss(seg(t, 18.85, 19.25)); if (dk > 0) { const [x, y] = toS(cam, 800, 1838); clove(ctx, x, y - 20, 1.25 * cam[2], .2, dk * (1 - ss(seg(t, 21.2, 22.4)))); }
+        const qp = eio(seg(t, 16.6, 19.0)), qa = 1 - ss(seg(t, 21.0, 22.6));
+        ctx.save(); ctx.translate(3, 4); ctx.filter = 'blur(3px)'; threadS(ctx, t, cam, SC2, qp, qa * .5, { w: 4.2, op: 'source-over', col: [70, 36, 12], wob: .15 }); ctx.restore();
+        threadS(ctx, t, cam, SC2, qp, qa, { w: 4.2, op: 'source-over', col: [226, 168, 58], wob: .15 });
+        const dk = ss(seg(t, 18.8, 19.2)); if (dk > 0) { const [x, y] = toS(cam, 560, 1858); cloveSprite(ctx, x, y, 150 * cam[2] * lerp(1.5, 1, eo(seg(t, 18.8, 19.3))), Math.PI, t * 30, dk * (1 - ss(seg(t, 21.2, 22.4))), .9); }
+        ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.filter = 'blur(6px)'; threadS(ctx, t, cam, SC2, qp, qa * .35, { w: 5, col: [255, 200, 110], wob: .15 }); ctx.restore();
         threadS(ctx, t, cam, SC3, eio(seg(t, 19.95, 21.9)), 1 - ss(seg(t, 22.6, 23.5)), { w: 1.1, wob: .6 });
       }
       const pk = paper(ctx, t);
@@ -397,17 +500,18 @@ window.render = t => {
     } else if (t < 47.3) { drawSH(SHx, t); ctx.drawImage(SH, 0, 0); }
     else {
       const cam = camF(t); drawSH(SHx, t);
-      if (cam[2] >= ZF - 1e-4) ctx.drawImage(SH, 0, 0); else { ctx.fillStyle = '#05030a'; ctx.fillRect(0, 0, W, H); fairScene(ctx, t, cam); }
-      dawnWash(ctx, t);
+      if (Math.abs(cam[2] - ZF) < 1e-4 && Math.abs(cam[1] - F0[1]) < .01) ctx.drawImage(SH, 0, 0); else { ctx.fillStyle = '#05030a'; ctx.fillRect(0, 0, W, H); fairScene(ctx, t, cam); }
+      endLoop(ctx, t);
     }
     captions(ctx, t);
+    if (t < 2.8) hookTitle(ctx, t);
   } catch (e) { console.error('RENDER ' + e.stack); throw e; }
 };
 
 (async () => {
   for (const f of ['600 64px "Cinzel"', 'italic 600 50px "CormorantG"', 'italic 500 26px "CormorantG"', '400 39px "InterT"', '700 40px "OdiaSerif"', '600 26px "OdiaSerif"']) await document.fonts.load(f, f.includes('Odia') ? 'ବାଲିଯାତ୍ରାକଳିଙ୍ଗଦ୍ୱୀପ' : 'Aa');
   const base = new URL('.', import.meta.url).href, get = p => load(base + p);
-  const [shore, earth, fair, ...rel] = await Promise.all(['plates/shore2.png', 'plates/earth2.png', 'plates/fair.png', ...[0, 1, 2].map(i => `plates/relief_L${i}.png`), ...[0, 1, 2].map(i => `plates/relief_G${i}.png`)].map(get));
+  const [shore, earth, fair, ...rel] = await Promise.all(['plates/shore3.png', 'plates/earth2.png', 'plates/fair.png', ...[0, 1, 2].map(i => `plates/relief_L${i}.png`), ...[0, 1, 2].map(i => `plates/relief_G${i}.png`)].map(get));
   Object.assign(P, { shore, earth, fair, L: rel.slice(0, 3), G: rel.slice(3) });
   const ef = mk(1080, 2600), ex = ef.getContext('2d'); ex.drawImage(earth, 0, 0); ex.globalCompositeOperation = 'destination-in'; const eg = ex.createLinearGradient(0, 0, 0, 260); eg.addColorStop(0, 'rgba(0,0,0,0)'); eg.addColorStop(1, 'rgba(0,0,0,1)'); ex.fillStyle = eg; ex.fillRect(0, 0, 1080, 2600); P.earthF = ef;
   const sbc = mk(1200, 2160), sbx = sbc.getContext('2d'); sbx.filter = 'blur(10px)'; sbx.drawImage(shore, 260, 2160, 300, 540, -40, -40, 1280, 2240); P.sandBG = sbc;   // a soft-focus sand for behind the stone
@@ -415,7 +519,10 @@ window.render = t => {
   const a = mk(912, 136), ax = a.getContext('2d', { willReadFrequently: true }); ax.drawImage(P.G[1], 84, 1104, 912, 136, 0, 0, 912, 136); const dg = ax.getImageData(0, 0, 912, 136);
   ax.clearRect(0, 0, 912, 136); ax.drawImage(P.L[1], 84, 1104, 912, 136, 0, 0, 912, 136); const dl = ax.getImageData(0, 0, 912, 136);
   const m = ax.createImageData(912, 136); for (let i = 0; i < m.data.length; i += 4) { const d = Math.abs(dg.data[i] - dl.data[i]) + Math.abs(dg.data[i + 1] - dl.data[i + 1]) + Math.abs(dg.data[i + 2] - dl.data[i + 2]); m.data[i + 3] = clamp(d / 40) * 255; }
-  GM = mk(912, 136); GM.getContext('2d').putImageData(m, 0, 0); GB = mk(912, 136); GBx = GB.getContext('2d');
+  GM = mk(912, 136); GM.getContext('2d').putImageData(m, 0, 0);
+  GO = mk(912, 136); { const g = GO.getContext('2d'); for (const b of [2, 3.5, 5]) { g.filter = `blur(${b}px)`; g.drawImage(GM, 0, 0); g.drawImage(GM, 0, 0); } g.filter = 'none'; g.globalCompositeOperation = 'source-in'; g.fillStyle = '#1e0c04'; g.fillRect(0, 0, 912, 136); }
+  P.Ldark = mk(1080, 2300); { const g = P.Ldark.getContext('2d'); g.drawImage(P.L[0], 0, 0); g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(46,20,10,.62)'; g.fillRect(0, 0, 1080, 2300); const rg = g.createLinearGradient(1080, 0, 700, 0); rg.addColorStop(0, 'rgba(255,190,110,.55)'); rg.addColorStop(1, 'rgba(255,190,110,0)'); g.fillStyle = rg; g.fillRect(0, 0, 1080, 2300); } GB = mk(912, 136); GBx = GB.getContext('2d');
+  await initOpening(base);
   SH = mk(); SHx = SH.getContext('2d'); for (let i = 0; i < 4; i++) LAY.push(mk()); WASH = mk();
   initWayang();
   if (Q.get('t')) window.render(+Q.get('t'));

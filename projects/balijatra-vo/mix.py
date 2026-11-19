@@ -85,15 +85,24 @@ def chime(p, t, v=.2, g=.45, pan=0.): note('hand_chimes', p, t, 2.5, v, g, pan)
 def harp(p, t, v=.35, g=.5, pan=0.): note('harp', p, t, 3, v, g, pan)
 for i in range(4):                                                                               # the verse, line by line
     for j, p in enumerate([['D5', 'F#5', 'A5'], ['E5', 'A5', 'B5'], ['F#5', 'A5', 'D6'], ['A5', 'B5', 'D6']][i]): harp(p, 5.05 + i * .62 + j * .09, .28, .42, (j - 1) * .25)
-for j, p in enumerate(['D6', 'F#6', 'A6', 'D7']): chime(p, 11.25 + j * .22, .16, .38, (j - 1.5) * .25)   # gold runs into the name
+for j, p in enumerate(['D6', 'F#6', 'A6', 'D7']): chime(p, 11.25 + j * .22, .16, .38, (j - 1.5) * .25)
+# the hook: the clove turning in the light; the rack focus; the stream of cloves; it lands on the stone
+pad('vibraphone_bowed', 'D5', 0.0, 2.6, .2, .1, .5, .05); pad('vibraphone_bowed', 'A4', 0.0, 2.6, .16, -.1, .5, .05)
+note('glass', 'A5', .12, 2.2, .26, .4, .2); note('glass', 'D6', .2, 2.0, .2, .35, -.2)
+for k in range(7): chime(['D6', 'E6', 'F#6', 'A6', 'B6', 'D7', 'E7'][k], 1.95 + k * .28, .12, .3, (k - 3) * .25)
+for k in range(5): note('glockenspiel', ['A6', 'B6', 'D7', 'F#7', 'A7'][k], 3.4 + k * .12, 1.2, .16, .28, (k - 2) * .3)
+note('hand_chimes', 'D6', 4.68, 2.5, .26, .45); note('glass', 'D6', 4.7, 2.4, .24, .4)
+# the loop: the clove word becomes a clove; dawn blooms out of it
+pad('vibraphone_bowed', 'A4', 61.8, 1.8, .2, .1, .5, .8); note('glass', 'A5', 62.3, 1.3, .22, .35, .2)
+for k in range(6): chime(['A6', 'F#6', 'E6', 'D6', 'B5', 'A5'][k], 62.0 + k * .2, .1, .28, (k - 2.5) * .25)   # gold runs into the name
 note('glockenspiel', 'A6', 12.35, 1.4, .22, .3, .3)
 for k in range(9): note('glockenspiel', ['D6', 'F#6', 'A6', 'B6', 'D7', 'A6', 'F#6', 'B6', 'D7'][k], 13.65 + k * .2, 1.2, .14, .25, (k % 3 - 1) * .4)   # the waves catch the sun
 chime('E6', 19.0, .2, .4, .3)                                                                   # the "?"'s clove
 for j, p in enumerate(['D4', 'F4', 'A4']): note('cellos_pizz', p, 17.0 + j * .45, 1.2, .3, .4, -.2)
 note('woodblock', 'C5', 28.05, .3, .3, .35) if False else None
-for j, p in enumerate(['A5', 'D6']): chime(p, 28.05 + j * .12, .2, .42, (j - .5) * .4)        # the halves lock
-for j, p in enumerate(['D5', 'F#5', 'A5', 'D6', 'F#6']): harp(p, 30.35 + j * .07, .32, .45, (j - 2) * .2)   # ମିଳିଛି: the gold seam
-note('glass', 'A5', 30.45, 2.5, .3, .35)
+for j, p in enumerate(['A5', 'D6']): chime(p, 30.3 + j * .12, .2, .42, (j - .5) * .4)        # the halves lock
+for j, p in enumerate(['D5', 'F#5', 'A5', 'D6', 'F#6']): harp(p, 30.62 + j * .07, .32, .45, (j - 2) * .2)   # ମିଳିଛି: the gold seam
+note('glass', 'A5', 30.7, 2.5, .3, .35)
 # isles: a gamelan colour (pelog-ish on D)
 for t_, p in [(40.6, 'D5'), (41.3, 'F5'), (42.1, 'A5')]:
     note('vibraphone_hard', p, t_, 2.2, .3, .38, .2); note('vibraphone_hard', p.replace('5', '4'), t_ + .01, 2.2, .22, .3, -.2); hit('gong2', 'small', t_ + .02, .35, .3, .1)
@@ -101,8 +110,8 @@ hit('gong', None, 52.1, .3, .4, 0)                                              
 PEL = ['D5', 'D#5', 'F5', 'A5', 'A#5', 'A5', 'F5', 'D#5']
 for k in range(20): note('vibraphone', PEL[k % 8], 52.6 + k * .26, .9, .2 if k % 4 else .28, .3, (k % 2 - .5) * .5)   # the gamelan figure
 for k in range(10): note('marimba', ['D3', 'A3'][k % 2], 52.6 + k * .52, 1.0, .25, .3, 0)
-note('tubular_bells', 'D5', 54.1, 3.5, .35, .4); hit('gong2', 'small', 54.12, .4, .3)          # the bow
-for j, p in enumerate(['A4', 'D5', 'F#5', 'A5', 'D6']): harp(p, 56.1 + j * .1, .3, .45, (j - 2) * .2)   # the thread between their hands
+note('tubular_bells', 'D5', 54.42, 3.5, .35, .4); hit('gong2', 'small', 54.44, .4, .3)          # the bow
+for j, p in enumerate(['A4', 'D5', 'F#5', 'A5', 'D6']): harp(p, 56.68 + j * .1, .3, .45, (j - 2) * .2)   # the thread between their hands
 for j, p in enumerate(['D4', 'F#4', 'A4', 'D5', 'F#5', 'A5', 'D6']): harp(p, 49.15 + j * .05, .34, .5, (j - 3) * .15)   # ବାଲିଯାତ୍ରା lights
 note('tubular_bells', 'D5', 49.2, 4, .38, .42); hit('nepal_bells', None, 49.25, .5, .4, .2)
 hit('sus_cymbal', 'roll', 60.4, .25, .25, 0)
@@ -139,14 +148,15 @@ def conch(d=1.6, v=1.0):
 
 X.add(amb, fade(waves(9.6), .02, 1.4), 0, 1, 0)                                          # the Kalinga shore
 X.add(amb, fade(waves(1.6), .8, .02), 62.0, 1, 0)                                        # …and again at the loop
-X.add(fx, X.whoosh(.9, .28), 7.85, .45, 0)                                               # the push into the stone
+X.add(fx, X.whoosh(1.1, .3), 1.05, .4, 0); X.add(fx, X.whoosh(.9, .28), 7.85, .45, 0); X.add(fx, X.whoosh(1.2, .25), 62.0, .35, 0)                                               # the push into the stone
 X.add(fx, X.thump(.35, 60), 9.25, .4, 0)
 X.add(fx, X.whoosh(.7, .25), 15.35, .4, 0)
 X.add(fx, X.whoosh(1.2, .3), 20.0, .45, 0); X.add(fx, X.rumble(1.6, .25), 20.1, .4, 0)   # down into the earth
 for t_, d in [(21.75, .9), (22.4, .7), (22.75, 1.0)]: X.add(fx, pen(d, .7), t_, .8, .3)   # field notes
 X.add(fx, brush(.9, 1.0), 24.85, .9, 0)                                                  # the paper slides up
-for t_, d in [(25.6, .5), (25.85, 1.2), (27.0, 1.0), (27.5, .6)]: X.add(fx, pen(d), t_, .9, -.2 if t_ < 27 else .25)
-X.add(fx, X.clack(1.2, .35), 28.05, .5, 0)                                               # click: the halves lock
+for t_, d in [(24.9, .5), (25.15, 1.2), (26.9, 1.3), (29.5, .6)]: X.add(fx, pen(d), t_, .9, .25 if t_ < 26 else -.2)
+chime('F#6', 24.9, .16, .35, .3); chime('A6', 29.62, .16, .35, -.3)
+X.add(fx, X.clack(1.2, .35), 30.3, .5, 0)                                               # click: the halves lock
 X.add(fx, X.ignite(.45), 31.0, .6, 0); X.add(fx, X.whoosh(.6, .3), 31.5, .4, 0)           # the lamp behind the paper
 X.add(amb, fade(X.lp(X.noise(15.5), 500) * .004, .6, 1.2), 31.2, 1, 0)                   # the lamp's flame, the cloth
 for t_ in (33.1, 33.65, 34.2, 34.6, 35.0, 35.4): X.add(fx, splash(.7), t_, .7, (R.uniform(-.4, .4)))   # the pot flails
