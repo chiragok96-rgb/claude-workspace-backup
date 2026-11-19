@@ -57,6 +57,9 @@ wn = zoom(fbm(700, 600, 7, 6, 7), (1, 4), order=1); wy = (np.log1p(np.maximum(YY
 wave = map_coordinates(wn, [wy, wx % 2400], order=1, mode='wrap')
 sea *= (1 + (wave - .5) * .5)[..., None]
 colw = 30 + 300 * k; path = np.exp(-((XX - SUN[0]) / colw) ** 2) * (1 - .5 * k)
+cool = ramp(k, [(0, (.66, .56, .52)), (.25, (.34, .33, .34)), (1, (.15, .19, .21))]) * (1 + (wave - .5) * .5)[..., None]
+cw_ = np.clip(1 - path * 1.8 - np.exp(-(dsun / 520) ** 2) * 1.2, 0, 1) * (.35 + .65 * ss(.35, .62, 1 - wave))   # troughs away from the sun turn slate-teal
+sea = sea * (1 - .62 * cw_[..., None]) + cool * .62 * cw_[..., None]
 glint = ss(.6, .74, wave) * path; sea += (glint * 1.2 + path * .18)[..., None] * np.array([1, .82, .55])
 img = np.where(sea_m[..., None], sea, img)
 img = over(img, gaussian_filter(((YY >= HZ - 1) & (YY <= HZ + 1)).astype(np.float32), .8) * .5, (1, .86, .62))   # the bright horizon line
