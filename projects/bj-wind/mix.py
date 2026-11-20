@@ -99,11 +99,13 @@ def chime(p, t, v=.2, g=.45, pan=0.): note('hand_chimes', p, t, 2.5, v, g, pan)
 def harp(p, t, v=.35, g=.5, pan=0.): note('harp', p, t, 3, v, g, pan)
 for k_ in range(9): note('glockenspiel', ['D6', 'F#6', 'A6', 'B6', 'D7', 'A6', 'F#7', 'E7', 'D7'][k_], .2 + k_ * .17, 1.4, .12, .26, (k_ % 3 - 1) * .4)   # threads of light
 note('glass', 'A5', .12, 2.2, .24, .38, .2)
+for k_ in range(6): note('hand_chimes', ['D6', 'F#6', 'A6', 'D7', 'A6', 'F#6'][k_], 3.1 + k_ * .14, 2.0, .12, .3, (k_ - 2.5) * .25)   # Rashtrapati Bhavan draws itself
+for j, p in enumerate(['A4', 'D5', 'F#5', 'A5', 'D6']): harp(p, 4.45 + j * .07, .3, .45, (j - 2) * .2)   # Odisha
 def ring(t, v=1.0):   # the scissors: a bright metallic ring
     d = 1.4; y = np.zeros(int(d * SR)); tt_ = tt(d)
     for f, dec, amp in [(2960, 3.0, .5), (4410, 4.0, .35), (6120, 6.0, .2), (1830, 2.0, .25)]: y += np.sin(2 * np.pi * f * tt_) * np.exp(-tt_ * dec) * amp
     X.add(fx, (y * .05 * v).astype(np.float32), t, .7, .3)
-ring(3.2); ring(43.4, .9)
+ring(2.75); ring(43.4, .9)
 hit('gong', None, 6.8, .32, .4, 0); PEL = ['D5', 'D#5', 'F5', 'A5', 'A#5', 'A5', 'F5', 'D#5']
 for k_ in range(8): note('vibraphone_hard', PEL[k_], 6.78 + k_ * .14, .9, .24, .3, (k_ % 2 - .5) * .5)            # Indonesia
 for j, p in enumerate(['D4', 'F#4', 'A4', 'D5', 'F#5', 'A5']): harp(p, 7.2 + j * .05, .3, .45, (j - 2.5) * .2)       # the knot is tied
@@ -126,6 +128,7 @@ def waves(d, v=1.0):
 X.add(amb, fade(waves(3.0), .8, .8), 24.4, 1, 0)
 def creak(t): X.add(fx, X.creak(.6), t, .4, -.2)
 creak(25.2); creak(26.1)
+X.add(fx, X.ignite(.35), 26.7, .5, 0); note('vibraphone_bowed', 'A4', 26.7, 1.6, .18, .4, 0, .4)   # the boat's lamp swells into firelight
 # the wall: a folk telling — marimba and kalimba, the crow's caws and wingbeats
 for k_, p in enumerate(['D4', 'F4', 'A4', 'G4', 'F4', 'D4', 'E4', 'D4']): note('marimba', p, 27.2 + k_ * .3, .8, .28, .4, (k_ % 2 - .5) * .4)
 def caw(t, v=1.0, pitch=1.0):
@@ -148,6 +151,8 @@ for k_ in range(6): note('marimba', ['D3', 'A3'][k_ % 2], 39.2 + k_ * .32, 1.0, 
 note('tubular_bells', 'D5', 41.1, 3.5, .34, .42); hit('nepal_bells', None, 41.12, .45, .4, .1)                       # Cuttack
 X.add(fx, X.whoosh(.9, .3), 41.6, .4, 0); note('glass', 'A5', 41.95, 1.8, .26, .4)                                     # the light opens into the gate
 hit('sus_cymbal', 'roll', 46.1, .35, .32, 0)
+X.add(amb, fade(waves(5.2) * 1.4, 1.0, 1.0), 44.8, 1, 0); pad('vibraphone_bowed', 'D5', 44.7, 2.8, .16, .2, .5, .8)   # time rolls back to the sea
+for t_ in (47.7, 47.95, 48.2): sail(t_, 1.2)   # the silks fill as sails
 hit('gong', None, 47.62, .45, .5, 0); note('tubular_bells', 'D5', 47.62, 3.5, .45, .5); hit('nepal_bells', None, 47.64, .55, .5, -.2)   # the Kartika wind
 for k_ in range(10): chime(['D6', 'E6', 'F#6', 'A6', 'B6', 'D7', 'E7', 'F#7', 'A7', 'D7'][k_], 47.7 + k_ * .1, .13, .3, (k_ - 4.5) * .18)
 for j, p in enumerate(['D3', 'A3', 'D4', 'F#4', 'A4', 'D5', 'F#5', 'A5', 'D6']): harp(p, 47.66 + j * .045, .34, .5, (j - 4) * .15)

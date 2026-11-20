@@ -6,7 +6,9 @@ import { initTextiles, initGate, initSign, gate, ceremonyRibbon, scissors, windT
 import { initMap, drawMap, wind, m2s, camT, ll, PLACES, ROUTE_BALI, ROUTE_JAVA, ROUTE_SUMATRA, boat, routeLine, batikFlow, placeLabel, moon, compass, isLand, MP } from './sc_map.js';
 import { initWord, wordScene, setTargets } from './sc_word.js';
 import { initSaura, sauraScene, crowFlight, SB, STRAIGHT } from './sc_saura.js';
-let DBG_TILE; const OV = document.createElement('canvas'); OV.width = 1080; OV.height = 1920; const OVx = OV.getContext('2d');
+import { initHonour, bhavan, odisha, nightSea, silkBoita } from './sc_honour.js';
+let DBG_TILE; const WL = document.createElement('canvas'); WL.width = 1080; WL.height = 1920; const WLx = WL.getContext('2d');
+const OV = document.createElement('canvas'); OV.width = 1080; OV.height = 1920; const OVx = OV.getContext('2d');
 const Q = new URLSearchParams(location.search), cv = document.getElementById('c'); cv.width = W; cv.height = H; const ctx = cv.getContext('2d');
 const DUR = 50.2, T0 = +(Q.get('from') || 0), T1 = Q.get('to') ? +Q.get('to') : DUR; window.DUR = T1 - T0;   // ?from=&to= renders a range (each chunk in a fresh browser)
 function zpath(a, b, u) {   // log-zoom on a straight fixed-point path; rotation (4th) lerps
@@ -48,7 +50,8 @@ function fleet(c, cam, t, a, solo = 0) {
     const [x, y] = at(f.route, uu), [x2, y2] = at(f.route, Math.min(1, uu + .01)); const [X, Y] = m2s(cam, x + f.off * .4, y - f.off * .4), [X2] = m2s(cam, x2, y2);
     const al = a * (f.lead ? 1 : 1 - solo) * ss(seg(t, f.t0, f.t0 + .4)); if (al <= 0) continue;
     wake(c, cam, f.route, uu, f.off, al);
-    boat(c, X, Y, 1.9 + cam[2] * .35, al, X2 >= X ? 1 : -1); }
+    const grow = f.lead ? lerp(1, 3.0, ss(seg(t, 26.35, 27.3))) : 1, ga = f.lead ? 1 - ss(seg(t, 27.0, 27.5)) : 1;   // the lone boat grows into the painted one
+    boat(c, X, Y, (1.9 + cam[2] * .35) * grow, al * ga, X2 >= X ? 1 : -1); }
 }
 function wake(c, cam, route, u, off, a) {   // a gold wake behind a sailing boita
   const pts = []; for (let k = 0; k <= 16; k++) { const uu = Math.max(0, u - k * .0035); const [x, y] = at(route, uu); pts.push(m2s(cam, x + off * .4, y - off * .4)); }
@@ -108,13 +111,18 @@ function gateScene(c, t) {
   const j = end ? 1 : eo(seg(t, 5.8, 6.95)), bow = end ? 1 : ss(seg(t, 6.7, 7.45));
   const gust = end ? lerp(.15, 1, ss(seg(t, 44.8, 47.5))) * (1 - ss(seg(t, 48.4, 49.4))) : .15;
   const untie = end ? ss(seg(t, 47.6, 48.75)) : 0;
-  if (!end || untie < 1) ceremonyRibbon(c, tg, { k, j, bow, untie, gust });
+  const ts = end ? ss(seg(t, 44.7, 45.9)) : 0, back = end ? ss(seg(t, 49.0, 50.0)) : 0;   // time rolls back to a moonlit sea; at the very end, back to the opening dark
+  const drawRibbon = () => { c.setTransform(z, 0, 0, z, 540 - cx * z, 960 - cy * z); if (!end || untie < 1) ceremonyRibbon(c, tg, { k, j, bow, untie, gust }); c.setTransform(1, 0, 0, 1, 0, 0); };
+  if (!end) drawRibbon();
   // the scissors: in on "Rashtrapati", away before Indonesia arrives; in the end they come again, and wait
   let sa = 0, sx = 0, op = .5;
-  if (!end) { sa = ss(seg(t, 3.0, 3.5)) * (1 - ss(seg(t, 5.6, 6.1))); sx = lerp(780, 640, eo(seg(t, 3.0, 3.8))) + ss(seg(t, 5.6, 6.1)) * 200; op = .45 + .25 * Math.sin(t * 2.4); }
-  else { sa = ss(seg(t, 43.0, 43.5)) * (1 - ss(seg(t, 46.0, 46.8))); sx = lerp(820, 676, eo(seg(t, 43.0, 43.9))) + ss(seg(t, 45.9, 46.8)) * 260; op = .65 - .3 * ss(seg(t, 44.6, 45.2)); }
+  if (!end) { sa = ss(seg(t, 2.55, 3.0)) * (1 - ss(seg(t, 5.6, 6.1))); sx = lerp(780, 640, eo(seg(t, 2.55, 3.4))) + ss(seg(t, 5.6, 6.1)) * 200; op = .45 + .25 * Math.sin(t * 2.4); }
+  else { sa = ss(seg(t, 43.0, 43.5)) * (1 - ss(seg(t, 44.9, 45.6))); sx = lerp(820, 676, eo(seg(t, 43.0, 43.9))) + ss(seg(t, 44.9, 45.6)) * 260; op = .65 - .3 * ss(seg(t, 44.4, 45.0)); }
   if (sa > 0) scissors(c, sx, end ? 1100 : 1060, .95, -.42 + (end ? .05 * Math.sin(t * 3) * ss(seg(t, 45, 46)) : 0), op, sa);
   c.setTransform(1, 0, 0, 1, 0, 0);
+  if (end) { bhavan(c, tg, eio(seg(t, 43.1, 44.1)), ss(seg(t, 43.1, 43.4)) * (1 - ss(seg(t, 44.5, 45.1))), 540, 520, .82);   // "this year, the President"
+    nightSea(c, tg, ts * (1 - back)); drawRibbon();
+    const open = seg(t, 47.65, 48.7); if (open > 0) { const go = eio(seg(t, 48.45, 49.95)); silkBoita(c, tg, lerp(540, 850, go), lerp(1290, 1212, go), lerp(1, .26, go), open, ss(seg(t, 47.62, 47.95)) * (1 - ss(seg(t, 49.35, 49.95)))); } }   // the silks become sails
   // the wind, always there; in the end it rises and takes the ribbon
   const yR = (GATE.ribY - cy) * z + 960;
   const wa = end ? lerp(.22, 1, ss(seg(t, 44.8, 48.0))) : lerp(1, .22, ss(seg(t, 1.3, 2.6)));
@@ -163,17 +171,22 @@ window.render = t0 => { const t = t0 + T0;
     if (t < 12.95 || t >= 41.8) gateScene(ctx, t);
     if (t >= 41.8 && t < 42.6) { const k = 1 - ss(seg(t, 41.9, 42.55)); ctx.save(); ctx.globalAlpha = k; mapScene(ctx, t); ctx.restore(); }   // Cuttack's light opens into the gate
     if (t >= 12.2 && t < 17.0) { const a = ss(seg(t, 12.25, 12.9)) * (1 - ss(seg(t, 16.3, 16.95))); if (t >= 16.2) mapScene(ctx, t); wordScene(ctx, t, a); }
-    if (t >= 17.0 && t < 27.6) mapScene(ctx, t);
-    if (t >= 26.6 && t < 36.4) {   // the dark sea becomes a Saura wall; the lone boita becomes the painted boat
-      const w = ss(seg(t, 26.7, 27.7)), out = ss(seg(t, 35.45, 36.3));
-      ctx.save(); if (t < 27.7) { ctx.beginPath(); const r = lerp(0, 1500, w); ctx.ellipse(SB.x, SB.y, r * (1 + .08 * Math.sin(t * 9)), r * .92, 0, 0, 7); ctx.clip(); }
-      ctx.globalAlpha = 1 - out; sauraScene(ctx, t, { reveal: ss(seg(t, 26.9, 28.3)), shore: ss(seg(t, 34.4, 35.2)) }); crowFlight(ctx, t); ctx.restore();
+    if (t >= 17.0 && t < 27.95) mapScene(ctx, t);
+    if (t >= 25.9 && t < 36.4) {   // the boat's lamp swells into firelight; in it, the tale is painted on a Saura wall
+      const w = ss(seg(t, 26.6, 27.95)), out = ss(seg(t, 35.45, 36.3)), opts = { reveal: ss(seg(t, 26.9, 28.3)), shore: ss(seg(t, 34.4, 35.2)) };
+      if (t < 26.6) { const f = Math.exp(-Math.pow((t - 27.0) / .4, 2)); ctx.save(); ctx.globalCompositeOperation = 'lighter'; const lg = ctx.createRadialGradient(SB.x, SB.y, 0, SB.x, SB.y, 900); lg.addColorStop(0, `rgba(255,200,120,${.45 * f})`); lg.addColorStop(1, 'rgba(255,160,80,0)'); ctx.fillStyle = lg; ctx.fillRect(0, 0, W, H); ctx.restore(); }   // the lamp begins to swell
+      else if (t < 27.95) { const x = WLx; x.setTransform(1, 0, 0, 1, 0, 0); x.globalCompositeOperation = 'source-over'; x.globalAlpha = 1; x.clearRect(0, 0, W, H); sauraScene(x, t, opts); crowFlight(x, t);
+        x.globalCompositeOperation = 'destination-in'; const R = lerp(20, 2000, w) * (1 + .03 * Math.sin(t * 13)), g = x.createRadialGradient(SB.x, SB.y, 0, SB.x, SB.y, R); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(clamp(1 - 460 / R, 0, .98), 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(0, 0, W, H); x.globalCompositeOperation = 'source-over';
+        ctx.drawImage(WL, 0, 0); const f = Math.exp(-Math.pow((t - 27.0) / .4, 2)); if (f > .01) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; const lg = ctx.createRadialGradient(SB.x, SB.y, 0, SB.x, SB.y, 900); lg.addColorStop(0, `rgba(255,200,120,${.45 * f})`); lg.addColorStop(1, 'rgba(255,160,80,0)'); ctx.fillStyle = lg; ctx.fillRect(0, 0, W, H); ctx.restore(); } }
+      else { ctx.save(); ctx.globalAlpha = 1 - out; sauraScene(ctx, t, opts); crowFlight(ctx, t); ctx.restore(); }
     }
     if (t >= 35.45 && t < 42.6) { const a = ss(seg(t, 35.45, 36.3)); ctx.save(); ctx.globalAlpha = a; if (t < 41.8) mapScene(ctx, t); ctx.restore();
       if (t < 36.6) { const m = eio(seg(t, 35.45, 36.4)), cam = mapCam(t); const pts = STRAIGHT.map(([x, y], i) => { const [rx, ry] = at(ROUTE_BALI, i / (STRAIGHT.length - 1)), [X, Y] = m2s(cam, rx, ry); return [lerp(x, X, m), lerp(y, Y, m)]; });   // the crow's line becomes the sea route
         ctx.save(); ctx.globalAlpha = 1 - ss(seg(t, 36.2, 36.6)); ctx.fillStyle = 'rgba(246,238,222,.95)'; for (const [x, y] of pts) { ctx.beginPath(); ctx.arc(x, y, 3.6, 0, 7); ctx.fill(); } ctx.restore(); }
     }
     if (t >= 41.6 && t < 42.7) { const f = Math.exp(-Math.pow((t - 42.05) / .28, 2)); ctx.save(); ctx.globalCompositeOperation = 'lighter'; const g = ctx.createRadialGradient(540, 960, 0, 540, 960, 1100); g.addColorStop(0, `rgba(255,226,170,${.9 * f})`); g.addColorStop(1, `rgba(255,190,110,${.25 * f})`); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore(); }
+    if (t < 6.3) { bhavan(ctx, t, eio(seg(t, 3.05, 4.1)), ss(seg(t, 3.05, 3.3)) * (1 - ss(seg(t, 4.25, 4.65))), 540, 700, .98);   // "Rashtrapati"
+      odisha(ctx, t, eio(seg(t, 4.3, 5.05)), ss(seg(t, 4.85, 5.4)), ss(seg(t, 4.25, 4.5)) * (1 - ss(seg(t, 5.7, 6.2))), 540, 560, 600); }   // "— Odishara jhia"
     if (t < 3) title(ctx, t);
     captions(ctx, t);
   } catch (e) { console.error('RENDER ' + e.stack); throw e; }
@@ -184,7 +197,7 @@ window.render = t0 => { const t = t0 + T0;
   const land = new Uint8Array(await (await fetch(base + 'plates/land2.bin')).arrayBuffer());
   const tl_ = await Promise.all([...Array.from({ length: 16 }, (_, i) => `plates/tiles/m_${i % 4}_${Math.floor(i / 4)}.png`)].map(p => load(base + p)));
   const map = tl_.map((im, i) => [(i % 4) * 1280, Math.floor(i / 4) * 1152, im]); DBG_TILE = tl_[5];
-  initTextiles(); initGate(); initSign(); initMap(map, land); initWord(); initSaura();
+  initTextiles(); initGate(); initSign(); initMap(map, land); initWord(); initSaura(); initHonour(await (await fetch(base + 'geo/odisha.json')).json());
   // the word's particles land where the map will show Bali, and the boat on its route
   const isl = []; const [x0, y0] = ll(114.42, -8.06), [x1, y1] = ll(115.72, -8.86);
   for (let y = Math.floor(y0); y < y1; y += 2) for (let x = Math.floor(x0); x < x1; x += 2) if (isLand(x, y)) isl.push(m2s(MA, x, y));

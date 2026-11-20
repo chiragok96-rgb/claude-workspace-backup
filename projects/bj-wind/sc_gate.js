@@ -107,10 +107,27 @@ export function initSign() {   // ବାଲିଯାତ୍ରା in bulbs: raste
   SIGN = { pts, img: c };
 }
 export const SIGN_POS = { x: 540, y: 560, s: .9 };
+function fair(c, t, a) {
+  c.save(); c.globalAlpha = a;
+  for (const [wx, wy, R, sp, n] of [[110, 880, 330, .16, 36], [1010, 960, 230, -.2, 26]]) {   // two Ramdolis, turning
+    c.strokeStyle = 'rgba(70,30,20,.9)'; c.lineWidth = 6; c.beginPath(); c.moveTo(wx - R * .6, 1330); c.lineTo(wx, wy); c.lineTo(wx + R * .6, 1330); c.stroke();
+    c.lineWidth = 2; c.strokeStyle = 'rgba(120,60,36,.8)'; for (let k = 0; k < n / 2; k++) { const an = t * sp + k / (n / 2) * Math.PI * 2; c.beginPath(); c.moveTo(wx, wy); c.lineTo(wx + Math.cos(an) * R, wy + Math.sin(an) * R); c.stroke(); }
+    c.save(); c.globalCompositeOperation = 'lighter'; const rim = []; for (let k = 0; k < n; k++) { const an = t * sp + k / n * Math.PI * 2; rim.push([wx + Math.cos(an) * R, wy + Math.sin(an) * R]); } bulbs(c, rim, 5.2, t, wx, 1.25, '255,214,150');
+    const hub = []; for (let k = 0; k < n; k++) { const an = t * sp + k / n * Math.PI * 2; hub.push([wx + Math.cos(an) * R * .55, wy + Math.sin(an) * R * .55]); } bulbs(c, hub, 3.6, t, wx + 3, 1, '255,150,110'); bulbs(c, [[wx, wy]], 9, t, 0, 1.2, '255,226,170'); c.restore();
+    for (let k = 0; k < n / 4; k++) { const an = t * sp + k / (n / 4) * Math.PI * 2, gx = wx + Math.cos(an) * R, gy = wy + Math.sin(an) * R; c.fillStyle = 'rgba(40,16,10,.95)'; c.beginPath(); c.roundRect(gx - 14, gy, 28, 26, 5); c.fill(); }
+  }
+  for (const [a0, a1, y0, sag] of [[-60, 330, 1000, 70], [760, 1160, 1040, 60]]) { const pts = []; for (let i = 0; i <= 14; i++) { const u = i / 14; pts.push([lerp(a0, a1, u), y0 + Math.sin(u * Math.PI) * sag]); } c.save(); c.globalCompositeOperation = 'lighter'; bulbs(c, pts, 3.2, t, a0, .9, '255,190,120'); c.restore(); }
+  for (let x = -120, k = 0; x < 1240; x += 150, k++) {   // stalls: striped awnings, warm lit fronts
+    for (let s = 0; s < 6; s++) { c.fillStyle = s % 2 ? 'rgba(150,30,26,.95)' : 'rgba(226,196,150,.9)'; c.beginPath(); c.moveTo(x + 75, 1232); c.lineTo(x + s * 25, 1296); c.lineTo(x + (s + 1) * 25, 1296); c.closePath(); c.fill(); }
+    const g = c.createLinearGradient(0, 1296, 0, 1336); g.addColorStop(0, 'rgba(255,196,110,.85)'); g.addColorStop(1, 'rgba(255,150,70,.25)'); c.fillStyle = g; c.fillRect(x + 6, 1296, 138, 40);
+    c.save(); c.globalCompositeOperation = 'lighter'; const gl = c.createRadialGradient(x + 75, 1316, 0, x + 75, 1316, 110); gl.addColorStop(0, 'rgba(255,170,90,.25)'); gl.addColorStop(1, 'rgba(255,150,70,0)'); c.fillStyle = gl; c.fillRect(x - 40, 1200, 230, 230); c.restore(); }
+  c.restore();
+}
 export function gate(c, t, B = 1, z = 1) {   // B: how lit the fair is; z: the camera's zoom (close-ups stay clean)
   c.drawImage(BOKEH, -160, -190);
   const mx = 790, my = 210; const mg = c.createRadialGradient(mx, my, 20, mx, my, 220); mg.addColorStop(0, 'rgba(255,244,220,.35)'); mg.addColorStop(1, 'rgba(255,230,190,0)'); c.fillStyle = mg; c.fillRect(mx - 220, my - 220, 440, 440);
   c.fillStyle = '#f6ecd8'; c.beginPath(); c.arc(mx, my, 56, 0, 7); c.fill(); c.fillStyle = 'rgba(200,180,150,.25)'; for (const [ox, oy, r] of [[-14, -10, 14], [16, 12, 10], [-4, 20, 8]]) { c.beginPath(); c.arc(mx + ox, my + oy, r, 0, 7); c.fill(); }   // the Kartika full moon
+  const fa = 1 - ss(seg(z, 1.12, 1.55)); if (fa > 0) fair(c, t, fa * B);   // "one fair": the Ramdoli, festoons, stalls — only when the camera stands back
   // the gate's structure (dark lacquer), then its lights: a triple-lined torana, cusped inner arch, a crest, a fringe of hanging lights
   c.save(); c.lineJoin = 'round'; c.strokeStyle = '#160807'; c.lineWidth = 74; c.beginPath(); ARCH.outer.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.stroke();
   c.strokeStyle = '#2e100c'; c.lineWidth = 50; c.stroke(); c.restore();
@@ -128,7 +145,7 @@ export function gate(c, t, B = 1, z = 1) {   // B: how lit the fair is; z: the c
     if (x > GATE.lx + 30 && x < GATE.rx - 30) bulbs(c, sample([[x, Math.max(top, 640)], [x + Math.sin(t * 1.3 + k) * 4, Math.max(top, 640) + len]], 22), 2.6, t * 1.4, k, B * .6 * fr, k % 3 ? '255,214,150' : '255,160,120'); }
   bulbs(c, sample([[510, 330], [540, 250], [570, 330]], 10), 3.4, t, 4, B, '255,236,190'); bulbs(c, [[540, 236]], 7, t, 0, B, '255,240,200');
   for (const px of [GATE.lx, GATE.rx]) { bulbs(c, sample([[px - 26, 1560], [px - 26, 690]], 22), 3.4, t, px, B * .9, '255,190,120'); bulbs(c, sample([[px + 26, 1560], [px + 26, 690]], 22), 3.4, t, px + 1, B * .9, '255,190,120'); }
-  const { x: sx, y: sy, s } = SIGN_POS; c.save(); c.translate(sx, sy); c.scale(s, s); bulbs(c, SIGN.pts, 2.1, t * .3, 0, B * .8, '255,242,220'); c.restore();
+  const { x: sx, y: sy, s } = SIGN_POS; c.save(); c.translate(sx, sy); c.scale(s, s); bulbs(c, SIGN.pts, 2.5, t * .3, 0, B * 1.0, '255,244,224'); c.restore();
   c.restore();
   const gr = c.createLinearGradient(0, 1500, 0, 1920); gr.addColorStop(0, 'rgba(10,4,3,0)'); gr.addColorStop(.3, 'rgba(10,4,3,.85)'); gr.addColorStop(1, 'rgba(6,2,2,1)'); c.fillStyle = gr; c.fillRect(-200, 1500, 1500, 500);   // the dark path through the gate
   const rf = c.createRadialGradient(540, 1620, 10, 540, 1620, 420); rf.addColorStop(0, `rgba(255,190,110,${.12 * B})`); rf.addColorStop(1, 'rgba(255,160,90,0)'); c.fillStyle = rf; c.fillRect(100, 1400, 880, 500);
