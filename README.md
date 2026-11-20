@@ -11,7 +11,7 @@ helper tools, source audio, and the final deliverables. Created from a live sess
 | `MANIFEST.md` | Pinned upstream commits, what is included/excluded, sizes. |
 | `skills/huashu-art-motion/` | The installed Claude skill (v1.3.0). Restore to `~/.claude/skills/`. |
 | `opuscar-overlay/films/` | Custom films that live inside the Opuscar clone (`bali-rap`, `bali-toon`). |
-| `projects/*` | Standalone film projects: bali-yatra, harihara-besha, jadu-guni(+ext), jagannath-3d, megha-kadamba, panchuka(+reel), radha-pada(+darshan), bali-rap, bali-toon, balijatra-vo (Bali Jatra voiceover film: one-take shore → stone → earth → shadow play → fair; render with `film.js` via `?p=film`). |
+| `projects/*` | Standalone film projects: bali-yatra, harihara-besha, jadu-guni(+ext), jagannath-3d, megha-kadamba, panchuka(+reel), radha-pada(+darshan), bali-rap, bali-toon, bj-wind ("Kartika Wind": ribbon + real wind map + Saura crow; render film.js directly), balijatra-vo (Bali Jatra voiceover film: one-take shore → stone → earth → shadow play → fair; render with `film.js` via `?p=film`). |
 | `third-party/` | Working copies of `alchaincyf/huashu-art-motion` and `zlhad/openvideoharness`. |
 | `scripts/` | `bootstrap.sh` (restore), `verify.sh` (check), `helpers/` (ASR/prosody/one-off scripts). |
 | `env/` | Exact package freezes (`pip freeze`) for the ASR, TTS and Opuscar venvs; plugin registry. |
