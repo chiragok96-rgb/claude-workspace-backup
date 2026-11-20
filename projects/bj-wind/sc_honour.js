@@ -42,6 +42,23 @@ export function bhavan(c, t, p, a, cx = 540, cy = 690, s = .98) {
   c.restore();
   flag(c, cx, cy - 388 * s, s * 1.15, t, a * ss(seg(p, .85, 1)));
 }
+function resample(strokes, N) {   // strokes → N points spaced by arc length, each tagged with its stroke
+  const lens = strokes.map(s => { let L = 0; for (let i = 1; i < s.length; i++) L += Math.hypot(s[i][0] - s[i - 1][0], s[i][1] - s[i - 1][1]); return L; }), tot = lens.reduce((a, b) => a + b, 0), out = [];
+  strokes.forEach((s, k) => { const n = Math.max(2, Math.round(N * lens[k] / tot)); for (let i = 0; i < n; i++) { const q = partial(s, i / (n - 1)); out.push([...q[q.length - 1], k]); } });
+  while (out.length > N) out.splice(Math.floor(out.length / 2), 1); while (out.length < N) out.push(out[out.length - 1]); return out;
+}
+let MORPH = null;
+export function bhavanToOdisha(c, t, u, a, from = [540, 700, .98], to = [540, 560, 600]) {   // u: 0 = the palace, 1 = Odisha
+  if (a <= 0 || !ODISHA.length) return; const N = 900;
+  if (!MORPH) { const B = resample(BHAVAN, N), op = ODISHA.concat([ODISHA[0]]), O = resample([op], N); MORPH = { B, O }; }
+  const e = eio(u), [bx, by, bs] = from, [ox, oy, ow] = to;
+  const P = MORPH.B.map(([x, y, k], i) => { const [qx, qy] = MORPH.O[i]; return [lerp(bx + x * bs, ox + (qx - .5) * ow, e), lerp(by + y * bs, oy + (qy - .42) * ow, e), k]; });
+  const draw = (lw, al, blur) => { c.save(); c.globalAlpha = a * al; if (blur) { c.filter = `blur(${blur}px)`; c.globalCompositeOperation = 'lighter'; } c.strokeStyle = GOLD; c.lineWidth = lw; c.lineCap = 'round'; c.lineJoin = 'round';
+    c.beginPath(); for (let i = 1; i < N; i++) { if (P[i][2] !== P[i - 1][2] && e < .02) continue; c.moveTo(P[i - 1][0], P[i - 1][1]); c.lineTo(P[i][0], P[i][1]); } c.stroke(); c.restore(); };
+  draw(5, .45, 6); draw(2.4, 1, 0);
+  flag(c, bx, by - 388 * bs, bs * 1.15, t, a * (1 - ss(clamp(u * 4))));   // the flag lowers as the line flows away
+  c.save(); c.globalCompositeOperation = 'lighter'; for (let i = 0; i < N; i += 30) { const s = Math.sin(Math.PI * e) * (.6 + .4 * Math.sin(t * 9 + i)); if (s < .05) continue; const [x, y] = P[i], g = c.createRadialGradient(x, y, 0, x, y, 14); g.addColorStop(0, `rgba(255,236,190,${.8 * s * a})`); g.addColorStop(1, 'rgba(255,210,140,0)'); c.fillStyle = g; c.fillRect(x - 14, y - 14, 28, 28); } c.restore();   // sparks along the moving line
+}
 export function odisha(c, t, p, fill, a, cx = 540, cy = 560, w = 600) {   // the real outline (datameet), drawn on, then filled with ikat
   if (a <= 0 || !ODISHA.length) return; const pts = ODISHA.map(([x, y]) => [cx + (x - .5) * w, cy + (y - .42) * w]);
   c.save(); c.globalAlpha = a;

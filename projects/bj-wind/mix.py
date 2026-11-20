@@ -105,7 +105,7 @@ def ring(t, v=1.0):   # the scissors: a bright metallic ring
     d = 1.4; y = np.zeros(int(d * SR)); tt_ = tt(d)
     for f, dec, amp in [(2960, 3.0, .5), (4410, 4.0, .35), (6120, 6.0, .2), (1830, 2.0, .25)]: y += np.sin(2 * np.pi * f * tt_) * np.exp(-tt_ * dec) * amp
     X.add(fx, (y * .05 * v).astype(np.float32), t, .7, .3)
-ring(2.75); ring(43.4, .9)
+ring(2.88); ring(43.6, .8); X.add(fx, X.clack(1.6, .5), 2.85, .6, .2); X.add(fx, X.whoosh(.5, .3), 2.95, .35, .4)   # snip — and the cut half falls away
 hit('gong', None, 6.8, .32, .4, 0); PEL = ['D5', 'D#5', 'F5', 'A5', 'A#5', 'A5', 'F5', 'D#5']
 for k_ in range(8): note('vibraphone_hard', PEL[k_], 6.78 + k_ * .14, .9, .24, .3, (k_ % 2 - .5) * .5)            # Indonesia
 for j, p in enumerate(['D4', 'F#4', 'A4', 'D5', 'F#5', 'A5']): harp(p, 7.2 + j * .05, .3, .45, (j - 2.5) * .2)       # the knot is tied
@@ -139,7 +139,7 @@ def caw(t, v=1.0, pitch=1.0):
 def wings(t0, t1):
     t_ = t0
     while t_ < t1: d = .12; n = X.noise(d); X.add(fx, (X.bp(n, 300, 1500) * np.hanning(len(n)) * .05).astype(np.float32), t_, .6, R.uniform(-.3, .3)); t_ += .16
-caw(29.2); wings(29.35, 31.9); caw(31.85, .8, 1.05)                                                                   # out… and back
+caw(29.2); wings(29.35, 31.6); caw(31.55, .8, 1.05)                                                                   # out… and back
 note('kalimba', 'A4', 32.2, 1.4, .3, .4); note('kalimba', 'F4', 32.45, 1.6, .26, .4)                                  # the shore is far
 wings(33.15, 34.6); caw(33.3, .9, .95)
 for k_, p in enumerate(['D5', 'F#5', 'A5', 'D6']): note('marimba', p, 34.42 + k_ * .1, 1.2, .3, .45, (k_ - 1.5) * .3)  # the shore that way!

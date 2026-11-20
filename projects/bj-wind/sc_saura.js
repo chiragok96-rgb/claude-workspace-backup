@@ -72,10 +72,10 @@ export const LOOP = chain(bez(PERCH, [640, 560], [820, 470], [880, 380], 30), be
 export const STRAIGHT = line(PERCH[0], PERCH[1], 1240, 520, 40);
 export function crowFlight(c, t) {
   let pos = PERCH, flying = false, dir = 1, p;
-  if (t >= 29.35 && t < 32.0) { p = eio(seg(t, 29.35, 32.0)); pos = at(LOOP, p); flying = p < .985; const q = at(LOOP, Math.min(1, p + .01)); dir = q[0] >= pos[0] ? 1 : -1; }
+  if (t >= 29.35 && t < 31.65) { p = eio(seg(t, 29.35, 31.65)); pos = at(LOOP, p); flying = p < .985; const q = at(LOOP, Math.min(1, p + .01)); dir = q[0] >= pos[0] ? 1 : -1; }
   else if (t >= 33.15) { p = eo(seg(t, 33.15, 34.9)); pos = at(STRAIGHT, p); flying = true; }
   // the dotted trails, left in paint
-  if (t > 29.4) dots(c, LOOP.filter((_, i) => i % 2 === 0), t < 32 ? eio(seg(t, 29.35, 32.0)) : 1, 3, t < 33 ? .75 : .75 * (1 - ss(seg(t, 33.2, 34.0))));
+  if (t > 29.4) dots(c, LOOP.filter((_, i) => i % 2 === 0), t < 31.65 ? eio(seg(t, 29.35, 31.65)) : 1, 3, t < 33 ? .75 : .75 * (1 - ss(seg(t, 33.2, 34.0))));
   if (t > 33.15) dots(c, STRAIGHT.filter((_, i) => i % 1 === 0), eo(seg(t, 33.15, 34.9)), 3.6, .9);
   const flap = flying ? t * 16 : .4;
   crow(c, pos[0], pos[1] - (flying ? 0 : 10), 1.8, flap, dir, ss(seg(t, 27.9, 28.3)) * (t > 35.2 ? 1 - ss(seg(t, 35.2, 35.6)) : 1));

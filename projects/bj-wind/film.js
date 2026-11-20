@@ -6,7 +6,7 @@ import { initTextiles, initGate, initSign, gate, ceremonyRibbon, scissors, windT
 import { initMap, drawMap, wind, m2s, camT, ll, PLACES, ROUTE_BALI, ROUTE_JAVA, ROUTE_SUMATRA, boat, routeLine, batikFlow, placeLabel, moon, compass, isLand, MP } from './sc_map.js';
 import { initWord, wordScene, setTargets } from './sc_word.js';
 import { initSaura, sauraScene, crowFlight, SB, STRAIGHT } from './sc_saura.js';
-import { initHonour, bhavan, odisha, nightSea, silkBoita } from './sc_honour.js';
+import { initHonour, bhavan, bhavanToOdisha, odisha, nightSea, silkBoita } from './sc_honour.js';
 let DBG_TILE; const WL = document.createElement('canvas'); WL.width = 1080; WL.height = 1920; const WLx = WL.getContext('2d');
 const OV = document.createElement('canvas'); OV.width = 1080; OV.height = 1920; const OVx = OV.getContext('2d');
 const Q = new URLSearchParams(location.search), cv = document.getElementById('c'); cv.width = W; cv.height = H; const ctx = cv.getContext('2d');
@@ -112,16 +112,18 @@ function gateScene(c, t) {
   const gust = end ? lerp(.15, 1, ss(seg(t, 44.8, 47.5))) * (1 - ss(seg(t, 48.4, 49.4))) : .15;
   const untie = end ? ss(seg(t, 47.6, 48.75)) : 0;
   const ts = end ? ss(seg(t, 44.7, 45.9)) : 0, back = end ? ss(seg(t, 49.0, 50.0)) : 0;   // time rolls back to a moonlit sea; at the very end, back to the opening dark
-  const drawRibbon = () => { c.setTransform(z, 0, 0, z, 540 - cx * z, 960 - cy * z); if (!end || untie < 1) ceremonyRibbon(c, tg, { k, j, bow, untie, gust }); c.setTransform(1, 0, 0, 1, 0, 0); };
+  const drawRibbon = () => { c.setTransform(z, 0, 0, z, 540 - cx * z, 960 - cy * z); if (!end || untie < 1) ceremonyRibbon(c, tg, { k, j, bow, untie, gust, cut: end ? 99 : t - 2.86 }); c.setTransform(1, 0, 0, 1, 0, 0); };
   if (!end) drawRibbon();
   // the scissors: in on "Rashtrapati", away before Indonesia arrives; in the end they come again, and wait
   let sa = 0, sx = 0, op = .5;
-  if (!end) { sa = ss(seg(t, 2.55, 3.0)) * (1 - ss(seg(t, 5.6, 6.1))); sx = lerp(780, 640, eo(seg(t, 2.55, 3.4))) + ss(seg(t, 5.6, 6.1)) * 200; op = .45 + .25 * Math.sin(t * 2.4); }
-  else { sa = ss(seg(t, 43.0, 43.5)) * (1 - ss(seg(t, 44.9, 45.6))); sx = lerp(820, 676, eo(seg(t, 43.0, 43.9))) + ss(seg(t, 44.9, 45.6)) * 260; op = .65 - .3 * ss(seg(t, 44.4, 45.0)); }
-  if (sa > 0) scissors(c, sx, end ? 1100 : 1060, .95, -.42 + (end ? .05 * Math.sin(t * 3) * ss(seg(t, 45, 46)) : 0), op, sa);
+  if (!end) { sa = ss(seg(t, 2.2, 2.55)) * (1 - ss(seg(t, 5.2, 5.7))); sx = lerp(800, 640, eo(seg(t, 2.2, 2.7))) + ss(seg(t, 5.2, 5.7)) * 220; op = t < 2.86 ? lerp(.62, 0, eio(seg(t, 2.74, 2.86))) : .3 * ss(seg(t, 3.0, 3.6)); }   // "kholibe": snip
+  else { sa = ss(seg(t, 42.9, 43.3)) * (1 - ss(seg(t, 44.9, 45.6))); sx = lerp(840, 640, eo(seg(t, 42.9, 43.6))) + ss(seg(t, 44.9, 45.6)) * 260; op = .6 + .06 * Math.sin(t * 4); }
+  const drawSc = () => { if (sa > 0) { c.setTransform(z, 0, 0, z, 540 - cx * z, 960 - cy * z); scissors(c, sx, end ? 1078 : 1060, end ? 1.05 : .95, -.42, op, sa, end ? seg(t, 43.35, 43.95) : seg(t, 2.86, 3.3)); c.setTransform(1, 0, 0, 1, 0, 0); } };
+  if (!end) drawSc();
   c.setTransform(1, 0, 0, 1, 0, 0);
+  if (!end) { const f = Math.exp(-Math.pow((t - 2.88) / .12, 2)); if (f > .01) { const [qx, qy] = [(516 - cx) * z + 540, (GATE.ribY - cy) * z + 960]; c.save(); c.globalCompositeOperation = 'lighter'; const g = c.createRadialGradient(qx, qy, 0, qx, qy, 220); g.addColorStop(0, `rgba(255,240,200,${.8 * f})`); g.addColorStop(1, 'rgba(255,200,120,0)'); c.fillStyle = g; c.fillRect(qx - 220, qy - 220, 440, 440); c.restore(); } }   // the snip's spark
   if (end) { bhavan(c, tg, eio(seg(t, 43.1, 44.1)), ss(seg(t, 43.1, 43.4)) * (1 - ss(seg(t, 44.5, 45.1))), 540, 520, .82);   // "this year, the President"
-    nightSea(c, tg, ts * (1 - back)); drawRibbon();
+    nightSea(c, tg, ts * (1 - back)); drawRibbon(); drawSc();   // the scissors in front of the knot, poised
     const open = seg(t, 47.65, 48.7); if (open > 0) { const go = eio(seg(t, 48.45, 49.95)); silkBoita(c, tg, lerp(540, 850, go), lerp(1290, 1212, go), lerp(1, .26, go), open, ss(seg(t, 47.62, 47.95)) * (1 - ss(seg(t, 49.35, 49.95)))); } }   // the silks become sails
   // the wind, always there; in the end it rises and takes the ribbon
   const yR = (GATE.ribY - cy) * z + 960;
@@ -185,8 +187,9 @@ window.render = t0 => { const t = t0 + T0;
         ctx.save(); ctx.globalAlpha = 1 - ss(seg(t, 36.2, 36.6)); ctx.fillStyle = 'rgba(246,238,222,.95)'; for (const [x, y] of pts) { ctx.beginPath(); ctx.arc(x, y, 3.6, 0, 7); ctx.fill(); } ctx.restore(); }
     }
     if (t >= 41.6 && t < 42.7) { const f = Math.exp(-Math.pow((t - 42.05) / .28, 2)); ctx.save(); ctx.globalCompositeOperation = 'lighter'; const g = ctx.createRadialGradient(540, 960, 0, 540, 960, 1100); g.addColorStop(0, `rgba(255,226,170,${.9 * f})`); g.addColorStop(1, `rgba(255,190,110,${.25 * f})`); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore(); }
-    if (t < 6.3) { bhavan(ctx, t, eio(seg(t, 3.05, 4.1)), ss(seg(t, 3.05, 3.3)) * (1 - ss(seg(t, 4.25, 4.65))), 540, 700, .98);   // "Rashtrapati"
-      odisha(ctx, t, eio(seg(t, 4.3, 5.05)), ss(seg(t, 4.85, 5.4)), ss(seg(t, 4.25, 4.5)) * (1 - ss(seg(t, 5.7, 6.2))), 540, 560, 600); }   // "— Odishara jhia"
+    if (t < 6.3) { if (t < 4.25) bhavan(ctx, t, eio(seg(t, 3.05, 4.1)), ss(seg(t, 3.05, 3.3)), 540, 700, .98);   // "Rashtrapati"
+      else if (t < 5.05) { bhavanToOdisha(ctx, t, seg(t, 4.25, 5.05), 1); bhavan(ctx, t, 1, 0, 540, 700, .98); }   // the palace's gold line flows into Odisha
+      else odisha(ctx, t, 1, ss(seg(t, 5.0, 5.45)), 1 - ss(seg(t, 5.7, 6.2)), 540, 560, 600); }   // "— Odishara jhia"
     if (t < 3) title(ctx, t);
     captions(ctx, t);
   } catch (e) { console.error('RENDER ' + e.stack); throw e; }

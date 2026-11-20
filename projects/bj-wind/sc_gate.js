@@ -154,18 +154,24 @@ export function gate(c, t, B = 1, z = 1) {   // B: how lit the fair is; z: the c
 // ———————————————— the ribbon across the gate, the bow, the scissors ————————————————
 // state: k (0..1 how much of the ikat ribbon is woven), j (batik arrival 0..1), bow (0..1), untie (0..1), gust (0..1 wind strength)
 export function ceremonyRibbon(c, t, st) {
-  const { k = 1, j = 0, bow = 0, untie = 0, gust = 0 } = st;
+  const { k = 1, j = 0, bow = 0, untie = 0, gust = 0, cut = 99 } = st;   // cut: seconds since the scissors closed (< 0: not yet cut)
   const fl = (u, amp) => Math.sin(u * 9 - t * 3.1) * amp + Math.sin(u * 23 - t * 5.3) * amp * .3;
   const amp = 6 + gust * 26, tw = u => .35 * Math.sin(u * 7 - t * 2.4) + gust * .9 * Math.sin(u * 12 - t * 7);
   const sag = (x, x0, x1, d) => Math.sin(clamp((x - x0) / (x1 - x0)) * Math.PI) * d;
   const blow = untie;   // once untied, the wind carries both halves off to the right and up
   // the ikat half: from the left pillar to the knot
   const bx = GATE.bowX, by = GATE.bowY;
-  const ik = []; const xEnd = lerp(GATE.lx, j > 0 ? bx : lerp(bx + 60, bx + 60, 0), 1);
-  for (let i = 0; i <= 90; i++) { const u = i / 90, x = lerp(GATE.lx, xEnd, u); let y = GATE.ribY + sag(x, GATE.lx, xEnd, 18) + fl(u, amp) * (j > .99 ? Math.sin(u * Math.PI) : u);
+  const XC = 516, cutOn = cut >= 0, xEnd = !cutOn ? GATE.rx : j > 0 ? lerp(XC, bx, eo(clamp(j * 1.2))) : XC;
+  const ik = [];
+  for (let i = 0; i <= 90; i++) { const u = i / 90, x = lerp(GATE.lx, xEnd, u); let y = GATE.ribY + sag(x, GATE.lx, xEnd, 18) + fl(u, amp) * (!cutOn || j > .99 ? Math.sin(u * Math.PI) : u) + (cutOn && j < 1 ? Math.pow(u, 3) * 26 * (1 - j) * ss(clamp(cut * 3)) : 0);
     let xo = 0; if (blow > 0) { const w = ss(seg(u, .35, 1)) * eo(blow); y -= w * (420 + 90 * Math.sin(u * 7 - t * 9)) ; xo = w * 380; } ik.push([x + xo, y]); }
   const ikP = ik.slice(0, Math.max(2, Math.round(91 * clamp(k)))), ikA = 1 - ss(seg(blow, .35, .85));
   ribbon(c, ikP, IKAT, 40, tw, -t * 4, ikA, t);
+  if (cutOn && cut < 1.6) {   // the cut-away half swings down from the right pillar and out of sight
+    const th = Math.PI / 2 * clamp(1 - Math.pow(1 - clamp(cut / .9), 3) * 1 + Math.sin(clamp(cut / .9) * Math.PI) * .12 * 0, 0, 1.2) + Math.sin(cut * 9) * .08 * Math.exp(-cut * 3), P = [], L = GATE.rx - XC;
+    for (let i = 0; i <= 50; i++) { const u = i / 50, d = (1 - u) * L; P.push([GATE.rx - Math.cos(th) * d + Math.sin(u * 7 - t * 5) * 6 * Math.sin(th), GATE.ribY + Math.sin(th) * d + Math.sin(u * 9 - t * 4) * 8]); }
+    ribbon(c, P, IKAT, 40, u => .4 * Math.sin(u * 6 - t * 3), 0, 1 - ss(seg(cut, 1.0, 1.6)), t);
+  }
   if (j > 0) {   // the batik half arrives from the right pillar
     const ba = []; for (let i = 0; i <= 90; i++) { const u = i / 90, x = lerp(GATE.rx, bx, u); let y = GATE.ribY + sag(x, bx, GATE.rx, 18) + fl(1 - u, amp) * Math.sin(u * Math.PI);
       const swing = (1 - eo(j)); y -= swing * Math.sin(u * Math.PI * .9) * 380 * u; let xx = x + swing * u * 240;
@@ -186,7 +192,7 @@ export function ceremonyRibbon(c, t, st) {
   }
 }
 const backOutS = x => { x = clamp(x); const c1 = 1.4, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
-export function scissors(c, x, y, s, rot, open, a = 1) {   // gold ceremonial scissors: two blades on a pivot, looped handles
+export function scissors(c, x, y, s, rot, open, a = 1, gleam = -1) {   // gold ceremonial scissors: two blades on a pivot, looped handles
   if (a <= 0) return; c.save(); c.globalAlpha = a; c.translate(x, y); c.rotate(rot); c.scale(s, s);
   const metal = (x0, y0, x1, y1) => { const g = c.createLinearGradient(x0, y0, x1, y1); g.addColorStop(0, '#6a4a18'); g.addColorStop(.35, '#f6dc94'); g.addColorStop(.55, '#c89a3a'); g.addColorStop(1, '#5a3a10'); return g; };
   for (const sd of [-1, 1]) { c.save(); c.rotate(sd * open * .32);
@@ -196,6 +202,7 @@ export function scissors(c, x, y, s, rot, open, a = 1) {   // gold ceremonial sc
     c.beginPath(); c.ellipse(104, 38 * sd, 36, 24, .25 * sd, 0, 7); c.stroke();   // ring
     c.restore(); }
   c.fillStyle = '#f8e2a0'; c.beginPath(); c.arc(0, 0, 7, 0, 7); c.fill(); c.fillStyle = '#6a4a18'; c.beginPath(); c.arc(0, 0, 3, 0, 7); c.fill();
+  if (gleam > 0 && gleam < 1) { c.globalCompositeOperation = 'lighter'; for (const sd of [-1, 1]) { c.save(); c.rotate(sd * open * .32); const gx = lerp(40, -230, gleam), g = c.createRadialGradient(gx, 0, 0, gx, 0, 40); g.addColorStop(0, 'rgba(255,250,230,.95)'); g.addColorStop(1, 'rgba(255,230,170,0)'); c.fillStyle = g; c.fillRect(gx - 40, -40, 80, 80); c.restore(); } }   // a gleam runs down the blades
   c.restore();
 }
 
