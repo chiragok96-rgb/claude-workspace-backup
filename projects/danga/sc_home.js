@@ -10,6 +10,7 @@ function outside(c, t, view) {   // what the window looks onto: 'night' | 'dusse
   const { x, y, w, h } = WIN; c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip();
   const sky = (top, bot) => { const g = c.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, top); g.addColorStop(1, bot); c.fillStyle = g; c.fillRect(x, y, w, h); };
   const n = view.name;
+  if (n === 'dawn' && view.draw) { c.translate(x, y - 300 * (w / W)); c.scale(w / W, w / W); view.draw(c, t); c.restore(); return; }   // at dawn the window holds the very shot we are about to enter
   if (n === 'dawn') { sky('#3a2024', '#f4ae6e'); const sg = c.createRadialGradient(x + w * .7, y + h * .68, 0, x + w * .7, y + h * .68, 300); sg.addColorStop(0, 'rgba(255,236,190,.9)'); sg.addColorStop(.3, 'rgba(255,190,120,.4)'); sg.addColorStop(1, 'rgba(255,160,90,0)'); c.fillStyle = sg; c.fillRect(x, y, w, h); } else if (n === 'rain') sky('#1a1a1e', '#2a2422'); else sky('#0c0a12', '#2a1a1e');
   c.fillStyle = n === 'dawn' ? '#4a2420' : '#0a0809'; c.beginPath(); c.moveTo(x, y + h * .78); for (let X = x; X <= x + w; X += 16) c.lineTo(X, y + h * .74 - 20 * Math.abs(Math.sin(X * .02)) - 10 * hh(Math.floor(X / 16))); c.lineTo(x + w, y + h); c.lineTo(x, y + h); c.fill();   // trees, rooftops
   temple(c, x + w * .7, y + h * .76, .55, n === 'dawn' ? '#241010' : '#0a0809');

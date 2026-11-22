@@ -90,6 +90,8 @@ def chalk(t_, d=.26, v=1.0):
     y = X.bp(nz(d), 1800, 7000) * (np.abs(np.sin(2 * np.pi * 38 * tt(d)[:int(round(d * SR))])) ** 3 * .7 + .3) * np.sin(np.pi * tt(d)[:int(round(d * SR))] / d) * .05 * v; stereo(fx, y, t_, 1, .15)
 for k_, t_ in enumerate([14.35, 14.9, 15.45, 16.0]):
     chalk(t_); X.add(music, S.hit('frame_drum', 'large', .5), t_, .6, -.1); note('harp', ['B2', 'B2', 'B2', 'B2'][k_], t_, 2, .3, .4)   # a stroke: a beat
+for k_, t_ in enumerate([14.35, 14.9, 15.45, 16.0]): note('glockenspiel', ['B5', 'C#6', 'D#6', 'F#6'][k_], t_ - .42, 1.6, .16, .3, (k_ - 1.5) * .4)   # a spark falls from the moon
+for j, p in enumerate(['B5', 'C#6', 'D#6', 'F#6']): note('glockenspiel', p, 16.0 + j * .03, 1.6, .12, .26, (j - 1.5) * .4)
 chalk(16.42, .32, 1.3); hit('gong', None, 16.42, .42, .5, 0); X.add(music, S.hit('frame_drum', 'large', .75), 16.42, .7, 0); note('tubular_bells', 'E4', 16.44, 3, .3, .4)   # "hisaba"
 
 # ———————— 17–19.6: who kept it? the strokes fly to her hand ————————
@@ -100,7 +102,9 @@ hit('nepal_bells', None, 19.45, .4, .42, -.1)
 for j, p in enumerate(['G#3', 'B3', 'D#4', 'G#4', 'B4']): note('harp', p, 19.42 + j * .06, 3, .3, .45, (j - 2) * .2)   # her
 pad('cellos', 'G#2', 19.5, 4.2, .2, -.2); pad('violas', 'D#3', 19.5, 4.0, .14, .2); pad('violins', 'B3', 19.8, 3.6, .08, .3)
 
-# ———————— 19.6–24.4: the bansuri at the ghat; her fingers count ————————
+# ———————— 19.6–24.4: the bansuri at the ghat; she lifts her hand to the moon; the push; her fingers count ————————
+for j, p in enumerate(['D#5', 'F#5', 'G#5', 'B5']): note('hand_chimes', p, 20.05 + j * .18, 2.4, .14, .32, (j - 1.5) * .3)   # she raises her hand
+X.add(fx, X.whoosh(1.1, .25), 20.7, .4, 0); note('vibraphone_bowed', 'B4', 20.8, 2.2, .14, .3, 0, .5); note('glass', 'D#5', 21.45, 2.0, .16, .3)
 MID = {n: i for i, n in enumerate(['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'])}
 def hz(p): n, o = p[:-1], int(p[-1]); return 440 * 2 ** ((MID[n] + 12 * (o + 1) - 69) / 12)
 def bansuri(phrase, t0, v=.5, glide=.07, buf=None):
@@ -119,12 +123,13 @@ def bansuri(phrase, t0, v=.5, glide=.07, buf=None):
 bansuri([('D#5', .45), ('C#5', .3), ('B4', .5), ('G#4', 1.3)], 19.9, .2)
 bansuri([('B4', .35), ('C#5', .35), ('D#5', .9), ('C#5', .4), ('B4', 1.4)], 22.0, .17)
 pad('cellos', 'E2', 22.2, 2.4, .16, -.2); pad('violas', 'B2', 22.2, 2.3, .12, .2)
-for k_, (t_, p) in enumerate(zip([22.5, 23.1, 23.7, 24.3], ['F#4', 'D#4', 'C#4', 'B3'])):
+for k_, (t_, p) in enumerate(zip([22.3, 22.95, 23.6, 24.25], ['F#4', 'D#4', 'C#4', 'B3'])):
     note('harp', p, t_ - .05, 2.4, .36, .48, .1); note('glass', p, t_ - .04, 1.6, .1, .25, -.1)   # a finger folds: a month counted
 
 # ———————— 24.45–26.1: the moon sets; no boita; it flares into a headlight ————————
 pad('contrabass', 'B1', 24.5, 1.8, .2, 0, .5, .3); pad('cellos', 'F#2', 24.5, 1.7, .12, -.2, .45, .4)
-X.add(fx, X.creak(.4), 25.25, .25, .2)
+X.add(fx, X.creak(.5), 25.0, .3, -.1); X.add(fx, X.creak(.4), 25.5, .25, .1); note('cellos', 'G#2', 24.8, 1.4, .2, .4, -.1, .3)
+d = .9; y = X.lp(nz(d), 500) * np.hanning(int(round(d * SR))) * .05; stereo(fx, y, 25.4, 1, .2)   # it sinks
 d = 1.3; y = nz(d) * (tt(d)[:int(round(d * SR))] / d) ** 3; y = X.bp(y, 400, 6000) * .05; stereo(fx, y, 24.78, 1, 0)   # a swell into the flare
 def horn(t_, d=1.4, v=1.0):   # a train horn: two reedy tones, a little Doppler
     tm = tt(d); y = np.zeros_like(tm)
@@ -146,9 +151,16 @@ X.add(fx, X.whoosh(.9, .4), 27.05, .4, 0)   # pull back out of the window
 for t_, p in [(28.0, 'B4'), (28.88, 'D#5'), (29.55, 'F#5')]:   # a city: time slows on its name
     note('piano', p, t_ - .03, 2.6, .42, .5, .1); note('tubular_bells', p, t_ - .02, 2.4, .2, .34, -.1); note('glass', p, t_, 2.0, .12, .28, 0)
 for t_ in (28.45, 29.2): X.add(fx, X.whoosh(.45, .7), t_, .55, .5)   # whip to the next coach
-wheels(27.95, 28.45, .5, .35); wheels(28.86, 29.2, .5, .35); wheels(29.52, 29.85, .5, .35)
-t_, per = 29.85, .32
-while t_ < 30.55: clack_at(t_, .8); clack_at(t_ + per * .2, .6); t_ += per; per *= .8   # the train races off
+def WV(t):
+    hold = 0.
+    for a, b in [(27.95, 28.45), (28.86, 29.2), (29.52, 29.85)]:
+        sa = np.clip((t - (a - .12)) / .22, 0, 1); sb = np.clip((t - (b - .1)) / .2, 0, 1); hold = max(hold, sa * sa * (3 - 2 * sa) * (1 - sb * sb * (3 - 2 * sb)))
+    return 1250 + (520 - 1250) * hold + 7000 * max(0., t - 29.85) ** 1.5
+wpos, t_, nxt = 0., 25.9, 900.
+while t_ < 30.6:
+    wpos += WV(t_) / 480; t_ += 1 / 480
+    if wpos >= nxt and t_ > 27.85: v_ = .8 if not (27.95 < t_ < 28.45 or 28.86 < t_ < 29.2 or 29.52 < t_ < 29.85) else .5; clack_at(t_, v_); clack_at(t_ + .085, .7 * v_); nxt += 900
+out_r = X.lp(nz(2.8), 220) * .05 * bell_env(tt(2.8), [(0, 0), (.2, 1), (2.6, 1.3), (2.8, 0)]); stereo(fx, out_r, 27.85, 1, 0)   # outside: the bridge's roar
 d = .8; y = X.bp(nz(d), 300, 8000) * (tt(d)[:int(round(d * SR))] / d) ** 2 * .05; stereo(fx, y, 29.8, 1, 0); horn(29.95, .9, .6)
 hit('sus_cymbal', 'roll', 29.95, .28, .3, 0); note('glass', 'B5', 30.55, 2.6, .25, .4); note('hand_chimes', 'F#6', 30.56, 2.4, .18, .35, .2)   # the flood of light
 
@@ -173,9 +185,7 @@ scratch(36.0, .38); scratch(36.42, .38); scratch(38.0, .38); scratch(38.42, .38)
 def page(t_):
     d = .55; m = int(round(d * SR)); tm = np.arange(m) / SR; y = X.bp(nz(d)[:m], 800, 7000) * np.sin(np.pi * tm / d) ** 2 * .05 * (1 + .5 * (R.random(m) > .985)); stereo(fx, y, t_, 1, -.3)
 page(37.02); page(41.22)
-# Diwali: fireworks, muffled
-for t_ in (37.48, 37.78, 37.99, 38.29, 38.59, 38.89, 39.1, 39.4):
-    X.add(muff, X.pop(.9), t_ - .02, .5, R.uniform(-.5, .5)); d = .9; m = int(round(d * SR)); cr = (R.random(m) > .997) * R.standard_normal(m) * np.exp(-np.arange(m) / SR * 3) * .3; stereo(muff, cr, t_ + .05, 1, R.uniform(-.5, .5))
+# Diwali: no fireworks sound here (the owner adds their own)
 note('piano', 'B4', 35.4, 2.4, .2, .36); note('piano', 'D#5', 37.5, 2.4, .2, .36); pad('cellos', 'G#2', 35.3, 4.0, .12, -.2); pad('violas', 'E3', 37.4, 2.0, .08, .2)
 # the phone, the monsoon, Raja
 for k_ in range(2):
@@ -208,6 +218,7 @@ d = 1.0; y = X.bp(nz(d), 500, 9000) * (tt(d)[:int(round(d * SR))] / d) ** 3 * .0
 note('glass', 'B5', 49.4, 3, .3, .42); note('hand_chimes', 'F#6', 49.41, 3, .2, .36, .2); hit('gong', None, 49.38, .28, .38, 0)
 pad('cellos', 'E2', 49.4, 4.2, .18, -.2); pad('violas', 'B2', 49.5, 4.1, .14, .2); pad('violins', 'G#3', 49.7, 3.9, .1, .3); pad('vibraphone_bowed', 'F#4', 49.6, 3.8, .12, 0, .4, 1.2); pad('contrabass', 'E1', 49.4, 4.0, .14, 0, .45)
 for i_ in range(8): note('glockenspiel', ['B5', 'C#6', 'D#6', 'F#6', 'G#6', 'B6', 'C#7', 'D#7'][i_], 50.55 + .126 * i_, 1.4, .12, .3, (i_ % 3 - 1) * .5)   # a thread home lands
+for k_ in range(8): note('glass', ['F#6', 'B6', 'D#6', 'C#7'][k_ % 4], 51.45 + k_ * .14, 1.8, .06, .22, (k_ % 3 - 1) * .5)   # lights travelling home along the threads
 for t_, p in [(50.4, 'B4'), (51.3, 'G#4'), (52.3, 'F#4')]: note('piano', p, t_, 2.8, .24, .4, 0, rel=1.8)
 note('glass', 'B4', 53.15, 3.0, .26, .4); hit('gong', None, 53.14, .2, .32, 0)   # Cuttack's light falls back into the river (the first frame's breath, again)
 

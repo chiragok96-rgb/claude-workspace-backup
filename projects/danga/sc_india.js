@@ -21,14 +21,17 @@ export function india(c, t, o = {}) {
       c.strokeStyle = isO ? `rgba(255,200,120,${.4 + .5 * odisha})` : 'rgba(220,180,120,.22)'; c.lineWidth = isO ? 2.4 / z : 1 / z; c.stroke(); } }
   c.save(); c.globalCompositeOperation = 'lighter';   // the lights of a country at night
   for (let i = 0; i < 420; i++) { const lo = 69 + hh(i * 1.7) * 27, la = 8 + hh(i * 3.3) * 26, [x, y] = city(lo, la); if (!inIndia(lo, merc(la))) continue; const r = .8 + 2.2 * hh(i * 5); c.fillStyle = `rgba(255,200,130,${.18 + .3 * hh(i * 7)})`; c.beginPath(); c.arc(x, y, r / z, 0, 7); c.fill(); }
-  const [cx, cy] = city(...CUTTACK), g = c.createRadialGradient(cx, cy, 0, cx, cy, 90 / z); g.addColorStop(0, `rgba(255,214,150,${.9 * odisha})`); g.addColorStop(1, 'rgba(255,180,100,0)'); c.fillStyle = g; c.fillRect(cx - 90 / z, cy - 90 / z, 180 / z, 180 / z);
+  const [cx, cy] = city(...CUTTACK), g = c.createRadialGradient(cx, cy, 0, cx, cy, 90 / z); g.addColorStop(0, `rgba(255,214,150,${.9 * odisha * (.86 + .14 * Math.sin(t * 2.2))})`); g.addColorStop(1, 'rgba(255,180,100,0)'); c.fillStyle = g; c.fillRect(cx - 90 / z, cy - 90 / z, 180 / z, 180 / z);
   c.restore();
   CITIES.forEach(([en, orName, lo, la, tt], i) => {   // a thread home from each city, and how far it is
     const k = ss(seg(threads, i * .06, i * .06 + .5)); if (k <= 0) return; const [x, y] = city(lo, la), d = Math.hypot(cx - x, cy - y), mx = (x + cx) / 2, my = (y + cy) / 2 - d * .35;
     const pts = []; for (let j = 0; j <= 40; j++) { const u = j / 40 * k; pts.push([(1 - u) ** 2 * x + 2 * (1 - u) * u * mx + u * u * cx, (1 - u) ** 2 * y + 2 * (1 - u) * u * my + u * u * cy]); }
     c.save(); c.globalCompositeOperation = 'lighter'; c.strokeStyle = 'rgba(255,206,130,.85)'; c.lineWidth = 2.2 / z; c.beginPath(); pts.forEach(([X, Y], j) => j ? c.lineTo(X, Y) : c.moveTo(X, Y)); c.stroke();
     const hd = pts[pts.length - 1], gg = c.createRadialGradient(hd[0], hd[1], 0, hd[0], hd[1], 16 / z); gg.addColorStop(0, 'rgba(255,240,200,.9)'); gg.addColorStop(1, 'rgba(255,210,140,0)'); c.fillStyle = gg; c.fillRect(hd[0] - 16 / z, hd[1] - 16 / z, 32 / z, 32 / z);
-    c.fillStyle = 'rgba(255,230,180,.95)'; c.beginPath(); c.arc(x, y, 5 / z, 0, 7); c.fill(); c.restore();
+    c.fillStyle = 'rgba(255,230,180,.95)'; c.beginPath(); c.arc(x, y, 5 / z, 0, 7); c.fill();
+    if (k >= 1) for (let j = 0; j < 2; j++) { const v = (t * .32 + i * .137 + j * .5) % 1, px = (1 - v) ** 2 * x + 2 * (1 - v) * v * mx + v * v * cx, py = (1 - v) ** 2 * y + 2 * (1 - v) * v * my + v * v * cy, al = Math.sin(Math.PI * v) * ss(seg(t, 51.4, 52.0));   // a soft light travelling home along the thread
+      const pg = c.createRadialGradient(px, py, 0, px, py, 12 / z); pg.addColorStop(0, `rgba(255,240,206,${.85 * al})`); pg.addColorStop(1, 'rgba(255,214,150,0)'); c.fillStyle = pg; c.fillRect(px - 12 / z, py - 12 / z, 24 / z, 24 / z); }
+    c.restore();
     if (labels > 0 && i < 3) { const dist = Math.round(km([lo, la], CUTTACK) * k / 10) * 10; c.save(); c.globalAlpha = A0 * labels; c.font = `600 ${30 / z}px "OdiaSerif"`; c.textAlign = 'right'; c.textBaseline = 'middle'; c.fillStyle = '#f4dcae'; c.shadowColor = 'rgba(0,0,0,.9)'; c.shadowBlur = 10;
       c.fillText(orName, x - 14 / z, y - 22 / z); c.font = `600 ${15 / z}px "InterT"`; c.letterSpacing = `${3 / z}px`; c.fillStyle = 'rgba(244,220,174,.75)'; c.fillText(en.toUpperCase(), x - 14 / z, y + 6 / z); c.letterSpacing = '0px'; c.font = `500 ${24 / z}px "InterT"`; c.fillStyle = '#e8c27a'; c.fillText(`${dist.toLocaleString('en-IN')} km`, x - 14 / z, y + 32 / z); c.restore(); } });
   c.restore();

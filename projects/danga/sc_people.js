@@ -70,7 +70,7 @@ function motherHead(c, o = {}) {
 }
 // —— the mother standing (the ghat, the window), facing +x ——
 export function motherStanding(c, x, y, s, o = {}) {
-  const { phone = 0, t = 0, wind = 0 } = o;
+  const { phone = 0, t = 0, wind = 0, raise = 0 } = o;
   figure(c, x, y, s, f => {
     const sw = Math.sin(t * 1.3) * 6 * wind;
     // the saree: pleats falling to her feet
@@ -85,6 +85,7 @@ export function motherStanding(c, x, y, s, o = {}) {
     f.fillStyle = GOLD; f.beginPath(); f.moveTo(-100, -168); f.bezierCurveTo(-70, -176, -44, -186, -20, -204); f.lineTo(-20, -186); f.bezierCurveTo(-44, -168, -70, -156, -100, -150); f.fill(); f.restore();
     // her arm
     const p = eio(phone), hd = [lerp(26, 6, p) + 40 * Math.sin(Math.PI * p), lerp(-200, -500, p)], el0 = ik(4, -404, 26, -200, 112, 104, 1), el = [lerp(el0[0], 64, p) + 20 * Math.sin(Math.PI * p), lerp(el0[1], -380, p)];
+    const rz = eio(raise); if (rz > 0) { hd[0] = lerp(hd[0], 72, rz); hd[1] = lerp(hd[1], -640, rz); el[0] = lerp(el[0], 44, rz) + 26 * Math.sin(Math.PI * rz); el[1] = lerp(el[1], -516, rz); }   // her hand lifted toward the moon
     f.save(); f.translate(0, -548); motherHead(f); f.restore();
     if (p > .5) { f.save(); f.globalAlpha = ss((p - .5) / .3); f.fillStyle = '#16181c'; f.translate(2, -522); f.rotate(-.18); f.beginPath(); f.roundRect(-9, -36, 18, 66, 5); f.fill(); f.restore(); }   // her phone at her ear
     arm(f, [4, -404], el, hd, 26, 20);

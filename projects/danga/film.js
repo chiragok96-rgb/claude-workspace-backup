@@ -63,6 +63,8 @@ function bokehFG(c, tt, a = 1) {   // lamps floating past the lens, out of focus
 }
 const TALLY_T = [14.35, 14.9, 15.45, 16.0, 16.42];   // four strokes as moons go by; the fifth, across them, on the word 'hisaba'
 const herHand = (t, pan, hz) => [lerp(-1200, -60, pan) + 430 + 36 * .92, hz + 42 - 196 * .92];
+const GM = [438, 610.6], GM_R = 120;   // the ghat's moon, placed so her raised hand lies where the close-up's hand will be
+const PUSH = t => { const u = eio(seg(t, 20.7, 21.6)); return { u, Z: Math.exp(Math.log(300 / GM_R) * u), C: [lerp(GM[0], 540, u), lerp(GM[1], 760, u)] }; };   // push into her hand and the moon
 function moonsAndSea(c, t) {   // 5.3–19.4: the syllables become four moons; the sea below; the boita sails under them; the shore slides in
   const up = ss(seg(t, 5.3, 8.4)), down = eio(seg(t, 13.4, 15.2)), pan = eio(seg(t, 16.9, 19.3));
   const hz = lerp(1650, 1180, down);
@@ -81,6 +83,13 @@ function moonsAndSea(c, t) {   // 5.3–19.4: the syllables become four moons; t
     const bx = lerp(-380, 600, eio(seg(t, 13.6, 17.0))) + pan * 500, bs = lerp(.85, .32, pan), by = hz + 90 - pan * 60; boita(c, bx, by, bs, t, down);   // the boita sails beneath the moons
     const n = TALLY_T.reduce((acc, tk, k) => acc + seg(t, tk, tk + (k === 4 ? .32 : .26)), 0), lift = ss(seg(t, 17.05, 17.4));   // the voyage's tally, chalked in gold on the sail, a stroke per moon gone by
     const B = ([lx, ly]) => { const yy = by + Math.sin(t * 1.4) * 3 * bs, r = Math.sin(t * 1.1) * .02, cs = Math.cos(r), sn = Math.sin(r); return [bx + (lx * cs - ly * sn) * bs, yy + (lx * sn + ly * cs) * bs]; };
+    c.save(); c.globalCompositeOperation = 'lighter'; c.lineCap = 'round';   // each month's moon lets fall a spark, and the spark is the stroke
+    TALLY_T.forEach((T0, k) => { const u = seg(t, T0 - .42, T0); if (u <= 0 || u >= 1) return; const ks = k < 4 ? [k] : [0, 1, 2, 3];
+      for (const m of ks) { const M = [MOON_X[m] - pan * 900, my[m]], [x0, y0, x1, y1] = TALLY[k], E = B([k < 4 ? x0 : (x0 + x1) / 2, k < 4 ? y0 : (y0 + y1) / 2]), e = eio(u);
+        const P = v => [lerp(M[0], E[0], v), lerp(M[1], E[1], v) - Math.sin(v * Math.PI) * 60];
+        c.beginPath(); for (let j = 0; j <= 10; j++) { const [X, Y] = P(Math.max(0, e - .22 + .22 * j / 10)); j ? c.lineTo(X, Y) : c.moveTo(X, Y); } c.strokeStyle = 'rgba(255,214,150,.35)'; c.lineWidth = 10; c.stroke(); c.strokeStyle = 'rgba(255,240,206,.95)'; c.lineWidth = 3; c.stroke();
+        const fl = Math.sin(Math.PI * u), g = c.createRadialGradient(M[0], M[1], 0, M[0], M[1], 150); g.addColorStop(0, `rgba(255,236,200,${.35 * fl})`); g.addColorStop(1, 'rgba(255,220,170,0)'); c.fillStyle = g; c.fillRect(M[0] - 150, M[1] - 150, 300, 300); } });
+    c.restore();
     if (n > 0 && lift < 1) { c.save(); const [ox, oy] = B([0, 0]); c.translate(ox, oy); c.rotate(Math.sin(t * 1.1) * .02); c.scale(bs, bs); tallyMarks(c, n, (1 - lift) * down); c.restore(); }
     if (t > 17.0) { const H = herHand(t, pan, hz); c.save(); c.globalCompositeOperation = 'lighter'; c.lineCap = 'round';   // …and who kept it? the five strokes lift off and fly to a woman's hand on the shore
       TALLY.forEach(([x0, y0, x1, y1], k) => { const f = eio(seg(t, 17.1 + k * .1, 19.0 + k * .08)); if (f <= 0 || f >= 1) return; const S = B([(x0 + x1) / 2, (y0 + y1) / 2]), C = [(S[0] + H[0]) / 2 + 120, Math.min(S[1], H[1]) - 320];
@@ -89,18 +98,24 @@ function moonsAndSea(c, t) {   // 5.3–19.4: the syllables become four moons; t
         c.strokeStyle = `rgba(255,190,100,${.3 * Math.sin(f * Math.PI) + .1})`; c.lineWidth = 16; c.stroke(); c.strokeStyle = 'rgba(255,232,170,.9)'; c.lineWidth = 4.5; c.stroke(); });
       const arr = Math.exp(-Math.pow((t - 19.45) / .45, 2)); if (arr > .02) { const g = c.createRadialGradient(H[0], H[1], 0, H[0], H[1], 90); g.addColorStop(0, `rgba(255,226,160,${.6 * arr})`); g.addColorStop(1, 'rgba(255,200,120,0)'); c.fillStyle = g; c.fillRect(H[0] - 90, H[1] - 90, 180, 180); }
       c.restore(); }
-    for (let k = 0; k < 8; k++) { const tk = 14.0 + k * .4; const m = seg(t, tk, tk + 1.6); if (m <= 0 || m >= 1) continue; const an = Math.PI * (1 - m); moon(c, 540 + Math.cos(an) * 560 - pan * 900, hz - Math.sin(an) * 520, 26, Math.sin(m * Math.PI) * .7 * down, 1, .4); }   // moons rising and setting: months passing
-    if (pan > 0) { ghat(c, t, lerp(-1200, -60, pan), hz, 1); motherStanding(c, lerp(-1200, -60, pan) + 430, hz + 42, .92, { a: ss(seg(t, 18.2, 19.0)), t, wind: 1, rimCol: '255,236,206', shade: .7 }); } }   // the shore, and a mother on its steps
+    if (pan > 0) { const rise = ss(seg(t, 19.6, 20.6)); if (rise > 0) moon(c, GM[0], GM[1] + (1 - rise) * 170, GM_R, rise, 1, 1);   // the moon comes up behind her
+      ghat(c, t, lerp(-1200, -60, pan), hz, 1); motherStanding(c, lerp(-1200, -60, pan) + 430, hz + 42, .92, { a: ss(seg(t, 18.2, 19.0)), t, wind: 1, rimCol: '255,236,206', shade: .7, raise: seg(t, 20.0, 20.75) }); } }   // the shore, and a mother on its steps
 }
-function handScene(c, t) {   // 21–26: her hand against the moon, a finger folding per cycle; then the moon sets, a boita crosses it and is gone; the moon flares into a headlight
-  const sink = eio(seg(t, 24.45, 25.35)), hz = lerp(1500, 1270, sink);
+function handScene(c, t, cam = null) {   // 21–26: her hand against the moon; one slow lunar month wanes and waxes behind it while her fingers fold, one by one;
+  // then the hand lowers, the moon sets, the last boita crosses it and sinks into the mist; the moon flares into a headlight
+  const sink = eio(seg(t, 24.4, 24.95)), hz = lerp(1500, 1270, sink);
   skySea(c, t, { hz, warm: 0 });
-  const cyc = seg(t, 21.9, 24.3) * 4, ph = .5 + .5 * Math.cos((cyc % 1) * Math.PI * 2);
-  const my = lerp(760, 1190, sink), r = lerp(300, 130, sink);
-  c.save(); c.beginPath(); c.rect(0, 0, W, hz); c.clip(); moon(c, 540, my, r, 1, t < 24.4 ? ph : 1, 1); c.restore();
-  moonPath(c, t, 540, hz, r * .6, sink * .9);
-  handVsMoon(c, t, 540, 760 + eio(seg(t, 24.45, 25.0)) * 420, 300, clamp(cyc), 1 - ss(seg(t, 24.45, 24.85)));
-  const ga = ss(seg(t, 25.05, 25.35)) * (1 - ss(seg(t, 25.6, 25.95))); if (ga > 0) { c.save(); c.beginPath(); c.rect(0, 0, W, hz + 30); c.clip(); boita(c, lerp(380, 660, seg(t, 25.0, 26.0)), hz + 10 + 40 * ss(seg(t, 25.6, 25.95)), .42, t, ga, 0); c.restore(); }   // the last boita, crossing the setting moon… and gone
+  c.save(); if (cam) { c.translate(cam.C[0], cam.C[1]); c.scale(cam.s, cam.s); c.translate(-540, -760); }
+  const ph = .62 + .38 * Math.cos(2 * Math.PI * seg(t, 21.6, 24.6));
+  const my = lerp(760, 1170, sink), r = lerp(300, 170, sink);
+  c.save(); c.beginPath(); c.rect(-W, -H, 3 * W, H + hz); c.clip(); moon(c, 540, my, r, 1, ph, 1); c.restore();
+  if (!cam) moonPath(c, t, 540, hz, r * .6, sink * .9);
+  const folded = [22.0, 22.65, 23.3, 23.95].reduce((acc, f0) => acc + eio(seg(t, f0, f0 + .5)), 0);
+  handVsMoon(c, t, 540, 760 + eio(seg(t, 24.35, 24.75)) * 220, 300, folded, 1 - ss(seg(t, 24.35, 24.68)));
+  c.restore();
+  const ga = ss(seg(t, 24.75, 25.05)) * (1 - ss(seg(t, 25.55, 26.0))), dis = ss(seg(t, 25.35, 26.0));
+  if (ga > 0) { c.save(); c.beginPath(); c.rect(0, 0, W, hz + 26); c.clip(); boita(c, lerp(330, 650, seg(t, 24.75, 26.05)), hz + 14 + 80 * dis, .55, t, ga, 0); c.restore();   // the last boita crosses the setting moon…
+    const m = c.createLinearGradient(0, hz - 260, 0, hz + 40); m.addColorStop(0, 'rgba(60,50,52,0)'); m.addColorStop(.75, `rgba(70,58,60,${.75 * dis})`); m.addColorStop(1, `rgba(40,34,36,${.6 * dis})`); c.fillStyle = m; c.fillRect(0, hz - 260, W, 300); }   // …and sinks into the mist
   const gl = 1.5 * Math.exp(-Math.pow((t - 26.05) / .25, 2)); if (gl > .01) { c.save(); c.globalCompositeOperation = 'lighter'; const g = c.createRadialGradient(540, my, 0, 540, my, 1000); g.addColorStop(0, `rgba(255,248,226,${gl})`); g.addColorStop(.3, `rgba(255,220,170,${.5 * gl})`); g.addColorStop(1, 'rgba(255,200,140,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H); c.restore(); }   // the moon becomes a headlight
 }
 const PM = m => m * COACH_W + COACH_W / 2 - 540;   // the pan that centres coach m
@@ -110,9 +125,11 @@ const trainPan = t => { const drift = 28 * (t - 27.95);
   if (t < 29.85) return lerp(PM(4) + 28 * .34, PM(5), eio(seg(t, 29.2, 29.52))) + 28 * Math.max(0, t - 29.52);
   const u = t - 29.85; return PM(5) + 28 * .33 + 6200 * u * u; };
 const PLATES = { 2: ['କୋଲକାତା', 'KOLKATA'], 3: ['ବେଙ୍ଗାଲୁରୁ', 'BENGALURU'], 4: ['ପୁଣେ', 'PUNE'], 5: ['ହାଇଦ୍ରାବାଦ', 'HYDERABAD'], 6: ['ମୁମ୍ବାଇ', 'MUMBAI'], 7: ['ଚେନ୍ନାଇ', 'CHENNAI'], 8: ['ଦିଲ୍ଲୀ', 'DELHI'], 9: ['ସୁରଟ', 'SURAT'], 10: ['ଗୁରୁଗ୍ରାମ', 'GURUGRAM'], 11: ['ନୋଏଡା', 'NOIDA'] };
+const WV = t => { const hold = [[27.95, 28.45], [28.86, 29.2], [29.52, 29.85]].reduce((m, [a, b]) => Math.max(m, ss(seg(t, a - .12, a + .1)) * (1 - ss(seg(t, b - .1, b + .1)))), 0); return lerp(1250, 520, hold) + 7000 * Math.max(0, t - 29.85) ** 1.5; };
+const worldAt = t => { let x = 0; for (let u = 25.9; u < t; u += 1 / 240) x += WV(u) / 240; return x; };
 function trainScene(c, t) {   // 26–31: the WL window pulls back to become one window of the train; the boards on each spoken city; then the train races off
   const pan = trainPan(t), vel = (trainPan(t + 1 / 60) - trainPan(t - 1 / 60)) * 30;
-  const Z = 1.36; c.save(); zoomAt(c, 540, 960, Z); train(c, t, { pan, vel, plate: m => PLATES[m] || null, glare: Math.exp(-Math.pow((t - 26.1) / .3, 2)) * .9 }); c.restore();   // close on the coaches: one board fills the frame
+  const Z = 1.36; c.save(); zoomAt(c, 540, 960, Z); train(c, t, { pan, vel, world: worldAt(t), wv: WV(t), plate: m => PLATES[m] || null, glare: Math.exp(-Math.pow((t - 26.1) / .3, 2)) * .9 }); c.restore();   // close on the coaches: one board fills the frame
   const u = eio(seg(t, 27.0, 27.92)), wla = 1 - ss(seg(t, 27.72, 27.95));
   if (wla > 0) { const kE = 140 * Z / 780, k = Math.exp(Math.log(kE) * u), T = [540 + (winX(3, 2, pan) + 70 - 540) * Z, 960 + (WIN_Y + 52 - 960) * Z], B = [540, 840], F = [(T[0] - B[0] * kE) / (1 - kE), (T[1] - B[1] * kE) / (1 - kE)];
     windowWL(c, t, wla, F, k * lerp(1.04, 1, seg(t, 26.1, 27.0)), 1 - ss(seg(u, .25, .8))); }
@@ -120,23 +137,27 @@ function trainScene(c, t) {   // 26–31: the WL window pulls back to become one
 }
 const MK = { oct: { 2: { type: 'x', p: 0 } } };
 function homeScene(c, t) {
-  let view = { name: 'night' }; for (const [t0, nm] of [[35.1, 'dussehra'], [37.25, 'diwali'], [39.5, 'rain'], [43.25, 'dawn']]) if (t > t0) view = { name: nm, prev: view.name, k: ss(seg(t, t0, t0 + .45)) };
+  let view = { name: 'night' }; for (const [t0, nm] of [[35.1, 'dussehra'], [37.25, 'diwali'], [39.5, 'rain'], [43.4, 'dawn']]) if (t > t0) view = { name: nm, prev: view.name, k: ss(seg(t, t0, t0 + .45)), draw: ghatDawnScene };
   const marks = { oct: { 20: { type: 'x', p: seg(t, 36.0, 36.8) } }, nov: { 8: { type: 'x', p: seg(t, 38.0, 38.8) } }, jun: { 14: { type: 'o', p: seg(t, 42.1, 43.0) }, 15: { type: 'o', p: seg(t, 42.3, 43.1) } } };
   let cal = { page: 'oct', marks: marks.oct };
   if (t > 37.0) cal = t < 37.6 ? { from: 'oct', to: 'nov', turn: seg(t, 37.0, 37.6), mFrom: marks.oct, mTo: marks.nov } : { page: 'nov', marks: marks.nov };
   if (t > 41.2) cal = t < 41.8 ? { from: 'nov', to: 'jun', turn: seg(t, 41.2, 41.8), mFrom: marks.nov, mTo: marks.jun } : { page: 'jun', marks: marks.jun };
   const zc = ss(seg(t, 35.7, 36.2)) * (1 - ss(seg(t, 38.9, 39.4))) + ss(seg(t, 41.1, 41.5)) * (1 - ss(seg(t, 43.1, 43.5)));   // lean toward the calendar for each mark
   const thru = eio(seg(t, 43.6, 44.6));   // at dawn, through the window to the ghat
-  c.save(); zoomAt(c, lerp(lerp(660, 120, zc), 876.6, thru), lerp(lerp(640, 1000, zc), 785.7, thru), lerp(1, 1.6, zc) * lerp(1, 2.45, thru));   // through the window: its temple lands exactly where the dawn shot's temple stands
-  room(c, t, { view, cal, phoneGlow: ss(seg(t, 39.6, 40.0)) * (1 - ss(seg(t, 43.0, 43.5))), fig: 1 - ss(seg(t, 43.4, 43.9)) });   // she steps away from the window as dawn comes
+  c.save(); zoomAt(c, lerp(lerp(660, 120, zc), 810, thru), lerp(lerp(640, 1000, zc), 187.5, thru), lerp(1, 1.6, zc) * lerp(1, 1.8, thru));   // through the window: its temple lands exactly where the dawn shot's temple stands
+  room(c, t, { view, cal, phoneGlow: ss(seg(t, 39.6, 40.0)) * (1 - ss(seg(t, 42.7, 43.15))), fig: 1 - ss(seg(t, 42.95, 43.38)) });   // she steps away from the window as dawn comes
   c.restore();
 }
 function ghatDawnScene(c, t) {   // 44–49.8: dawn at the water's edge; she and her daughter; the danga goes onto the water and drifts toward the sun
-  const push = lerp(1.0, 1.07, seg(t, 44.0, 49.8)); c.save(); zoomAt(c, 640, 1000, push);
+  const push = lerp(1.0, 1.07, seg(t, 44.0, 49.8)); c.save(); zoomAt(c, 640, 1000, push); const sz = Math.exp(Math.log(2.4) * eio(seg(t, 48.95, 49.5))); if (sz > 1.001) zoomAt(c, 640, sunY(t), sz);   // into the sun
   dawnGhat(c, t, { place: seg(t, 46.0, 47.3), release: seg(t, 46.9, 47.6), drift: seg(t, 47.3, 50.6) }); c.restore();
 }
-function homeMap(c, t) {   // 49–53.6: we rise from the river into the night; the river becomes the map
-  india(c, t, { threads: seg(t, 49.5, 51.6), labels: ss(seg(t, 50.3, 50.9)), odisha: 1, z: lerp(1, 1.12, seg(t, 49.2, 52.9)) });
+const CK = [657, 834], FIRST_FLAME = [792, 1152];   // Cuttack on the map; the first danga's flame in the opening frame
+function homeMap(c, t) {   // 49.3–53.6: out of the sun's light, India at night; a gold thread home from every city, light travelling along them; then into Cuttack's light
+  const zin = lerp(2.4, 1, eio(seg(t, 49.3, 50.9))), u = eio(seg(t, 52.45, 53.35)), zout = Math.exp(Math.log(3.2) * u);
+  c.save(); c.translate(lerp(CK[0], FIRST_FLAME[0], u), lerp(CK[1], FIRST_FLAME[1], u)); c.scale(zin * zout, zin * zout); c.translate(-CK[0], -CK[1]);
+  india(c, t, { threads: seg(t, 49.5, 51.6), labels: ss(seg(t, 50.3, 50.9)) * (1 - ss(seg(t, 52.5, 52.9))), odisha: 1, z: lerp(1, 1.06, seg(t, 49.2, 52.4)) });
+  c.restore();
 }
 let GRAIN; function grain(c, t) {   // a fine film grain over everything, so every style sits on the same stock
   if (!GRAIN) { GRAIN = mk(512, 512); const g = GRAIN.getContext('2d'), d = g.createImageData(512, 512); for (let i = 0; i < d.data.length; i += 4) { const v = 128 + (hh(i * .25 + .5) - .5) * 120; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; } g.putImageData(d, 0, 0); }
@@ -150,14 +171,14 @@ window.render = t => {
   if (Q.get('lab') === 'people') { ctx.fillStyle = '#3a2a2a'; ctx.fillRect(0, 0, W, H); motherStanding(ctx, 300, 900, 1.3, { t, phone: t }); motherStanding(ctx, 800, 900, 1.3, { t, phone: t, flip: true }); motherStanding(ctx, 300, 1800, 1.3, { t, phone: .4 }); motherStanding(ctx, 800, 1800, 1.3, { t, phone: .7, flip: true }); return; }
   try {
     if (t < 5.4) riverScene(ctx, t);
-    if (t >= 5.3 && t < 21.6) moonsAndSea(ctx, t);
-    if (t >= 20.9 && t < 26.5) { ctx.save(); ctx.globalAlpha = ss(seg(t, 20.9, 21.7)); handScene(ctx, t); ctx.restore(); }
+    if (t >= 5.3 && t < 21.6) { const P = PUSH(t); ctx.save(); if (P.u > 0) { ctx.translate(P.C[0], P.C[1]); ctx.scale(P.Z, P.Z); ctx.translate(-GM[0], -GM[1]); } moonsAndSea(ctx, t); ctx.restore(); }
+    if (t >= 20.95 && t < 26.5) { const P = PUSH(t); ctx.save(); ctx.globalAlpha = ss(seg(t, 20.95, 21.5)); handScene(ctx, t, P.u < 1 ? { C: P.C, s: P.Z * GM_R / 300 } : null); ctx.restore(); }
     if (t >= 25.98 && t < 31.0) { ctx.save(); ctx.globalAlpha = ss(seg(t, 25.98, 26.12)); trainScene(ctx, t); ctx.restore(); }
     if (t >= 30.42 && t < 44.8) { ctx.save(); ctx.globalAlpha = ss(seg(t, 30.45, 30.68)); homeScene(ctx, t); ctx.restore(); }
     if (t >= 44.3 && t < 49.75) { ctx.save(); ctx.globalAlpha = ss(seg(t, 44.32, 44.72)); ghatDawnScene(ctx, t); ctx.restore(); }
     if (t >= 49.2 && t < 53.6) { ctx.save(); ctx.globalAlpha = ss(seg(t, 49.25, 49.7)); homeMap(ctx, t); ctx.restore(); }
     { const f = Math.exp(-Math.pow((t - 49.4) / .32, 2)); if (f > .01) { const sy = 1000 + (sunY(t) - 1000) * 1.07; ctx.save(); ctx.globalCompositeOperation = 'lighter'; const g = ctx.createRadialGradient(648, sy, 0, 648, sy, 1300); g.addColorStop(0, `rgba(255,246,222,${f})`); g.addColorStop(.25, `rgba(255,214,150,${.7 * f})`); g.addColorStop(1, 'rgba(255,190,120,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore(); } }   // the sun flares… and becomes Cuttack's light on the map
-    { const f = Math.exp(-Math.pow((t - 53.15) / .3, 2)); if (f > .01) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; const g = ctx.createRadialGradient(657, 834, 0, 657, 834, 1300); g.addColorStop(0, `rgba(255,236,196,${.9 * f})`); g.addColorStop(1, 'rgba(255,190,120,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore(); } }
+    { const f = Math.exp(-Math.pow((t - 53.15) / .3, 2)); if (f > .01) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; const g = ctx.createRadialGradient(FIRST_FLAME[0], FIRST_FLAME[1], 0, FIRST_FLAME[0], FIRST_FLAME[1], 900); g.addColorStop(0, `rgba(255,236,196,${.9 * f})`); g.addColorStop(1, 'rgba(255,190,120,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore(); } }
     if (t >= 52.9) { ctx.save(); ctx.globalAlpha = ss(seg(t, 52.95, 53.45)); riverScene(ctx, t); ctx.restore(); }   // Cuttack's light falls back into the river
     { const f = Math.exp(-Math.pow((t - 30.56) / .2, 2)); if (f > .01) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = `rgba(255,206,140,${.7 * f})`; ctx.fillRect(0, 0, W, H); ctx.restore(); } }   // the train's window-light floods… and is her window
     { const f = Math.exp(-Math.pow((t - 26.06) / .14, 2)); if (f > .01) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = `rgba(255,236,206,${.8 * f})`; ctx.fillRect(0, 0, W, H); ctx.restore(); } }   // the headlight's white-out

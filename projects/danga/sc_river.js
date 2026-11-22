@@ -108,20 +108,36 @@ export function river(c, t, o = {}) {
   kids(c, t);
   c.restore();
 }
-// children on the far ghat steps, small against the bright mist, setting their own lamps on the water
-function kid(c, x, y, s, pose, t, k) {
-  c.save(); c.translate(x, y); c.scale(s, s); c.fillStyle = '#2a1614';
-  if (pose === 'crouch') { c.beginPath(); c.ellipse(9, -33, 6.5, 7, 0, 0, 7); c.fill(); c.beginPath(); c.moveTo(-12, 0); c.quadraticCurveTo(-13, -10, -6, -14); c.quadraticCurveTo(-4, -26, 4, -27); c.quadraticCurveTo(10, -26, 12, -20); c.lineTo(22, -8); c.lineTo(25, -3); c.lineTo(21, -2); c.lineTo(10, -12); c.lineTo(9, 0); c.closePath(); c.fill();
-    c.strokeStyle = '#2a1614'; c.lineWidth = 2.6; c.beginPath(); c.moveTo(4, -36); c.quadraticCurveTo(-2, -30, -2, -20); c.stroke(); }   // crouched, reaching to the water, a ponytail
-  else if (pose === 'stand') { c.beginPath(); c.arc(0, -46, 7.5, 0, 7); c.fill(); c.beginPath(); c.moveTo(-9, 0); c.lineTo(-7, -18); c.lineTo(-12, -18); c.quadraticCurveTo(-8, -38, 0, -38); c.quadraticCurveTo(8, -38, 12, -18); c.lineTo(7, -18); c.lineTo(9, 0); c.closePath(); c.fill(); c.fillRect(4, -34, 10, 3.5); }   // a girl in a frock, holding out a lamp
-  else { c.beginPath(); c.arc(0, -36, 6.5, 0, 7); c.fill(); c.beginPath(); c.moveTo(-7, 0); c.lineTo(-6, -28); c.quadraticCurveTo(0, -31, 6, -28); c.lineTo(7, 0); c.closePath(); c.fill(); c.save(); c.translate(4, -26); c.rotate(-.9 + .2 * Math.sin(t * 2)); c.fillRect(0, -2, 14, 3.4); c.restore(); }   // a little one, pointing
-  c.restore();
+// children on the far ghat steps, small against the bright mist: they play, slowly — one hops, one lifts her lamp high,
+// one leans down to set hers on the water, one skips along the step. Stick-limbed silhouettes, moving softly.
+function child2(c, x, y, s, o) {   // o: {lean, armL, armR, legL, legR, hop, frock, braid, face}
+  const { lean = 0, armL = 2.6, armR = .5, legL = 1.62, legR = 1.52, hop = 0, frock = true, braid = false, face = 1 } = o;
+  c.save(); c.translate(x, y - hop); c.scale(s * face, s); c.strokeStyle = c.fillStyle = '#2a1614'; c.lineCap = 'round'; c.lineJoin = 'round';
+  const hip = [0, -17], L = 13;
+  c.lineWidth = 3.4; for (const a of [legL, legR]) { c.beginPath(); c.moveTo(hip[0], hip[1]); c.lineTo(hip[0] + Math.cos(a) * L, hip[1] + Math.sin(a) * L + 1); c.stroke(); }
+  c.save(); c.translate(hip[0], hip[1]); c.rotate(lean);
+  if (frock) { c.beginPath(); c.moveTo(-3.5, -15); c.lineTo(3.5, -15); c.lineTo(8, 2); c.lineTo(-8, 2); c.closePath(); c.fill(); } else { c.beginPath(); c.roundRect(-3.8, -15, 7.6, 17, 3); c.fill(); }
+  const sh = [0, -13]; c.lineWidth = 2.6; for (const a of [armL, armR]) { c.beginPath(); c.moveTo(sh[0], sh[1]); c.lineTo(sh[0] + Math.cos(a) * 11, sh[1] + Math.sin(a) * 11); c.stroke(); }
+  c.beginPath(); c.arc(.5, -21, 5.6, 0, 7); c.fill();
+  if (braid) { c.lineWidth = 2.2; c.beginPath(); c.moveTo(-3.5, -22); c.quadraticCurveTo(-7, -17, -6, -12); c.stroke(); }
+  c.restore(); c.restore();
 }
-const KIDS = [[372, 'crouch', 1.25], [410, 'stand', 1.2], [446, 'small', 1.1]];
 function kids(c, t) {
-  KIDS.forEach(([x, pose, s], k) => kid(c, x, HZ - 6, s, pose, t, k));
-  flame(c, t, 410 + 15, HZ - 6 - 34 * 1.2 - 2, 5, 3.1, .9);   // the lamp she holds out
-  for (let k = 0; k < 3; k++) { const u = ((t * .05 + k * .33) % 1), lx = 402 + u * 140 + k * 6, ly = HZ + 4 + u * 26; flame(c, t, lx, ly, 3.4 + u * 2, k + 7, .9 * Math.min(1, u * 8)); }   // the lamps they have set floating
+  const y0 = HZ - 6, P = Math.PI;
+  // 1. leaning down to the water, setting her lamp afloat, then straightening — a slow breath of a movement
+  const b1 = .5 - .5 * Math.cos(t * 2 * P / 4.2), l1 = .25 + .75 * b1;
+  child2(c, 372, y0, 1.25, { lean: l1, armR: .2 + 1.1 * b1, armL: 1.9, legL: 1.9, legR: 1.25, braid: true });
+  // 2. lifting her lamp high, and lowering it, swaying a little
+  const b2 = .5 - .5 * Math.cos(t * 2 * P / 3.3 + 1), aR = -.2 - 1.15 * b2, hx = 410 + Math.cos(aR) * 11 * 1.2, hy = y0 - 30 * 1.2 + Math.sin(aR) * 11 * 1.2;
+  child2(c, 410, y0, 1.2, { lean: -.06 * Math.sin(t * 1.9), armR: aR, armL: 2.2, legL: 1.66, legR: 1.48, braid: true });
+  flame(c, t, hx, hy - 2, 5, 3.1, .9);
+  // 3. the little one, hopping with joy, arms up at the top of each hop
+  const ph = (t * 1.35) % 1, hop = 7 * Math.sin(P * ph) ** 1.4, up = Math.sin(P * ph);
+  child2(c, 446, y0, 1.05, { hop, armL: -2.2 - .5 * up, armR: -.9 + .5 * up, legL: 1.7 - .25 * up, legR: 1.45 + .25 * up, frock: false });
+  // 4. a boy skipping along the step, back and forth
+  const sx = 312 + 46 * Math.sin(t * .42), dir = Math.cos(t * .42) >= 0 ? 1 : -1, g = t * 7.5;
+  child2(c, sx, y0, 1.1, { face: dir, frock: false, lean: .12, legL: P / 2 + .55 * Math.sin(g), legR: P / 2 - .55 * Math.sin(g), armL: P / 2 - .7 * Math.sin(g), armR: P / 2 + .7 * Math.sin(g), hop: 1.6 * Math.abs(Math.sin(g)) });
+  for (let k = 0; k < 3; k++) { const u = ((t * .05 + k * .33) % 1), lx = 386 + u * 150 + k * 6, ly = HZ + 4 + u * 26; flame(c, t, lx, ly, 3.4 + u * 2, k + 7, .9 * Math.min(1, u * 8)); }   // the lamps they have set floating
 }
 // the four syllables' boats: where they ride
 export const FOUR = [['ଆ', 680, 1185, 1.6], ['କା', 300, 1062, 1.05], ['ମା', 780, 962, .7], ['ବୈ', 420, 902, .48]];
