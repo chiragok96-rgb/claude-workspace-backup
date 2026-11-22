@@ -31,7 +31,7 @@ export function flapWord(c, x, y, words, times, t, cw = 62, ch = 92) {   // flip
 // ———— the ticket ————
 export function ticket(c, t, x, y, s, o = {}) {
   const { stamp = 0, flapT = [], a = 1 } = o; if (a <= 0) return;
-  c.save(); c.globalAlpha = a; c.translate(x, y); c.scale(s, s);
+  c.save(); const A0 = (c.globalAlpha *= a); c.translate(x, y); c.scale(s, s);
   c.fillStyle = 'rgba(0,0,0,.35)'; c.filter = 'blur(18px)'; c.fillRect(-440, -250, 900, 540); c.filter = 'none';
   c.save(); c.beginPath(); c.roundRect(-450, -270, 900, 540, 16); c.clip(); c.drawImage(PAPER, -450, -270, 900, 540);
   c.strokeStyle = 'rgba(200,120,110,.12)'; c.lineWidth = 1; for (let k = -60; k < 60; k++) { c.beginPath(); c.moveTo(-450, k * 9); c.bezierCurveTo(-150, k * 9 - 20, 150, k * 9 + 20, 450, k * 9); c.stroke(); }   // the security guilloche
@@ -44,7 +44,7 @@ export function ticket(c, t, x, y, s, o = {}) {
   flapWord(c, -410, 34, ['BENGALURU', 'PUNE', 'HYDERABAD'], flapT, t, 62, 92);
   c.fillStyle = '#6a5a4a'; c.font = '500 22px "InterT"'; c.fillText('STATUS', -410, 190); c.fillStyle = '#16120e'; c.font = '700 40px "InterT"'; c.fillText('WAITING LIST', -410, 236);
   if (stamp > 0) {   // the red stamp: WL 47
-    const k = backOut(stamp), sc = lerp(1.8, 1, clamp(stamp * 1.4)); c.save(); c.translate(250, 170); c.rotate(-.18); c.scale(sc, sc); c.globalAlpha = a * clamp(stamp * 3);
+    const k = backOut(stamp), sc = lerp(1.8, 1, clamp(stamp * 1.4)); c.save(); c.translate(250, 170); c.rotate(-.18); c.scale(sc, sc); c.globalAlpha = A0 * clamp(stamp * 3);
     c.strokeStyle = '#c0281c'; c.lineWidth = 6; c.beginPath(); c.roundRect(-130, -62, 260, 124, 14); c.stroke(); c.lineWidth = 2; c.beginPath(); c.roundRect(-118, -50, 236, 100, 10); c.stroke();
     c.fillStyle = '#c0281c'; c.font = '800 70px "InterT"'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('WL 47', 0, 4);
     c.globalCompositeOperation = 'destination-out'; for (let i = 0; i < 60; i++) { c.beginPath(); c.arc((hh(i) - .5) * 250, (hh(i * 3) - .5) * 110, 1 + hh(i * 5) * 2.4, 0, 7); c.fill(); }   // ink gaps
@@ -60,7 +60,7 @@ const PAGES = {
 };
 const WD = ['ରବି', 'ସୋମ', 'ମଙ୍ଗଳ', 'ବୁଧ', 'ଗୁରୁ', 'ଶୁକ୍ର', 'ଶନି'];
 export function calPage(c, t, key, x, y, s, marks = {}, a = 1) {
-  if (a <= 0) return; const P = PAGES[key]; c.save(); c.globalAlpha = a; c.translate(x, y); c.scale(s, s);
+  if (a <= 0) return; const P = PAGES[key]; c.save(); const A0 = (c.globalAlpha *= a); c.translate(x, y); c.scale(s, s);
   c.fillStyle = 'rgba(0,0,0,.3)'; c.filter = 'blur(20px)'; c.fillRect(-420, -560, 860, 1140); c.filter = 'none';
   c.drawImage(PAPER, -430, -580, 860, 1140);
   const hd = c.createLinearGradient(0, -580, 0, -380); hd.addColorStop(0, '#a8201a'); hd.addColorStop(1, '#7a1412'); c.fillStyle = hd; c.fillRect(-430, -580, 860, 200);
@@ -88,7 +88,7 @@ export function pageTurn(c, t, from, to, p, x, y, s, marksFrom, marksTo) {   // 
 }
 // ———— Maa's call ————
 export function phone(c, t, x, y, s, secs, a = 1, speaking = 0) {
-  if (a <= 0) return; c.save(); c.globalAlpha = a; c.translate(x, y); c.scale(s, s);
+  if (a <= 0) return; c.save(); const A0 = (c.globalAlpha *= a); c.translate(x, y); c.scale(s, s);
   c.fillStyle = 'rgba(0,0,0,.5)'; c.filter = 'blur(24px)'; c.fillRect(-250, -400, 520, 820); c.filter = 'none';
   c.fillStyle = '#0c0a0a'; c.beginPath(); c.roundRect(-260, -420, 520, 840, 60); c.fill(); c.strokeStyle = '#3a3430'; c.lineWidth = 3; c.stroke();
   const g = c.createLinearGradient(0, -400, 0, 400); g.addColorStop(0, '#2a1c16'); g.addColorStop(1, '#120c0a'); c.fillStyle = g; c.beginPath(); c.roundRect(-244, -404, 488, 808, 48); c.fill();
@@ -109,7 +109,7 @@ const KF = [
 export function foldTicket(c, t, x, y, s, p, a = 1) {   // p: 0 ticket → 1 boat
   if (a <= 0) return; const k = clamp(p) * (KF.length - 1), i = Math.min(KF.length - 2, Math.floor(k)), u = eio(k - i), A = KF[i], B = KF[i + 1];
   const O = A.o.map((q, j) => [lerp(q[0], B.o[j][0], u), lerp(q[1], B.o[j][1], u)]);
-  c.save(); c.globalAlpha = a; c.translate(x, y); c.scale(s, s);
+  c.save(); const A0 = (c.globalAlpha *= a); c.translate(x, y); c.scale(s, s);
   c.save(); c.beginPath(); O.forEach(([X, Y], j) => j ? c.lineTo(X, Y) : c.moveTo(X, Y)); c.closePath(); c.clip(); c.drawImage(PAPER, -460, -320, 920, 640);
   c.fillStyle = 'rgba(200,120,110,.08)'; c.fillRect(-460, -320, 920, 640);
   const sh = c.createLinearGradient(-400, 0, 400, 0); sh.addColorStop(0, `rgba(0,0,0,${.18 * u + .05 * i})`); sh.addColorStop(.5, 'rgba(255,255,255,.08)'); sh.addColorStop(1, `rgba(0,0,0,${.22 * u + .06 * i})`); c.fillStyle = sh; c.fillRect(-460, -320, 920, 640);
@@ -122,11 +122,11 @@ export function foldTicket(c, t, x, y, s, p, a = 1) {   // p: 0 ticket → 1 boa
 export function paperBoat(c, t, x, y, s, lit = 1, a = 1) {   // the finished boat, with a diya in it
   if (a <= 0) return; const bob = Math.sin(t * 1.3) * 5;
   c.save(); c.translate(x, y + bob); c.rotate(Math.sin(t * 1.1) * .03);
-  c.save(); c.globalAlpha = a * .3; c.scale(1, -.5); foldTicket(c, t, 0, -140 * s, s, 1, 1); c.restore();
+  c.save(); c.globalAlpha = A0 * .3; c.scale(1, -.5); foldTicket(c, t, 0, -140 * s, s, 1, 1); c.restore();
   foldTicket(c, t, 0, 0, s, 1, a);
-  c.globalAlpha = a; const fl = 1 + .12 * Math.sin(t * 13) + .08 * Math.sin(t * 7.7), fh = 36 * fl;
+  c.globalAlpha = A0; const fl = 1 + .12 * Math.sin(t * 13) + .08 * Math.sin(t * 7.7), fh = 36 * fl;
   c.globalCompositeOperation = 'lighter'; const gl = c.createRadialGradient(0, -40 * s, 0, 0, -40 * s, 220); gl.addColorStop(0, `rgba(255,190,100,${.55 * lit})`); gl.addColorStop(1, 'rgba(255,150,60,0)'); c.fillStyle = gl; c.fillRect(-240, -260, 480, 480);
   c.globalCompositeOperation = 'source-over'; c.fillStyle = '#7a3a1c'; c.beginPath(); c.ellipse(0, 40 * s, 22, 8, 0, 0, 7); c.fill();
-  if (lit > 0) { const fg = c.createRadialGradient(0, 30 * s, 0, 0, 26 * s, fh); fg.addColorStop(0, '#fffbea'); fg.addColorStop(.45, '#ffd56a'); fg.addColorStop(1, 'rgba(255,120,30,0)'); c.fillStyle = fg; c.globalAlpha = a * lit; c.beginPath(); c.moveTo(0, 36 * s); c.quadraticCurveTo(14, 26 * s, 0, 36 * s - fh); c.quadraticCurveTo(-14, 26 * s, 0, 36 * s); c.fill(); }
+  if (lit > 0) { const fg = c.createRadialGradient(0, 30 * s, 0, 0, 26 * s, fh); fg.addColorStop(0, '#fffbea'); fg.addColorStop(.45, '#ffd56a'); fg.addColorStop(1, 'rgba(255,120,30,0)'); c.fillStyle = fg; c.globalAlpha = A0 * lit; c.beginPath(); c.moveTo(0, 36 * s); c.quadraticCurveTo(14, 26 * s, 0, 36 * s - fh); c.quadraticCurveTo(-14, 26 * s, 0, 36 * s); c.fill(); }
   c.restore();
 }

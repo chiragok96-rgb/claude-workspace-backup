@@ -3,7 +3,7 @@
 // fingers folding as the moon wanes and waxes behind it.
 import { W, H, clamp, lerp, seg, ss, eo, eio, hh, mk, bez, chain } from './common.js';
 export const MOON_X = [210, 430, 650, 870], MOON_Y = [520, 430, 430, 520];   // the four moons' places in the sky (an arc)
-let MOONTEX;
+let MOONTEX, HM, HE;
 export function initMoon() {   // a moon disc with maria, rendered once
   const S = 512, c = mk(S, S), x = c.getContext('2d'), g = x.createRadialGradient(S * .42, S * .4, S * .05, S / 2, S / 2, S / 2); g.addColorStop(0, '#fffaf0'); g.addColorStop(.8, '#efe2c8'); g.addColorStop(1, '#d8c6a4');
   x.fillStyle = g; x.beginPath(); x.arc(S / 2, S / 2, S / 2 - 2, 0, 7); x.fill(); x.globalCompositeOperation = 'source-atop';
@@ -12,20 +12,20 @@ export function initMoon() {   // a moon disc with maria, rendered once
   MOONTEX = c;
 }
 export function moon(c, x, y, r, a = 1, phase = 1, halo = 1) {   // phase: 1 full … 0 new (a terminator sweeps across)
-  if (a <= 0 || r <= 0) return; c.save(); c.globalAlpha = a;
+  if (a <= 0 || r <= 0) return; c.save(); const A0 = (c.globalAlpha *= a);
   if (halo > 0) { const h = c.createRadialGradient(x, y, r * .8, x, y, r * 4.2); h.addColorStop(0, `rgba(255,238,206,${.18 * halo * phase})`); h.addColorStop(1, 'rgba(255,230,196,0)'); c.fillStyle = h; c.fillRect(x - r * 4.2, y - r * 4.2, r * 8.4, r * 8.4); }
   c.drawImage(MOONTEX, x - r, y - r, r * 2, r * 2);
   if (phase < .999) { c.fillStyle = 'rgba(14,10,12,.94)'; c.beginPath(); const k = 1 - phase * 2;   // the shadow
-    c.arc(x, y, r + .5, -Math.PI / 2, Math.PI / 2, false); c.ellipse(x, y, Math.abs(k) * r, r + .5, 0, Math.PI / 2, -Math.PI / 2, k > 0); c.fill(); }
+    c.arc(x, y, r + .5, -Math.PI / 2, Math.PI / 2, false); c.ellipse(x, y, Math.abs(k) * r, r + .5, 0, Math.PI / 2, -Math.PI / 2, k < 0); c.fill(); }   // gibbous: a crescent of shadow; past half: the shadow bulges over
   c.restore();
 }
 // —— night/dawn sky over the sea, with the moons ——
 export function skySea(c, t, o = {}) {   // o: horizon (screen y), warm (0 night … 1 dawn), seaShift (x pan of the sea), stars
-  const { hz = 1180, warm = 0, a = 1 } = o; if (a <= 0) return; c.save(); c.globalAlpha = a;
+  const { hz = 1180, warm = 0, a = 1 } = o; if (a <= 0) return; c.save(); const A0 = (c.globalAlpha *= a);
   const top = [lerp(12, 30, warm), lerp(10, 20, warm), lerp(13, 26, warm)], mid = [lerp(34, 120, warm), lerp(28, 70, warm), lerp(32, 60, warm)], low = [lerp(78, 236, warm), lerp(62, 160, warm), lerp(60, 110, warm)];   // a warm night: charcoal with a rose glow at the horizon
   const g = c.createLinearGradient(0, 0, 0, hz); g.addColorStop(0, `rgb(${top})`); g.addColorStop(.6, `rgb(${mid})`); g.addColorStop(1, `rgb(${low})`); c.fillStyle = g; c.fillRect(0, 0, W, hz);
-  c.fillStyle = 'rgba(255,250,236,.8)'; for (let i = 0; i < 160; i++) { const tw = .4 + .6 * Math.abs(Math.sin(t * (1 + hh(i) * 2) + i)); c.globalAlpha = a * tw * (1 - warm) * .8; c.beginPath(); c.arc(hh(i * 1.9) * W, hh(i * 3.7) * hz * .8, .6 + hh(i * 5) * 1.4, 0, 7); c.fill(); }
-  c.globalAlpha = a;
+  c.fillStyle = 'rgba(255,250,236,.8)'; for (let i = 0; i < 160; i++) { const tw = .4 + .6 * Math.abs(Math.sin(t * (1 + hh(i) * 2) + i)); c.globalAlpha = A0 * tw * (1 - warm) * .8; c.beginPath(); c.arc(hh(i * 1.9) * W, hh(i * 3.7) * hz * .8, .6 + hh(i * 5) * 1.4, 0, 7); c.fill(); }
+  c.globalAlpha = A0;
   const sg = c.createLinearGradient(0, hz, 0, H); sg.addColorStop(0, `rgb(${low.map(v => v * .75)})`); sg.addColorStop(.25, `rgb(${mid.map(v => v * .55)})`); sg.addColorStop(1, '#06070a'); c.fillStyle = sg; c.fillRect(0, hz, W, H - hz);
   c.restore();
 }
@@ -36,8 +36,8 @@ export function moonPath(c, t, x, hz, r, a) {   // a moon's light on the water
   c.restore();
 }
 // —— the boita: a dark hull, two square sails, a lamp ——
-export function boita(c, x, y, s, t, a = 1, lamp = 1) {
-  if (a <= 0) return; c.save(); c.globalAlpha = a; c.translate(x, y + Math.sin(t * 1.4) * 3 * s); c.rotate(Math.sin(t * 1.1) * .02); c.scale(s, s);
+export function boita(c, x, y, s, t, a = 1, lamp = 1, tally = 0) {
+  if (a <= 0) return; c.save(); const A0 = (c.globalAlpha *= a); c.translate(x, y + Math.sin(t * 1.4) * 3 * s); c.rotate(Math.sin(t * 1.1) * .02); c.scale(s, s);
   c.fillStyle = '#0c0807';
   c.beginPath(); c.moveTo(-270, -20); c.quadraticCurveTo(-200, 60, 0, 62); c.quadraticCurveTo(200, 60, 280, -24); c.quadraticCurveTo(300, -70, 330, -96); c.lineTo(318, -60); c.lineTo(250, -14); c.lineTo(-240, -14); c.quadraticCurveTo(-290, -50, -300, -86); c.closePath(); c.fill();
   c.fillRect(-64, -440, 9, 430); c.fillRect(150, -360, 8, 350);
@@ -45,12 +45,13 @@ export function boita(c, x, y, s, t, a = 1, lamp = 1) {
   sail(-200, -420, 270, 330, 46); sail(70, -340, 180, 260, 36);
   c.strokeStyle = 'rgba(240,214,170,.55)'; c.lineWidth = 2.6; c.beginPath(); c.moveTo(-300, -86); c.quadraticCurveTo(-290, -50, -240, -14); c.lineTo(250, -14); c.lineTo(318, -60); c.lineTo(330, -96); c.stroke();   // moonlight on the gunwale
   c.beginPath(); c.moveTo(-200, -420); c.lineTo(70, -420); c.quadraticCurveTo(116, -255, 70, -90); c.stroke();
+  if (tally > 0) tallyMarks(c, tally);
   if (lamp > 0) { c.globalCompositeOperation = 'lighter'; const g = c.createRadialGradient(300, -40, 0, 300, -40, 80); g.addColorStop(0, `rgba(255,214,140,${.8 * lamp})`); g.addColorStop(1, 'rgba(255,190,110,0)'); c.fillStyle = g; c.fillRect(220, -120, 160, 160); }
   c.restore();
 }
 // —— the shore: the ghat, a temple, and the mother on the steps (all silhouettes, rim-lit by the moon) ——
 export function mother(c, x, y, s, a = 1, rim = 1, look = 0) {   // standing, seen from behind-three-quarters: pallu over her head, the saree's border
-  if (a <= 0) return; c.save(); c.globalAlpha = a; c.translate(x, y); c.scale(s, s);
+  if (a <= 0) return; c.save(); const A0 = (c.globalAlpha *= a); c.translate(x, y); c.scale(s, s);
   const P = new Path2D();
   P.moveTo(-74, 0); P.bezierCurveTo(-70, -120, -60, -210, -52, -270); P.bezierCurveTo(-58, -330, -66, -380, -62, -420);   // left flank to shoulder
   P.bezierCurveTo(-58, -450, -40, -462, -30, -470); P.bezierCurveTo(-42, -500, -40, -548, -12, -566); P.bezierCurveTo(16, -582, 48, -566, 52, -532);   // shoulder, covered head
@@ -68,7 +69,7 @@ export function temple(c, x, y, s, col = '#0d0a0a') {   // a rekha deula with it
   c.restore();
 }
 export function ghat(c, t, x0, hz, a = 1) {   // the ghat's stone steps descending into the water, a lamp post, palms (screen space, starting at x0)
-  if (a <= 0) return; c.save(); c.globalAlpha = a; c.translate(x0, 0);
+  if (a <= 0) return; c.save(); const A0 = (c.globalAlpha *= a); c.translate(x0, 0);
   for (let k = 0; k < 7; k++) { const y = hz + 40 + k * 46, w = 900 - k * 60; c.fillStyle = k % 2 ? '#15100e' : '#1a1411'; c.fillRect(-20, y, w, 46); c.fillStyle = 'rgba(255,220,170,.10)'; c.fillRect(-20, y, w, 2); }
   c.fillStyle = '#120d0c'; c.fillRect(-20, hz - 90, 600, 132); c.fillStyle = 'rgba(255,226,190,.16)'; c.fillRect(-20, hz - 90, 600, 2);   // a low embankment, moonlight on its edge
   for (let i = 0; i < 14; i++) { c.fillStyle = 'rgba(255,214,170,.05)'; c.fillRect(-20 + i * 44, hz - 88, 2, 128); }
@@ -78,18 +79,33 @@ export function ghat(c, t, x0, hz, a = 1) {   // the ghat's stone steps descendi
   c.restore();
 }
 // —— her hand, raised against the moon; fingers fold as months pass ——
-export function handVsMoon(c, t, mx, my, r, folded, a = 1) {   // folded: 0..4 fingers folded (fractional); a woman's hand, palm toward us, against the moon
-  if (a <= 0) return; c.save(); c.globalAlpha = a; c.translate(mx - 20, my + r * .3 - 60); const s = r / 300; c.scale(s, s);
-  c.fillStyle = '#0a0706';
-  const F = [[-92, -6, 230, 46, -.13], [-30, -22, 268, 48, -.04], [34, -16, 250, 46, .05], [92, 6, 196, 40, .15]];   // [x, y, length, width, lean]
-  F.forEach(([fx, fy, L, w, th], i) => { const f = eio(clamp(folded - (3 - i))), len = L * (1 - .7 * f), bend = .35 * f;   // the little finger folds first
-    c.save(); c.translate(fx, fy); c.rotate(th + bend * .3);
-    c.beginPath(); c.moveTo(-w / 2, 40); c.bezierCurveTo(-w * .52, -len * .4, -w * .46, -len * .8, -w * .36, -len + w * .3); c.quadraticCurveTo(-w * .2, -len - 2, 0, -len); c.quadraticCurveTo(w * .2, -len - 2, w * .36, -len + w * .3); c.bezierCurveTo(w * .46, -len * .8, w * .5, -len * .4, w / 2, 40); c.closePath(); c.fill();
-    c.restore(); });
-  c.beginPath(); c.moveTo(-122, 40); c.bezierCurveTo(-128, 130, -118, 220, -96, 300); c.bezierCurveTo(-88, 360, -90, 430, -92, 520); c.lineTo(108, 520);
-  c.bezierCurveTo(106, 430, 104, 350, 112, 290); c.bezierCurveTo(130, 200, 132, 110, 118, 20); c.bezierCurveTo(60, -4, -60, -6, -122, 40); c.closePath(); c.fill();   // the palm, the wrist
-  c.save(); c.translate(-112, 236); c.rotate(-.78 + .25 * Math.sin(t * .8)); c.beginPath(); c.moveTo(-26, 30); c.bezierCurveTo(-30, -60, -26, -130, -18, -168); c.quadraticCurveTo(0, -186, 18, -168); c.bezierCurveTo(26, -120, 30, -50, 30, 30); c.closePath(); c.fill(); c.restore();   // the thumb
-  c.strokeStyle = 'rgba(255,240,214,.55)'; c.lineWidth = 6; for (const yy of [430, 456]) { c.beginPath(); c.moveTo(-94, yy); c.quadraticCurveTo(8, yy + 14, 108, yy); c.stroke(); }   // shankha and pola, catching the moonlight
-  c.strokeStyle = 'rgba(255,236,200,.35)'; c.lineWidth = 3; c.beginPath(); c.moveTo(118, 20); c.bezierCurveTo(132, 110, 130, 200, 112, 290); c.stroke();   // moonlight on the edge of her hand
+export function handVsMoon(c, t, mx, my, r, folded, a = 1) {   // folded: 0..4 fingers folded; a woman's slender hand against the moon, every edge wrapped in moonlight
+  if (a <= 0) return; c.save(); const A0 = (c.globalAlpha *= a); c.translate(mx - 10, my + r * .32 - 40); const s = r / 300; c.scale(s, s);
+  const P = new Path2D(), D = Math.PI / 180;
+  const F = [[-84, -4, 236, 36, -.15], [-28, -20, 274, 38, -.05], [28, -14, 258, 37, .05], [82, 6, 202, 32, .17]];   // [x, y, length, width, lean]
+  F.forEach(([fx, fy, L, w, th], i) => { const f = eio(clamp(folded - (3 - i))), len = L * (1 - .64 * f), q = new Path2D();   // the little finger folds first
+    q.moveTo(-w / 2, 40); q.bezierCurveTo(-w * .54, -len * .35, -w * .44, -len * .78, -w * .34, -len + w * .34); q.quadraticCurveTo(-w * .18, -len - 1, 0, -len); q.quadraticCurveTo(w * .18, -len - 1, w * .34, -len + w * .34); q.bezierCurveTo(w * .44, -len * .78, w * .52, -len * .35, w / 2, 40); q.closePath();
+    P.addPath(q, new DOMMatrix().translate(fx, fy).rotate((th + .12 * f) / D)); });
+  P.moveTo(-108, 40); P.bezierCurveTo(-116, 120, -104, 196, -78, 262); P.bezierCurveTo(-64, 312, -62, 380, -64, 640); P.lineTo(74, 640); P.bezierCurveTo(72, 400, 74, 326, 88, 272); P.bezierCurveTo(114, 196, 118, 108, 104, 24); P.bezierCurveTo(50, 2, -50, 2, -108, 40); P.closePath();   // the palm, a slim wrist
+  const T = new Path2D(); T.moveTo(-22, 34); T.bezierCurveTo(-26, -44, -22, -112, -15, -150); T.quadraticCurveTo(0, -168, 15, -150); T.bezierCurveTo(22, -104, 26, -40, 26, 34); T.closePath();
+  P.addPath(T, new DOMMatrix().translate(-96, 236).rotate((-.82 + .18 * Math.sin(t * .8)) / D));   // the thumb
+  c.fillStyle = '#0b0807'; c.fill(P);
+  if (!HM) { HM = mk(W, H); HE = mk(W, H); } const m = c.getTransform(), hx = HM.getContext('2d'), ex = HE.getContext('2d');   // the rim: the hand's silhouette minus itself eroded, so only the outer edge glows
+  for (const x of [hx, ex]) { x.setTransform(1, 0, 0, 1, 0, 0); x.globalCompositeOperation = 'source-over'; x.clearRect(0, 0, W, H); }
+  hx.setTransform(m); hx.fillStyle = '#fff'; hx.fill(P); hx.setTransform(1, 0, 0, 1, 0, 0);
+  const d = Math.max(2, 5 * s); ex.drawImage(HM, 0, 0); ex.globalCompositeOperation = 'destination-in'; for (const [dx, dy] of [[d, 0], [-d, 0], [0, d], [0, -d]]) ex.drawImage(HM, dx, dy);
+  hx.globalCompositeOperation = 'destination-out'; hx.drawImage(HE, 0, 0); hx.globalCompositeOperation = 'source-in'; hx.fillStyle = 'rgba(255,240,214,.62)'; hx.fillRect(0, 0, W, H);
+  c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.globalAlpha = A0; c.filter = 'blur(1px)'; c.drawImage(HM, 0, 0); c.restore();   // moonlight wrapping the hand's edge
+  [[404, '#e9e0cc', 18], [426, '#a8231a', 16], [445, '#c99a3e', 8], [462, '#e9e0cc', 18]].forEach(([yy, col, h]) => { c.strokeStyle = col; c.globalAlpha = A0 * .8; c.lineWidth = h; c.beginPath(); c.ellipse(5, yy, 84, 14, 0, .05, Math.PI - .05); c.stroke(); });   // shankha, pola, gold: the only colour, catching the moon
+  c.restore();
+}
+
+// the voyage's tally: four strokes and a fifth across them, chalked in gold on the great sail (in the boita's own units)
+export const TALLY = [[-150, -350, -150, -190], [-110, -356, -110, -186], [-70, -352, -70, -190], [-30, -356, -30, -188], [-172, -220, -8, -330]];
+export function tallyMarks(c, n, a = 1) {
+  c.save(); c.globalCompositeOperation = 'lighter'; c.lineCap = 'round';
+  TALLY.forEach(([x0, y0, x1, y1], k) => { const p = clamp(n - k); if (p <= 0) return; const xe = lerp(x0, x1, p), ye = lerp(y0, y1, p);
+    c.strokeStyle = `rgba(255,190,100,${.25 * a})`; c.lineWidth = 22; c.beginPath(); c.moveTo(x0, y0); c.lineTo(xe, ye); c.stroke();
+    c.strokeStyle = `rgba(255,226,160,${.9 * a})`; c.lineWidth = 7; c.beginPath(); c.moveTo(x0, y0); c.lineTo(xe, ye); c.stroke(); });
   c.restore();
 }

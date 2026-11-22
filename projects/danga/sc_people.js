@@ -50,7 +50,7 @@ function arm(c, S0, E, Hd, wU = 26, wF = 20, skin = SKIN, bangles = true, sleeve
 function motherHead(c, o = {}) {
   const { eye = 'open' } = o;
   // neck and face
-  c.fillStyle = SKIN; c.beginPath(); c.moveTo(30, -26); c.quadraticCurveTo(36, -18, 36, -8); c.quadraticCurveTo(38, 2, 40, 8); c.quadraticCurveTo(39, 13, 38, 16); c.quadraticCurveTo(46, 26, 52, 34); c.quadraticCurveTo(50, 39, 41, 40);
+  c.fillStyle = SKIN; c.beginPath(); c.moveTo(30, -26); c.quadraticCurveTo(36, -18, 36, -8); c.quadraticCurveTo(38, 2, 40, 8); c.quadraticCurveTo(39, 13, 38, 16); c.quadraticCurveTo(44, 26, 47.5, 33); c.quadraticCurveTo(46.5, 38, 40.5, 39.5);
   c.quadraticCurveTo(42, 43, 42, 45); c.quadraticCurveTo(45, 47, 44, 50); c.quadraticCurveTo(41, 53, 40, 54); c.quadraticCurveTo(43, 56, 42, 59); c.quadraticCurveTo(39, 62, 38, 64); c.quadraticCurveTo(41, 68, 40, 74);
   c.quadraticCurveTo(36, 82, 26, 82); c.quadraticCurveTo(19, 84, 18, 92); c.lineTo(20, 124); c.lineTo(-18, 124); c.quadraticCurveTo(-16, 90, -16, 72); c.quadraticCurveTo(-40, 40, -36, 10); c.quadraticCurveTo(-34, -36, 0, -44); c.quadraticCurveTo(20, -42, 30, -26); c.fill();
   c.fillStyle = 'rgba(70,30,20,.5)'; c.beginPath(); c.moveTo(18, 30); c.quadraticCurveTo(28, 52, 26, 80); c.lineTo(10, 80); c.quadraticCurveTo(14, 50, 18, 30); c.fill();   // the cheek's shadow
@@ -60,7 +60,7 @@ function motherHead(c, o = {}) {
   if (eye !== 'down') { c.fillStyle = HAIR; c.beginPath(); c.ellipse(34, 13, 2.2, 2.6, 0, 0, 7); c.fill(); }
   c.fillStyle = HAIR; c.beginPath(); c.moveTo(14, -36); c.quadraticCurveTo(34, -32, 36, -12); c.quadraticCurveTo(30, -22, 14, -26); c.fill();   // hair at the parting, under the pallu
   c.fillStyle = '#c4201a'; c.fillRect(20, -38, 6, 10);   // sindoor in the parting
-  c.strokeStyle = GOLD; c.lineWidth = 1.8; c.beginPath(); c.arc(44, 41, 5.5, -1.2, 2.6); c.stroke();   // nose ring
+  c.strokeStyle = GOLD; c.lineWidth = 1.6; c.beginPath(); c.arc(42, 39.5, 4.5, -1.2, 2.6); c.stroke();   // nose ring
   // the pallu over her head and behind her neck, its gold border framing her face
   const P = new Path2D(); P.moveTo(36, -22); P.quadraticCurveTo(44, -42, 18, -54); P.quadraticCurveTo(-22, -64, -48, -30); P.quadraticCurveTo(-62, 4, -62, 50); P.quadraticCurveTo(-64, 96, -60, 140); P.lineTo(-6, 140); P.quadraticCurveTo(2, 104, 6, 76); P.quadraticCurveTo(8, 40, 12, 12); P.quadraticCurveTo(18, -12, 36, -22); P.closePath();
   c.fillStyle = SAREE; c.fill(P);
@@ -84,10 +84,10 @@ export function motherStanding(c, x, y, s, o = {}) {
     f.fillStyle = SAREE; f.fill(D); f.save(); f.clip(D); f.strokeStyle = 'rgba(60,8,6,.45)'; f.lineWidth = 3; for (let k = 0; k < 5; k++) { f.beginPath(); f.moveTo(-58 + k * 9, -430); f.bezierCurveTo(-66 + k * 10, -330, -70 + k * 11, -250, -74 + k * 12, -150); f.stroke(); }
     f.fillStyle = GOLD; f.beginPath(); f.moveTo(-100, -168); f.bezierCurveTo(-70, -176, -44, -186, -20, -204); f.lineTo(-20, -186); f.bezierCurveTo(-44, -168, -70, -156, -100, -150); f.fill(); f.restore();
     // her arm
-    const p = eio(phone), hd = [lerp(40, 22, p) + 70 * Math.sin(Math.PI * p), lerp(-214, -500, p)], el = ik(4, -404, hd[0], hd[1], 112, 104, -1);
+    const p = eio(phone), hd = [lerp(26, 6, p) + 40 * Math.sin(Math.PI * p), lerp(-200, -500, p)], el0 = ik(4, -404, 26, -200, 112, 104, 1), el = [lerp(el0[0], 64, p) + 20 * Math.sin(Math.PI * p), lerp(el0[1], -380, p)];
     f.save(); f.translate(0, -548); motherHead(f); f.restore();
+    if (p > .5) { f.save(); f.globalAlpha = ss((p - .5) / .3); f.fillStyle = '#16181c'; f.translate(2, -522); f.rotate(-.18); f.beginPath(); f.roundRect(-9, -36, 18, 66, 5); f.fill(); f.restore(); }   // her phone at her ear
     arm(f, [4, -404], el, hd, 26, 20);
-    if (p > .6) { f.fillStyle = '#16181c'; f.save(); f.translate(hd[0] + 10, hd[1] - 6); f.rotate(-.3); f.beginPath(); f.roundRect(-8, -40, 16, 64, 4); f.fill(); f.restore(); }   // her phone at her ear
   }, o);
 }
 // —— the mother kneeling at the water's edge, reaching forward with both hands (hands: [[x,y],[x,y]] in her units) ——

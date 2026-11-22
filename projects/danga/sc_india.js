@@ -13,7 +13,7 @@ export const km = (a, b) => { const r = Math.PI / 180, dl = (b[1] - a[1]) * r, d
 const od = n => String(n).replace(/\d/g, d => '୦୧୨୩୪୫୬୭୮୯'[+d]);
 export function india(c, t, o = {}) {
   const { a = 1, threads = 0, odisha = 1, labels = 0, z = 1 } = o; if (a <= 0) return;
-  c.save(); c.globalAlpha = a; c.fillStyle = '#0b0807'; c.fillRect(0, 0, W, H);
+  c.save(); const A0 = (c.globalAlpha *= a); c.fillStyle = '#0b0807'; c.fillRect(0, 0, W, H);
   c.translate(CX, CY); c.scale(z, z); c.translate(-CX, -CY);
   for (const [nm, rings] of Object.entries(ST)) { const isO = nm === 'Odisha';
     for (const r of rings) { c.beginPath(); r.forEach(([lo, my], i) => { const [x, y] = P(lo, my); i ? c.lineTo(x, y) : c.moveTo(x, y); }); c.closePath();
@@ -29,8 +29,8 @@ export function india(c, t, o = {}) {
     c.save(); c.globalCompositeOperation = 'lighter'; c.strokeStyle = 'rgba(255,206,130,.85)'; c.lineWidth = 2.2 / z; c.beginPath(); pts.forEach(([X, Y], j) => j ? c.lineTo(X, Y) : c.moveTo(X, Y)); c.stroke();
     const hd = pts[pts.length - 1], gg = c.createRadialGradient(hd[0], hd[1], 0, hd[0], hd[1], 16 / z); gg.addColorStop(0, 'rgba(255,240,200,.9)'); gg.addColorStop(1, 'rgba(255,210,140,0)'); c.fillStyle = gg; c.fillRect(hd[0] - 16 / z, hd[1] - 16 / z, 32 / z, 32 / z);
     c.fillStyle = 'rgba(255,230,180,.95)'; c.beginPath(); c.arc(x, y, 5 / z, 0, 7); c.fill(); c.restore();
-    if (labels > 0 && i < 3) { const dist = Math.round(km([lo, la], CUTTACK) * k / 10) * 10; c.save(); c.globalAlpha = a * labels; c.font = `600 ${30 / z}px "OdiaSerif"`; c.textAlign = 'right'; c.textBaseline = 'middle'; c.fillStyle = '#f4dcae'; c.shadowColor = 'rgba(0,0,0,.9)'; c.shadowBlur = 10;
-      c.fillText(orName, x - 14 / z, y - 16 / z); c.font = `500 ${24 / z}px "InterT"`; c.fillStyle = '#e8c27a'; c.fillText(`${dist.toLocaleString('en-IN')} km`, x - 14 / z, y + 16 / z); c.restore(); } });
+    if (labels > 0 && i < 3) { const dist = Math.round(km([lo, la], CUTTACK) * k / 10) * 10; c.save(); c.globalAlpha = A0 * labels; c.font = `600 ${30 / z}px "OdiaSerif"`; c.textAlign = 'right'; c.textBaseline = 'middle'; c.fillStyle = '#f4dcae'; c.shadowColor = 'rgba(0,0,0,.9)'; c.shadowBlur = 10;
+      c.fillText(orName, x - 14 / z, y - 22 / z); c.font = `600 ${15 / z}px "InterT"`; c.letterSpacing = `${3 / z}px`; c.fillStyle = 'rgba(244,220,174,.75)'; c.fillText(en.toUpperCase(), x - 14 / z, y + 6 / z); c.letterSpacing = '0px'; c.font = `500 ${24 / z}px "InterT"`; c.fillStyle = '#e8c27a'; c.fillText(`${dist.toLocaleString('en-IN')} km`, x - 14 / z, y + 32 / z); c.restore(); } });
   c.restore();
 }
 function inIndia(lo, my) { for (const rings of Object.values(ST)) for (const r of rings) if (pip(r, lo, my)) return true; return false; }

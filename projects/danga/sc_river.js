@@ -62,7 +62,7 @@ export function danga(c, t, x, y, s, syl, lit, o = {}) {
   const bob = Math.sin(t * 1.4 + x * .01) * 4 * s, rock = Math.sin(t * 1.1 + x) * .035;
   c.save(); c.translate(x, y + bob); c.rotate(rock); c.scale(s, s);
   // reflection first (below the waterline, flipped, rippled, dimmer)
-  c.save(); c.globalAlpha = .38; c.scale(1, -.6); c.translate(0, -8); hull(c); c.restore();
+  c.save(); c.globalAlpha *= .38; c.scale(1, -.6); c.translate(0, -8); hull(c); c.restore();
   { const rl = Math.max(lit, .55); c.save(); c.globalCompositeOperation = 'lighter'; for (let k = 0; k < 4; k++) { const yy = 14 + k * 16, w = 18 + k * 5, a = rl * (.45 - k * .05) * (.7 + .3 * Math.sin(t * 6 + k)); c.fillStyle = `rgba(255,200,120,${a * .8})`; c.beginPath(); c.ellipse(Math.sin(t * 3 + k) * 5 + 50, yy, w / 2, 2.2, 0, 0, 7); c.fill(); } c.restore(); }   // the flame's light on the water
   hull(c);
   // betel leaf and a marigold on the deck
@@ -81,7 +81,7 @@ export function danga(c, t, x, y, s, syl, lit, o = {}) {
   if (syl) { c.save(); c.font = '700 52px "OdiaSerif"'; c.textAlign = 'center'; c.textBaseline = 'middle';
     c.fillStyle = '#b4281c'; c.fillText(syl, 38 + sw * .5, -94);   // written in alta red
     if (lit > 0) { c.shadowColor = `rgba(255,150,40,${lit})`; c.shadowBlur = 26 * lit; c.fillStyle = `rgb(${lerp(180, 232, lit)},${lerp(40, 70, lit)},${lerp(28, 20, lit)})`; c.fillText(syl, 38 + sw * .5, -94); c.shadowBlur = 0; c.fillText(syl, 38 + sw * .5, -94);   // the syllable ignites: the alta red burns brighter, haloed in gold
-      c.save(); c.globalCompositeOperation = 'lighter'; c.globalAlpha = .45 * lit; c.filter = 'blur(10px)'; c.fillStyle = '#ffb040'; c.fillText(syl, 38 + sw * .5, -94); c.restore(); }
+      c.save(); c.globalCompositeOperation = 'lighter'; c.globalAlpha *= .45 * lit; c.filter = 'blur(10px)'; c.fillStyle = '#ffb040'; c.fillText(syl, 38 + sw * .5, -94); c.restore(); }
     c.restore(); }
   // the diya and its flame
   diya(c, t, 30, -8, 1, x); flame(c, t, 50, -16, 24, x * .01 + y * .003, 1);
