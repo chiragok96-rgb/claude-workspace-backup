@@ -54,7 +54,7 @@ export function templeNight(c, t, o = {}) {
     setLook({ saree: '#000', sareeD: '#000', border: '#000', crown: true, skin: '#000', skinD: '#000' }); motherStanding(c, 560, 1330, .9, { raise, rim: 0, shade: 0, t }); c.restore(); }
   templeDoor(c, t, { shut, x: 780, y: 1330, s: .62 });
   if (bala > 0) idol(c, t, 780, 600, .62, 'B', { a: bala, stern });
-  if (lakshmiA > 0) { setLook({ saree: '#b01e16', sareeD: '#7c1410', border: '#e8b850', crown: true }); motherStanding(c, 330, 1330, 1.12, { t, raise, a: lakshmiA, rimCol: '255,214,140', rimW: 6, glow: .6, glowCol: '255,190,100', shade: .45 });
+  if (lakshmiA > 0) { setLook({ saree: '#b01e16', sareeD: '#7c1410', border: '#e8b850', crown: true }); motherStanding(c, 300, 1330, 1.42, { t, raise, a: lakshmiA, rimCol: '255,214,140', rimW: 6, glow: .6, glowCol: '255,190,100', shade: .45 });
     if (fire > 0) glow(c, 330 + 80 * raise, 1330 - 700 * raise, 420 * fire, fire, '255,170,80'); }
   for (let k = 0; k < 4; k++) foot(c, 420 + k * 70, 1310 - (k % 2) * 14, 0, .55, k % 2 === 0, 1, '255,214,130', .5);   // her golden steps, halted at the door
 }

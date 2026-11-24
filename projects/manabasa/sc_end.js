@@ -84,7 +84,7 @@ export function palmLeaf(c, t, o = {}) {
   const { a = 1, write = 1, z = 1, cy = 960, lampA = 1 } = o; if (a <= 0) return; c.save(); c.globalAlpha *= a;
   let g = c.createRadialGradient(540, 900, 60, 540, 960, 1200); g.addColorStop(0, '#2a1a10'); g.addColorStop(1, '#050302'); c.fillStyle = g; c.fillRect(0, 0, W, H);
   c.translate(540, cy); c.scale(z, z); c.translate(-540, -cy);
-  for (let k = 3; k >= 0; k--) { const y = 380 + k * 205 + (k ? 10 : 0), x0 = 40 + k * 6, x1 = 1040 - k * 6; c.save(); c.translate(0, k * 4);
+  for (let k = 3; k >= 0; k--) { const y = 300 + k * 178 + (k ? 8 : 0), x0 = 40 + k * 6, x1 = 1040 - k * 6; c.save(); c.translate(0, k * 4);
     g = c.createLinearGradient(0, y, 0, y + 170); g.addColorStop(0, '#d8b878'); g.addColorStop(.5, '#e8cc90'); g.addColorStop(1, '#b8945a'); c.fillStyle = g; c.beginPath(); c.roundRect(x0, y, x1 - x0, 170, 30); c.fill();
     c.strokeStyle = 'rgba(120,80,40,.25)'; c.lineWidth = 1; for (let j = 0; j < 22; j++) { const yy = y + 8 + j * 7.4; c.beginPath(); c.moveTo(x0 + 20, yy); c.lineTo(x1 - 20, yy + (hh(j + k) - .5) * 2); c.stroke(); }   // the leaf's grain
     c.fillStyle = '#3a2410'; for (const hx of [x0 + 170, x1 - 170]) { c.beginPath(); c.arc(hx, y + 85, 9, 0, 7); c.fill(); }   // the string holes
@@ -92,7 +92,7 @@ export function palmLeaf(c, t, o = {}) {
       c.font = '600 46px "OdiaSerif"'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = 'rgba(255,240,200,.5)'; c.fillText(line, 541, y + 87); c.fillStyle = '#2a1608'; c.fillText(line, 540, y + 85); c.restore(); }   // engraved, inked with soot
     if (k === 2) { const p = clamp(write * 1.5); c.globalAlpha *= p; for (let s = 0; s < 4; s++) foot(c, 380 + s * 100, y + 130, -Math.PI / 2 + .02, .62, s % 2 === 0, 1, '42,22,8', 0); c.font = '600 40px "OdiaSerif"'; c.fillStyle = '#2a1608'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('ଲକ୍ଷ୍ମୀ ପୁରାଣ', 540, y + 50); }
     c.restore(); }
-  c.strokeStyle = '#8a1e12'; c.lineWidth = 5; for (const hx of [216, 864]) { c.beginPath(); c.moveTo(hx, 300); c.bezierCurveTo(hx + 20, 700, hx - 20, 900, hx, 1230); c.stroke(); }   // the binding string
+  c.strokeStyle = '#8a1e12'; c.lineWidth = 5; for (const hx of [216, 864]) { c.beginPath(); c.moveTo(hx, 230); c.bezierCurveTo(hx + 20, 600, hx - 20, 800, hx, 1060); c.stroke(); }   // the binding string
   c.restore();
-  if (lampA > 0) { lamp(c, t, 540, 1330 + 170, 1.0, lampA); }
+  if (lampA > 0) { lamp(c, t, 540, 1250, 1.0, lampA); }
 }

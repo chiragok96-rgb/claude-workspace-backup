@@ -9,6 +9,7 @@ import { initJhoti, floor, foot, THRESH } from './sc_jhoti.js';
 import { dark, glow, lamp, templeDoor, idol, raisedHand, riceFall, twelveLamps } from './sc_temple.js';
 import { leafMeal, anandaBazar, sharedMeal, palmLeaf } from './sc_end.js';
 import { sanctum, templeNight, hearth, devotees, kudua, shriyaDoor } from './sc_new.js';
+import { fiftySix, shadowPlay, anandaRow, BLOW } from './sc_final.js';
 const Q = new URLSearchParams(location.search), cv = document.getElementById('c'); cv.width = W; cv.height = H; const ctx = cv.getContext('2d');
 const DUR = 55.8; window.DUR = DUR;
 function zoomAt(c, cx, cy, z) { c.translate(cx, cy); c.scale(z, z); c.translate(-cx, -cy); }
@@ -50,9 +51,8 @@ function captions(c, t) {
     lines.forEach((ln, i) => capLine(c, ln, 1452 - (lines.length - 1 - i) * 62 + dy, ln.length > 38 ? .92 : 1)); c.restore(); }
 }
 // ———————————————— scenes ————————————————
-function sBhoga(c, t) {   // 0–3.3: we begin inside the pupil of Jagannath's eye, the aarti's flames turning in it; we pull back to his face and the tiers of pots of the 56 bhogas
-  const tt = t > 50 ? t - DUR : t, z = lerp(1.45, 1, eio(seg(tt, -.6, 2.4))) * (1 + 1.6 * eio(seg(tt, 2.75, 3.3)));
-  sanctum(c, tt, { zoom: z, fx: 540, fy: 900, potsA: ss(seg(tt, -.3, 1.6)) });
+function sBhoga(c, t) {   // 0–3.3: Jagannath in the dark; fifty-six diyas ignite in a golden spiral round him; one gust blows them all out
+  const tt = t > 50 ? t - DUR : t; fiftySix(c, tt, { zoom: lerp(1.12, 1, eio(seg(tt, -.6, 2.6))) });
 }
 const SHADOW_X = t => lerp(-260, 1100, seg(t, 3.0, 5.45));
 const DOORX = (i, pan) => i * 620 - pan + 160 + 150;
@@ -76,8 +76,11 @@ function sTemple(c, t) {   // 16.5–21.3: night; Lakshmi at the temple door, Ba
   templeNight(c, t, { shut: eio(seg(t, 19.7, 20.15)), bala: ss(seg(t, 16.8, 17.6)), stern: ss(seg(t, 18.2, 18.8)), lakshmiA: ss(seg(t, 16.6, 17.1)) });
   flash(c, t, 20.16, .08, .35, '255,220,180');
 }
-function sCurse(c, t) {   // 21.3–26.8: she lifts her hand; her shadow rises huge on the temple wall; the twelve lamps go out; a fistful of rice runs to dust
-  templeNight(c, t, { shut: 1, bala: 1 - ss(seg(t, 21.3, 21.8)), raise: seg(t, 21.5, 22.3), shadow: ss(seg(t, 21.8, 22.6)) * (1 - ss(seg(t, 24.3, 24.8))), fire: ss(seg(t, 22.0, 22.8)) * (1 - ss(seg(t, 23.4, 24.2))), out: seg(t, 23.4, 24.6), lakshmiA: 1 - ss(seg(t, 24.3, 24.9)) });
+function sCurse(c, t) {   // 21.3–26.8: the curse as a shadow play — Lakshmi a carved puppet on a glowing cloth; she lifts her hand; the twelve lamps behind go out; a fistful of rice runs away
+  const a = ss(seg(t, 21.35, 21.6)) * (1 - ss(seg(t, 24.5, 24.9)));
+  if (t < 21.6) templeNight(c, t, { shut: 1, bala: 1 - ss(seg(t, 21.3, 21.6)) });
+  shadowPlay(c, t, { a, press: seg(t, 21.4, 21.9), raise: seg(t, 21.9, 22.6), fire: ss(seg(t, 22.2, 22.9)) * (1 - ss(seg(t, 23.3, 24.0))), out: seg(t, 23.4, 24.55) });
+  if (t > 24.5) { c.save(); c.globalAlpha *= ss(seg(t, 24.5, 24.9)); dark(c, t, { warm: .35 }); c.restore(); }
   riceFall(c, t, 540, 420, seg(t, 24.75, 26.6), { wind: ss(seg(t, 25.6, 26.6)) * 1.4, s: 1.15, a: ss(seg(t, 24.6, 24.85)) });
 }
 function sDusk(c, t) {   // 26.6–32.9: the same lane at dusk, every door shut; their shadows, slower now; one door lit at the end; we go in
@@ -106,10 +109,10 @@ function sShare(c, t) {   // 40.2–49.2: "no caste": the lines that divide the 
       foot(c, 540 + Math.cos(a) * r, 900 + Math.sin(a) * r, a + Math.PI, .7 + .25 * hh(k), k % 2 === 0, 1, k % 3 === 0 ? '246,240,226' : k % 3 === 1 ? '230,200,150' : '210,190,170', .3); }
     c.save(); c.globalAlpha *= 1 - ss(seg(t, 41.0, 42.0)); c.strokeStyle = '#c4201a'; c.lineWidth = 8; c.setLineDash([3, 14]); c.lineCap = 'round'; for (let k = 0; k < 3; k++) { const a = k * 2.094 + 1.047 - Math.PI / 2; c.beginPath(); c.moveTo(540 + Math.cos(a) * 160, 900 + Math.sin(a) * 160); c.lineTo(540 + Math.cos(a) * 640, 900 + Math.sin(a) * 640); c.stroke(); } c.restore();   // the lines that divided them
     for (let k = 0; k < 5; k++) foot(c, 540 + (k % 2 ? 24 : -24), 1600 - k * 110, -Math.PI / 2, .9, k % 2 === 0, ss(seg(t, 40.3 + k * .15, 40.7 + k * .15)), '255,214,130', .55); }   // her steps
-  if (bazar > 0) { c.save(); c.globalAlpha *= bazar; devotees(c, t, { pan: lerp(0, 380, seg(t, 43.2, 49.2)) }); c.restore(); }
+  if (bazar > 0) { c.save(); c.globalAlpha *= bazar; anandaRow(c, t, { pan: lerp(-60, 520, seg(t, 43.2, 49.2)) }); c.restore(); }
 }
 function sPalm(c, t) {   // 49.0–55.8: the palm-leaf book; the line is engraved; the lamp; we return to the first lamp
-  const end = eio(seg(t, 54.7, 55.8)); c.save(); c.translate(0, -430 * end); zoomAt(c, 540, 1330, lerp(1, 1.35, end));
+  const end = eio(seg(t, 54.7, 55.8)); c.save(); c.translate(17 * end, -536 * end);   // the book's lamp rises to where the first of the fifty-six diyas will be lit
   palmLeaf(c, t, { write: seg(t, 49.6, 53.5), z: lerp(1.08, 1, seg(t, 49, 54)) }); c.restore();
 }
 let GRAIN; function grain(c, t) {   // a fine film grain over everything, so every style sits on the same stock
@@ -121,10 +124,10 @@ window.render = t => {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none';
   try {
     const L = (a, b, fa, fb, fn) => { if (t < a || t >= b) return; ctx.save(); ctx.globalAlpha = fa < fb ? ss(seg(t, fa, fb)) : 1; fn(ctx, t); ctx.restore(); };
-    if (t < 3.35) sBhoga(ctx, t);
-    L(3.15, 6.55, 3.15, 3.4, sWall);
-    L(6.45, 17.0, 6.45, 6.46, (c, t) => { c.save(); if (t < 7.6) { const r = 1500 * eo(seg(t, 6.45, 7.5)); c.beginPath(); c.arc(540, 960, Math.max(1, r), 0, 7); c.clip(); } sJhoti(c, t); c.restore(); });
-    L(13.35, 16.4, 13.35, 13.7, sShriya);
+    if (t < 3.45) sBhoga(ctx, t);
+    L(3.12, 6.55, 3.12, 3.45, sWall);
+    L(6.45, 13.8, 6.45, 6.46, (c, t) => { c.save(); if (t < 7.6) { const r = 1500 * eo(seg(t, 6.45, 7.5)); c.beginPath(); c.arc(540, 960, Math.max(1, r), 0, 7); c.clip(); } sJhoti(c, t); c.restore(); });
+    L(13.35, 16.75, 13.35, 13.7, sShriya);
     L(16.2, 21.4, 16.2, 16.7, sTemple);
     L(21.3, 26.9, 21.3, 21.6, sCurse);
     L(26.6, 32.95, 26.6, 27.0, sDusk);
@@ -133,7 +136,7 @@ window.render = t => {
     L(40.3, 49.3, 40.3, 40.5, sShare);
     L(49.0, 55.81, 49.0, 49.6, sPalm);
     if (t >= 55.2) { ctx.save(); ctx.globalAlpha = ss(seg(t, 55.2, 55.8)); sBhoga(ctx, t); ctx.restore(); }   // the lamp by the book becomes the aarti in his eye
-    flash(ctx, t, 3.2, .18, 1, '255,240,210', 540, 900);   // the lamp's flame becomes the sun
+    flash(ctx, t, 3.28, .2, .75, '255,236,200', 540, 700);   // after the dark, the sun
     grain(ctx, t);
     captions(ctx, t);
   } catch (e) { console.error('RENDER ' + e.stack); throw e; }
