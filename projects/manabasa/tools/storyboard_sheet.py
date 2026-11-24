@@ -7,30 +7,30 @@ fT = ImageFont.truetype(os.path.join(F, 'CormorantGaramond.ttf'), 25); fT.set_va
 fS = ImageFont.truetype(os.path.join(F, 'CormorantGaramond-Italic.ttf'), 23); fS.set_variation_by_axes([500])
 fH = ImageFont.truetype(os.path.join(F, 'Cinzel.ttf'), 44)
 B = [  # (time of the still, span, style, what happens)
- ('0.0', '0.0 (first frame)', 'RICE ON BLACK STONE', 'The whole Purana is told in rice: white rice, turmeric akshata, red kumkum, on dark stone by one ghee lamp. Frame one: grains are still flying in, settling into Jagannath’s face.'),
- ('0.8', '0.6–1.0', 'HIS FACE, IN RICE', '“The Jagannath we offer…” The great round eyes ringed in kumkum, a gold crown, the smile. The viewer’s first thought is “that’s made of rice?”'),
- ('2.2', '1.0–2.5', '56 BOWLS', '“…fifty-six bhogas…” The face shrinks to the centre and its grains burst out into 56 bowls in a golden spiral: rings of akshata filled with rice and kumkum.'),
- ('5.38', '2.5–5.4', 'DOOR TO DOOR', '“…once wandered door to door, hungry.” The bowls empty in a breath; the grains rush into a row of doorways, the two brothers’ faces small before them. One by one the doors slam shut, each a rush of grains.'),
- ('6.0', '5.45–6.5', 'WHY?', 'Everything scatters to the edges. A few grains in the dark, and the camera leans in. Silence.'),
- ('8.6', '6.5–9.2', 'MANABASA', 'From every edge the rice pours back as a jhoti: a lotus mandala round the Mana heaped with gold paddy, kumkum dots, and “Manabasa Gurubara” written in gold grains.'),
- ('10.8', '9.2–11.2', 'HER STEPS', '“Lakshmi went to Shriya’s home—” The mandala becomes a path of Lakshmi’s footprints in gold, walking to a small thatched house.'),
- ('12.6', '11.2–13.4', 'THE AVOIDED DOOR', '“…a woman society called untouchable.” Everyone else’s white footprints swing wide around her door; Lakshmi’s go straight to it.'),
- ('14.2', '13.4–14.3', 'SHE SWEEPS', '“She swept her home clean…” A sweep wave (a broom made of motion) carries the grains into Shriya herself, bent over her broom, red bangles, dust flying.'),
- ('15.9', '14.3–16.1', 'THE INVITATION', '“…and invited Lakshmi in.” She becomes a lotus at her threshold, a lamp and white footprints leading in; the goddess’s gold steps fill them.'),
- ('17.6', '16.2–19.6', 'BALABHADRA', '“On her way back, Balabhadra stopped her— You come from that house?” His white face in rice, kumkum-ringed eyes; her golden steps halted at a line.'),
- ('20.8', '19.65–21.3', 'THE DOORS', '“You shall not enter the temple.” Gathered in with a slam: the temple’s great studded doors, shut.'),
- ('22.5', '21.4–22.6', 'HER HAND', '“Humiliated, Lakshmi spoke—” The doors burst into Lakshmi’s raised hand in gold, alta on the palm and fingertips, kumkum and akshata rays of anger.'),
- ('23.3', '22.6–24.6', 'TWELVE LAMPS', '“For twelve years…” Her rays become twelve lamps in an arc; one by one their flames fall away, leaving cold lamps.'),
- ('26.0', '24.6–26.5', 'A FISTFUL', '“…not even a fistful of rice.” A cupped hand of rice, and the rice running out of it in a thin stream.'),
- ('30.5', '26.5–32.4', 'THE LIT DOOR', '“At last the two brothers were fed by such a house, where no one would set foot.” A wind blows the stream into the row of doors, all shut, the brothers small before them; then one door fills with gold light, and we lean into it.'),
- ('34.0', '32.5–34.0', 'THE MEAL', '“From the first morsel…” The light bursts into a meal on a banana leaf: a heap of rice, dalma, saga.'),
- ('34.9', '34.0–35.4', 'HE KNEW', '“…Jagannath knew—” His face again, the eyes opening wide.'),
- ('37.0', '35.45–37.6', 'GOLDEN RICE', '“This cooking was Lakshmi’s.” Back to the meal, and the rice turns gold, grain by grain; her footprints rise from it.'),
- ('39.0', '37.6–40.2', 'THE DOORS OPEN', '“Lakshmi returned, on one condition—” The doors are open; her golden steps walk in.'),
- ('41.3', '40.2–43.2', 'NO CASTE', '“At Mahaprasad there will be no caste.” A ring of leaves round one pot, split by kumkum lines; a sweep erases the lines.'),
- ('45.3', '43.2–45.8', 'ANANDA BAZAR', '“Even today, at Srimandir’s Ananda Bazar…” The shikhara with its wheel and flag, and rows of devotees, a red gamuchha on each shoulder.'),
- ('48.2', '45.8–49.0', 'EVERY HAND', '“…devotees of every caste eat abadha together.” Eight hands reach in to one pot from every side, each with different bangles: kumkum, akshata, white.'),
- ('53.6', '49.0–55.8', 'LAKSHMI PURANA → LOOP', '“The lesson our society still needs… our Lakshmi Purana gave centuries ago.” Palm leaves, then “Lakshmi Purana” in rice and her red footprints. Then the grains gather into Jagannath’s face, the first frame again.'),
+ ('0.0', '0.0 (first frame)', 'THE SANCTUM', 'Lamplight in the dark: Jagannath, crowned with flowers, the aarti of five flames circling before him, smoke drifting. The camera is already gliding in.'),
+ ('1.6', '0.1–2.7', '56 BHOGAS', '“The Jagannath we offer fifty-six bhogas…” As the words come, tiers of earthen kudua rise out of the dark on both sides and below him, steaming. The offering shown as the pots, never as drawn food.'),
+ ('4.3', '2.7–5.5', 'PURI · SHUT DOORS', '“…once wandered door to door, hungry.” We push into an aarti flame; its flash becomes a low sun on an old Puri wall. The long shadows of Jagannath and Balabhadra glide along it, and each door shuts as they reach it.'),
+ ('6.0', '5.5–6.5', 'ONE GRAIN', '“Why?” Silence. A single grain of rice falls through the light; the camera tilts down with it.'),
+ ('7.9', '6.5–9.2', 'JHOTI', 'The grain lands, and its ripple opens a red-earth floor where a rice-paste jhoti draws itself round the Mana. In gold: Margashira, Manabasa Gurubara.'),
+ ('10.2', '9.2–11.2', 'HER STEPS', '“Lakshmi went to Shriya’s home—” Lakshmi’s golden footprints walk out of the mandala onto the mud lane.'),
+ ('12.3', '11.2–13.4', 'THE AVOIDED DOOR', '“…a woman society called untouchable.” Everyone else’s footprints bend wide around one doorstep. Lakshmi’s go straight to it.'),
+ ('14.4', '13.4–15.0', 'SHRIYA', '“She swept her home clean…” Dawn at her mud house: Shriya, in a plain white sari with a red border, kneels at her swept step drawing jhoti, her lamp lit, her broom against the wall.'),
+ ('15.6', '15.0–16.1', 'THE INVITATION', '“…and invited Lakshmi in.” A golden light comes across the step, and gold footprints walk onto the ones she drew.'),
+ ('17.8', '16.2–19.6', 'THE TEMPLE AT NIGHT', '“On her way back, Balabhadra stopped her—” Lakshmi, crowned, in red and gold, before the temple door. Above it, Balabhadra’s white face in the lamplight. “You come from that house?” His eyes harden.'),
+ ('20.5', '19.65–21.3', 'THE DOORS SLAM', '“You shall not enter the temple.” The studded doors swing shut in front of her. A boom; a breath of dust in the light.'),
+ ('22.8', '21.4–23.4', 'HER CURSE', '“Humiliated, Lakshmi spoke—” She lifts her hand. A gold fire gathers round it, and her shadow rises huge on the temple wall.'),
+ ('24.0', '23.4–24.7', 'TWELVE LAMPS', '“For twelve years…” The twelve lamps along the temple wall go out one by one, each leaving a thread of smoke. Lakshmi fades with them: the light leaves the temple.'),
+ ('25.6', '24.7–26.6', 'A FISTFUL', '“…not even a fistful of rice.” In the dark, a handful of rice falls and scatters on a hot wind into dust…'),
+ ('29.0', '26.7–30.4', 'THE LANE AT DUSK', '“At last, the two brothers were fed by such a house…” The same lane at dusk, every door shut, their shadows slower now. One door glows.'),
+ ('31.0', '30.4–32.9', 'THE ONE LIT DOOR', '“…where no one would set foot.” Their shadows reach the only open door; we push into its light.'),
+ ('34.0', '32.8–34.3', 'HER HEARTH', '“From the first morsel…” Inside: Lakshmi in disguise, in a plain ochre sari, kneels at a clay hearth, a pot of rice steaming in the firelight.'),
+ ('34.8', '34.3–35.4', 'HE KNEW', '“…Jagannath knew—” His face in the lamplight, the great round eyes widening.'),
+ ('36.8', '35.5–37.6', 'HER STEPS IN THE STEAM', '“This cooking was Lakshmi’s.” The steam turns gold, and her footprints rise out of it.'),
+ ('38.9', '37.7–40.2', 'THE DOORS OPEN', '“Lakshmi returned, on one condition—” The temple doors open on warm light; her golden steps walk in.'),
+ ('42.9', '40.3–43.2', 'NO CASTE', '“At Mahaprasad there will be no caste.” From above: footprints of every size kept apart by red lines round one earthen pot. The lines dissolve, and they all gather in one ring.'),
+ ('46.0', '43.3–48.9', 'ANANDA BAZAR TODAY', '“Even today, at Srimandir’s Ananda Bazar, devotees of every caste eat abadha together.” The shikhara with its wheel and flag at dusk. A long row of devotees in silhouette, each different (a priest’s tuft, a farmer’s gamuchha, a woman’s pallu, a child, an old man’s cap), eating from leaves side by side as the camera tracks along them.'),
+ ('50.6', '49.0–51.7', 'PALM-LEAF BOOK', '“The lesson our society still needs…” Lamp-lit palm leaves bound with red string; “Mahaprasad khaibabele…” engraves itself.'),
+ ('53.5', '51.8–55.8', 'PURANA → LOOP', '“…our Lakshmi Purana gave centuries ago.” “Jatibheda chalibani” and “Lakshmi Purana” with her footprints. The lamp by the book becomes the aarti before Jagannath: the film loops.'),
 ]
 TW, TH, PAD, LAB = 330, 587, 22, 330
 COLS = 12
@@ -49,6 +49,6 @@ def sheet(items, out, title, n0=0):
             else: line = (line + ' ' + w).strip()
         d.text((x, ly), line, font=fS, fill='#d9ccb4')
     im.save(out, quality=92); print(out, im.size)
-sheet(B, OUT, 'MANABASA GURUBARA  ·  STORYBOARD v2  ·  TOLD IN RICE')
+sheet(B, OUT, 'MANABASA GURUBARA  ·  STORYBOARD v3')
 COLS = 3
-sheet(B[:12], OUT.replace('.jpg', '_part1.jpg'), 'STORYBOARD v2  ·  1 / 2'); sheet(B[12:], OUT.replace('.jpg', '_part2.jpg'), 'STORYBOARD v2  ·  2 / 2', 12)
+sheet(B[:12], OUT.replace('.jpg', '_part1.jpg'), 'STORYBOARD v3  ·  1 / 2'); sheet(B[12:], OUT.replace('.jpg', '_part2.jpg'), 'STORYBOARD v3  ·  2 / 2', 12)
