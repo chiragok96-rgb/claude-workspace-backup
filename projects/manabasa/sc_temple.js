@@ -47,9 +47,9 @@ export function idol(c, t, x, y, s, who, o = {}) {
   for (const sd of [-1, 1]) { g = c.createRadialGradient(sd * 178, -50, 2, sd * 178, -50, 28); g.addColorStop(0, '#fff0b0'); g.addColorStop(1, '#8a6018'); c.fillStyle = g; c.beginPath(); c.arc(sd * 178, -50, 26, 0, 7); c.fill(); }   // gold earrings
   if (who === 'B') { c.strokeStyle = '#2a1a10'; c.lineWidth = 7; c.lineCap = 'round'; for (const sd of [-1, 1]) { c.beginPath(); c.moveTo(sd * 22, -168 + 16 * stern); c.quadraticCurveTo(sd * 72, -190 + 12 * stern, sd * 124, -166 - 10 * stern); c.stroke(); } }
   for (const sd of [-1, 1]) { c.save(); c.translate(sd * 68, -104);
-    c.fillStyle = '#fbf6ea'; c.beginPath(); if (who === 'J') c.arc(0, 0, 56 * (1 + .1 * wide), 0, 7); else c.ellipse(0, 0, 60, 38 * (1 - .3 * stern), 0, 0, 7); c.fill();
+    c.fillStyle = '#fbf6ea'; c.beginPath(); if (who === 'J') c.arc(0, 0, 56 * (1 + .2 * wide), 0, 7); else c.ellipse(0, 0, 60, 38 * (1 - .3 * stern), 0, 0, 7); c.fill();
     c.strokeStyle = '#b81e16'; c.lineWidth = 11; c.stroke(); c.fillStyle = '#0a0606'; c.beginPath(); c.arc(look * 16, 0, who === 'J' ? 24 + 6 * wide : 21, 0, 7); c.fill();
-    c.fillStyle = `rgba(255,236,190,${.85 * lit})`; c.beginPath(); c.arc(look * 16 - 7, -8, 6, 0, 7); c.fill(); c.restore(); }   // the eyes, a lamp caught in each
+    c.fillStyle = `rgba(255,236,190,${.85 * lit})`; c.beginPath(); c.arc(look * 16 - 7, -8, 6 + 3 * wide, 0, 7); c.fill(); if (wide > 0) { c.fillStyle = `rgba(255,246,220,${.8 * wide})`; c.beginPath(); c.arc(look * 16 + 7, 8, 3, 0, 7); c.fill(); } c.restore(); }   // the eyes, a lamp caught in each
   c.fillStyle = '#b81e16'; c.beginPath(); c.moveTo(-64, 16); c.quadraticCurveTo(0, 44 - 22 * stern, 64, 16); c.quadraticCurveTo(0, 30 - 16 * stern, -64, 16); c.fill();
   c.fillStyle = who === 'J' ? '#f6f0e2' : '#b81e16'; c.beginPath(); c.moveTo(-12, -150); c.lineTo(0, -214); c.lineTo(12, -150); c.closePath(); c.fill();
   for (let k = 0; k < 22; k++) { const u = k / 21, gx = lerp(-200, 200, u), gy = 120 + 70 * Math.sin(u * Math.PI); c.fillStyle = k % 2 ? '#e8841a' : '#f4b62a'; c.beginPath(); c.arc(gx, gy, 17, 0, 7); c.fill(); }   // a marigold garland

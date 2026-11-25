@@ -108,25 +108,46 @@ function seated(c, t, x, y, kind, i) {
 }
 // —— 13.4–16.1: Shriya at her doorstep at dawn, in a plain white sari with a red border, kneeling to draw jhoti on the step she has just swept;
 // her broom against the wall, a small lamp lit; then a golden light comes, and gold footprints step onto the ones she drew ——
+const JH = [[718, 1290, .74, false], [668, 1302, .76, true], [612, 1318, .8, false], [560, 1332, .82, true], [500, 1350, .86, false], [446, 1364, .88, true]];   // the feet, from the door outward (in the order she draws them)
 export function shriyaDoor(c, t, o = {}) {
-  const { draw = 1, gold = 0, a = 1 } = o; if (a <= 0) return; c.save(); c.globalAlpha *= a;
+  const { draw = 1, gold = 0, a = 1, clean = 1 } = o; if (a <= 0) return; c.save(); c.globalAlpha *= a;
   let g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#2a1a16'); g.addColorStop(.6, '#7a4a30'); g.addColorStop(1, '#3a2016'); c.fillStyle = g; c.fillRect(0, 0, W, H);
   // her mud wall, the thatch above, the low doorway
   c.fillStyle = '#8a5a3a'; c.fillRect(0, 380, W, 900); for (let i = 0; i < 2400; i++) { c.fillStyle = `rgba(${hh(i) > .5 ? '160,110,70' : '60,30,16'},.10)`; c.fillRect(hh(i * 1.7) * W, 380 + hh(i * 2.9) * 900, 3, 3); }
   c.fillStyle = '#3a2410'; c.beginPath(); c.moveTo(0, 300); c.lineTo(W, 260); c.lineTo(W, 420); c.lineTo(0, 440); c.fill(); c.strokeStyle = 'rgba(200,160,90,.25)'; c.lineWidth = 3; for (let x = 0; x < W; x += 18) { c.beginPath(); c.moveTo(x, 300 - x * .037); c.lineTo(x + 6, 430 - x * .02); c.stroke(); }
   c.fillStyle = '#140a06'; c.beginPath(); c.moveTo(640, 1240); c.lineTo(640, 760); c.quadraticCurveTo(760, 700, 880, 760); c.lineTo(880, 1240); c.fill();
   c.strokeStyle = '#c8a87a'; c.lineWidth = 8; c.beginPath(); c.moveTo(626, 1240); c.lineTo(626, 752); c.quadraticCurveTo(760, 684, 894, 752); c.lineTo(894, 1240); c.stroke();
-  // the broom against the wall
-  c.strokeStyle = '#c8a060'; c.lineWidth = 6; c.beginPath(); c.moveTo(960, 880); c.lineTo(1000, 1230); c.stroke(); for (let k = -6; k <= 6; k++) { c.lineWidth = 2.5; c.beginPath(); c.moveTo(1000, 1150); c.lineTo(1000 + k * 5, 1240); c.stroke(); }
-  // the step, swept, smoothed; her jhoti on it
-  c.fillStyle = '#5a3a26'; c.fillRect(0, 1240, W, 130); c.fillStyle = 'rgba(255,220,180,.15)'; c.fillRect(0, 1240, W, 4);
-  c.strokeStyle = 'rgba(250,246,236,.95)'; c.lineWidth = 5; c.lineCap = 'round';
-  for (let k = 0; k < 8; k++) { const u = clamp(draw * 8 - k); if (u <= 0) break; const x = 520 + k * 60; c.beginPath(); c.ellipse(x, 1300, 22 * u, 10, 0, 0, 7); c.stroke(); c.beginPath(); c.arc(x + 30, 1300, 3, 0, 7); c.stroke(); }
-  for (let k = 0; k < 3; k++) if (draw > .4 + k * .15) foot(c, 760 + k * 4, 1262 - k * 0, -Math.PI / 2, .55, k % 2 === 0, 1, '250,246,236', .2);
-  flame(c, t, 590, 1230, 30, 2, 1); c.fillStyle = '#6a2e12'; c.beginPath(); c.ellipse(586, 1236, 26, 9, 0, 0, 7); c.fill();   // her lamp
-  // the golden light arriving from the left, and gold steps onto hers
-  if (gold > 0) { c.save(); c.globalCompositeOperation = 'lighter'; const gg = c.createRadialGradient(lerp(-200, 480, gold), 1000, 20, lerp(-200, 480, gold), 1000, 700); gg.addColorStop(0, `rgba(255,206,120,${.6 * gold})`); gg.addColorStop(1, 'rgba(255,170,80,0)'); c.fillStyle = gg; c.fillRect(0, 0, W, H); c.restore();
-    for (let k = 0; k < 4; k++) foot(c, 120 + k * 150, 1300 - (k % 2) * 18, 0, .6, k % 2 === 0, clamp(gold * 4 - k), '255,214,130', .6); }
-  setLook({ saree: '#e8dcc6', sareeD: '#c0b29a', border: '#a8241a' }); motherKneeling(c, 380, 1250, 1.2, { hands: [[220, -10], [250, -6]], lean: 1, glow: .6, glowAt: [220, -60], rimCol: '255,220,170', shade: .45 });
+  // the broom against the wall, a small lamp by the door
+  c.strokeStyle = '#c8a060'; c.lineWidth = 6; c.beginPath(); c.moveTo(1010, 880); c.lineTo(1040, 1230); c.stroke(); for (let k = -6; k <= 6; k++) { c.lineWidth = 2.5; c.beginPath(); c.moveTo(1040, 1150); c.lineTo(1040 + k * 5, 1240); c.stroke(); }
+  // the step in front of her door: plastered with fresh cow-dung wash (gobara pani) — the wet sheen spreads out from her hands
+  c.fillStyle = '#5a3a26'; c.fillRect(0, 1240, W, 140); c.fillStyle = 'rgba(255,220,180,.15)'; c.fillRect(0, 1240, W, 4);
+  if (clean > 0) { const r = 760 * eo(clean), wet = 1 - .55 * ss(seg(t, 15.3, 16.2));
+    c.save(); c.beginPath(); c.ellipse(600, 1310, r, 150, 0, 0, 7); c.clip(); c.fillStyle = '#3e2414'; c.fillRect(0, 1240, W, 140);
+    const g2 = c.createLinearGradient(0, 1240, 0, 1380); g2.addColorStop(0, `rgba(255,214,170,${.22 * wet})`); g2.addColorStop(.25, 'rgba(255,214,170,0)'); g2.addColorStop(1, `rgba(255,200,150,${.08 * wet})`); c.fillStyle = g2; c.fillRect(0, 1240, W, 140);
+    c.strokeStyle = `rgba(255,220,180,${.07 * wet})`; c.lineWidth = 10; for (let k = 0; k < 9; k++) { c.beginPath(); c.moveTo(0, 1256 + k * 14); for (let x = 0; x <= W; x += 60) c.lineTo(x, 1256 + k * 14 + 4 * Math.sin(x * .02 + k)); c.stroke(); }   // the swirls of her hand
+    c.restore();
+    if (clean < 1) { c.save(); c.strokeStyle = 'rgba(255,230,200,.35)'; c.lineWidth = 3; c.beginPath(); c.ellipse(600, 1310, r, 150, 0, 0, 7); c.clip(); c.restore(); } }
+  // her jhoti: a lotus on the threshold, Lakshmi's little feet walking in (toe dots, the lotus mark), a border of dots — drawn by her hand
+  const LO = seg(draw, 0, .3), PR = JH.map((_, k) => seg(draw, .25 + k * .1, .4 + k * .1)), BD = seg(draw, .75, 1);
+  c.save(); c.translate(760, 1262); c.scale(1.15, .46); c.strokeStyle = 'rgba(250,246,236,.95)'; c.lineWidth = 5.5; c.lineCap = 'round';
+  for (let k = 0; k < 7; k++) { const u = clamp(LO * 7 - k); if (u <= 0) break; const an = Math.PI + (k + .5) / 7 * Math.PI; c.beginPath(); c.moveTo(0, 0); c.quadraticCurveTo(Math.cos(an - .22) * 70, Math.sin(an - .22) * 70, Math.cos(an) * 110 * u, Math.sin(an) * 110 * u); c.quadraticCurveTo(Math.cos(an + .22) * 70, Math.sin(an + .22) * 70, 0, 0); c.stroke(); }
+  if (LO > .5) { c.fillStyle = 'rgba(250,246,236,.95)'; for (let k = 0; k < 9; k++) { const an = Math.PI + k / 8 * Math.PI; c.beginPath(); c.arc(Math.cos(an) * 138, Math.sin(an) * 138, 5, 0, 7); c.fill(); } c.beginPath(); c.arc(0, 0, 9, 0, 7); c.fill(); }
+  c.restore();
+  JH.forEach(([x, y, sc, left], k) => { if (PR[k] <= 0) return; c.save(); c.translate(x, y); c.scale(1, .62); foot(c, 0, 0, -.3, sc, left, PR[k], '250,246,236', .18); c.restore(); });
+  c.fillStyle = 'rgba(250,246,236,.9)'; for (let x = 1060; x > 20; x -= 30) { if ((1060 - x) / 1040 > BD) break; c.beginPath(); c.arc(x, 1366 + 3 * Math.sin(x * .05), x % 90 < 30 ? 4.5 : 2.6, 0, 7); c.fill(); }
+  flame(c, t, 940, 1232, 30, 2, 1); c.fillStyle = '#6a2e12'; c.beginPath(); c.ellipse(936, 1238, 26, 9, 0, 0, 7); c.fill();   // her lamp
+  // the golden light arriving from the left; gold steps along the step and onto the feet she drew
+  if (gold > 0) { c.save(); c.globalCompositeOperation = 'lighter'; const gx0 = lerp(-200, 760, eo(gold)), gg = c.createRadialGradient(gx0, 1000, 20, gx0, 1000, 700); gg.addColorStop(0, `rgba(255,206,120,${.6 * gold})`); gg.addColorStop(1, 'rgba(255,170,80,0)'); c.fillStyle = gg; c.fillRect(0, 0, W, H);
+    const dg = c.createLinearGradient(0, 760, 0, 1240); dg.addColorStop(0, `rgba(255,200,110,${.5 * ss(seg(gold, .6, 1))})`); dg.addColorStop(1, `rgba(255,226,160,${.8 * ss(seg(gold, .6, 1))})`); c.fillStyle = dg; c.beginPath(); c.moveTo(640, 1240); c.lineTo(640, 760); c.quadraticCurveTo(760, 700, 880, 760); c.lineTo(880, 1240); c.fill(); c.restore();   // she has gone in: the doorway fills with her light
+    c.save();
+    const GS = [[80, 1370, .8, true], [190, 1362, .8, false], [300, 1370, .84, true], ...JH.slice().reverse()];
+    GS.forEach(([x, y, sc, left], k) => { const u = clamp(gold * (GS.length + 1) - k); if (u <= 0) return; c.save(); c.translate(x, y); c.scale(1, .62); foot(c, 0, 0, k < 3 ? 0 : -.3, sc * 1.02, left, u, '255,214,120', .6); c.restore(); }); c.restore(); }
+  // Shriya, kneeling; her hands do the work: wiping the step, then drawing each mark in turn
+  let hx = 600, hy = 1300;
+  if (draw <= 0) { hx = 600 + 70 * Math.sin(t * 7.5) * (clean > 0 && clean < 1 ? 1 : .2); hy = 1300 + 8 * Math.cos(t * 7.5); }
+  else if (draw < 1) { const k = PR.findIndex(v => v < 1); if (LO < 1) { hx = 760 + Math.cos(Math.PI + LO * Math.PI) * 60; hy = 1262 - 20; } else if (k >= 0) { hx = JH[k][0]; hy = JH[k][1] - 6; } else { hx = lerp(1000, 520, BD); hy = 1360; } }
+  else { hx = 640; hy = 1290; }
+  const lx = (hx - 470) / 1.2, ly = (hy - 1250) / 1.2;
+  setLook({ saree: '#e8dcc6', sareeD: '#c0b29a', border: '#a8241a' }); motherKneeling(c, 470, 1250, 1.2, { hands: [[lx - 14, ly], [lx + 8, ly + 3]], lean: 1, glow: .6, glowAt: [lx, ly - 40], rimCol: '255,220,170', shade: .45 });
   c.restore();
 }

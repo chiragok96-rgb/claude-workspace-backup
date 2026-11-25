@@ -149,12 +149,13 @@ function diner(c, t, x, y, ang, s, look, i, lod = 1, reach = 0) {   // a person 
   const [cloth, kind, hc, skin] = look; c.save(); c.translate(x, y); c.rotate(ang); c.scale(s, s);
   c.fillStyle = 'rgba(30,12,4,.3)'; c.beginPath(); c.ellipse(4, 10, 58, 78, 0, 0, 7); c.fill();   // shadow
   if (lod < .25) { c.fillStyle = cloth; c.beginPath(); c.ellipse(4, 0, 34, 60, 0, 0, 7); c.fill(); c.fillStyle = kind === 'pallu' ? hc : kind === 'white' ? '#e8e4dc' : '#16100c'; c.beginPath(); c.arc(-8, 0, 20, 0, 7); c.fill(); c.restore(); return; }
+  c.translate(28 * reach, 0);   // leaning in
   // knees, crossed, in front (in the body's shadow), then the shoulders, wide across
   let g = c.createLinearGradient(-20, 0, 50, 0); g.addColorStop(0, cloth); g.addColorStop(1, shade(cloth, .62)); c.fillStyle = g; c.beginPath(); c.ellipse(26, 0, 26, 62, 0, 0, 7); c.fill();
   g = c.createRadialGradient(-14, -14, 4, -8, 0, 60); g.addColorStop(0, shade(cloth, 1.08)); g.addColorStop(1, shade(cloth, .7)); c.fillStyle = g; c.beginPath(); c.ellipse(-8, 0, 24, 50, 0, 0, 7); c.fill();
   // the eating hand: from the leaf to the mouth and back
-  const u = (t * .6 + hh(i) * 3) % 1, e = u < .45 ? ss(u / .45) : u < .6 ? 1 : ss(1 - (u - .6) / .4), hx = lerp(92 - 40 * reach, 6, e), hy = lerp(20, 12, e);
-  c.strokeStyle = skin; c.lineCap = 'round'; c.lineWidth = 12; c.beginPath(); c.moveTo(-4, 40); c.quadraticCurveTo(lerp(44, 22, e), 44, hx, hy); c.stroke(); c.fillStyle = shade(skin, 1.1); c.beginPath(); c.arc(hx, hy, 8, 0, 7); c.fill();
+  const u = (t * .6 + hh(i) * 3) % 1, e = u < .45 ? ss(u / .45) : u < .6 ? 1 : ss(1 - (u - .6) / .4), hx = lerp(lerp(92, 6, e), 200, reach), hy = lerp(lerp(20, 12, e), 4, reach);
+  c.strokeStyle = skin; c.lineCap = 'round'; c.lineWidth = 12; c.beginPath(); c.moveTo(-4 + 20 * reach, 40 - 10 * reach); c.quadraticCurveTo(lerp(lerp(44, 22, e), 110, reach), lerp(44, 30, reach), hx, hy); c.stroke(); c.fillStyle = shade(skin, 1.1); c.beginPath(); c.arc(hx, hy, 8, 0, 7); c.fill();
   // the head
   const hx0 = -6;
   if (kind === 'pallu') { c.fillStyle = hc; c.beginPath(); c.ellipse(hx0 - 4, 0, 24, 22, 0, 0, 7); c.fill(); c.strokeStyle = 'rgba(232,192,96,.8)'; c.lineWidth = 3; c.beginPath(); c.arc(hx0 - 4, 0, 22, 2, 4.3); c.stroke(); }
@@ -174,9 +175,9 @@ export const ROWS = [-2100, -1400, -700, 0, 700, 1400, 2100], ROW_X = 6400, TEMP
 // the circle round the one pot: 12 people, first in three groups split by red lines, then — when the lines wash away — one ring
 function circleSeat(i, even) { const g = Math.floor(i / 4), m = i % 4, a0 = g * 2.094 + (m - 1.5) * .45 - Math.PI / 2 + 1.047 / 2 * 0, a1 = i / 12 * 6.283 - Math.PI / 2 + .26; return lerp(a0 + .26, a1, even); }
 export function feast(c, t, o = {}) {
-  const { z = 1, cy = 0, wash = 0, even = 0, linesA = 1, reach = 0, shadowA = 1, dusk = 1, light = 1 } = o;
+  const { z = 1, cy = 0, wash = 0, even = 0, linesA = 1, reach = 0, shadowA = 1, dusk = 1, light = 1, vw = 560, steps = 0 } = o;
   c.save(); c.translate(540, 960); c.scale(z, z); c.translate(0, -cy);
-  const vx = 560 / z + 200, vy = 1000 / z + 200;
+  const vx = vw / z + 200, vy = 1000 / z + 200;
   // the courtyard's stone
   c.fillStyle = '#1e0e06'; c.fillRect(-vx, cy - vy, 2 * vx, 2 * vy); c.save(); const pat = c.createPattern(stoneTex(), 'repeat'); c.fillStyle = pat; c.fillRect(-6800, -2600, 13600, 5200); c.fillRect(-1300, -5900, 2600, 3400); c.restore();   // the courtyard, and the temple's platform
   let g = c.createRadialGradient(0, 0, 200, 0, 0, 6000); g.addColorStop(0, `rgba(255,190,110,${.18 * light})`); g.addColorStop(1, 'rgba(40,16,8,.55)'); c.fillStyle = g; c.fillRect(-vx, cy - vy, 2 * vx, 2 * vy);
@@ -185,7 +186,7 @@ export function feast(c, t, o = {}) {
   // the rows (pangat): two lines of people facing each other across a line of leaves
   const lod = clamp((z - .08) / .4);
   for (const R of ROWS) { if (Math.abs(R - cy) > vy + 300) continue;
-    for (let x = -ROW_X; x <= ROW_X; x += 140) { if (Math.abs(x) > vx + 200) continue; if (R === 0 && Math.abs(x) < 700) continue;
+    for (let x = -ROW_X; x <= ROW_X; x += 140) { if (Math.abs(x) > vx + 200) continue; if (R === 0 && Math.abs(x) < 700) continue; if (R < 0 && Math.abs(x - 70) < 100) continue;   // an aisle from the temple door to the circle
       for (const sd of [-1, 1]) { const i = Math.round(x / 140) * 2 + (sd > 0 ? 1 : 0) + R / 7, y = R + sd * 140, ang = sd > 0 ? -Math.PI / 2 : Math.PI / 2;
         leaf(c, x + (hh(i) - .5) * 12, R + sd * 50, 0, .6, lod); diner(c, t, x + (hh(i * 3) - .5) * 18, y, ang, .95, LOOKS[((Math.round(i * 7.3) % 12) + 12) % 12], i, lod); } } }
   // servers walking the aisles with pots of Mahaprasad on their hips
@@ -196,7 +197,9 @@ export function feast(c, t, o = {}) {
   const kd = 150; g = c.createRadialGradient(-30, -30, 10, 0, 0, kd * 1.05); g.addColorStop(0, '#c87a46'); g.addColorStop(1, '#4a1e0c'); c.fillStyle = 'rgba(20,8,4,.35)'; c.beginPath(); c.arc(16, 16, kd, 0, 7); c.fill(); c.fillStyle = g; c.beginPath(); c.arc(0, 0, kd, 0, 7); c.fill();
   g = c.createRadialGradient(-20, -20, 5, 0, 0, kd * .78); g.addColorStop(0, '#fffdf4'); g.addColorStop(1, '#d8ccb0'); c.fillStyle = g; c.beginPath(); c.arc(0, 0, kd * .76, 0, 7); c.fill();
   for (let k = 0; k < 140; k++) { const r = Math.sqrt(hh(k * 1.7)) * kd * .72, an = hh(k * 2.9) * 6.283; c.save(); c.translate(Math.cos(an) * r, Math.sin(an) * r); c.rotate(hh(k) * 6.3); c.fillStyle = 'rgba(255,255,250,.75)'; c.beginPath(); c.ellipse(0, 0, 5, 2, 0, 0, 7); c.fill(); c.restore(); }
-  for (let i = 0; i < 12; i++) { const a = circleSeat(i, even), lx = Math.cos(a) * 250, ly = Math.sin(a) * 250; leaf(c, lx, ly, a + Math.PI / 2, .7, lod); diner(c, t, Math.cos(a) * 390, Math.sin(a) * 390, a, 1.05, LOOKS[i], i * 7 + 3, lod, reach); }
+  for (let i = 0; i < 12; i++) { const a = circleSeat(i, even), lx = Math.cos(a) * 238, ly = Math.sin(a) * 238; leaf(c, lx, ly, a + Math.PI / 2, .66, lod); }
+  for (let i = 0; i < 12; i++) { const a = circleSeat(i, even); diner(c, t, Math.cos(a) * 345, Math.sin(a) * 345, a + Math.PI, 1.05, LOOKS[i], i * 7 + 3, lod, reach); }   // facing the pot; and, once the lines are gone, every hand in the one pot
+  if (steps > 0) for (let k = 0; k < 7; k++) foot(c, (k % 2 ? 26 : -26) + 70, -1500 + k * 150, Math.PI / 2, 1.0, k % 2 === 0, ss(clamp(steps * 8 - k)), '255,214,130', .6);   // her steps, in from the temple door
   // the red lines that split them, washed away from the pot outward
   if (linesA > 0) { c.save(); c.globalAlpha *= linesA; c.strokeStyle = '#c4201a'; c.lineWidth = 9; c.lineCap = 'round'; c.setLineDash([2, 16]);
     for (let k = 0; k < 3; k++) { const a = k * 2.094 - Math.PI / 2 + 1.047 + .26 - .26 + .0, r0 = Math.max(170, rw), r1 = 820; const aa = k * 2.094 + 1.047 - Math.PI / 2 + .26 - 1.047 + 1.047; if (r0 >= r1) continue;
