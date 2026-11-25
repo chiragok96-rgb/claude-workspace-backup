@@ -60,3 +60,7 @@ See `INSTALL.md` for details and optional heavy tiers (ASR / voice models).
 Secrets/tokens (none stored), `node_modules/`, venvs, ffmpeg binaries (re-downloaded), downloaded ML models
 (`asr` 1.8 GB, `tts` 9.8 GB — reinstall per INSTALL.md), intermediate renders/frames, large `.mp4/.wav`
 (re-renderable from source), third-party reference videos, and the raw chat transcript.
+
+
+## PropertyKatha (Odisha property Instagram page)
+See `propertykatha/HANDOFF.md` for the brief, Chirag's preferences, the toolchain, how to re-render, and the delivered videos.
