@@ -1,0 +1,380 @@
+<title>The Gate Storyboard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter+Tight:wght@400;500;600&family=Noto+Serif+Oriya:wght@500;700&family=Anek+Odia:wght@500;600&display=swap">
+<style>
+/* Layout: one long reading column; each board = a 9:16 sketch beside its shot notes, stacked on phones.
+   Single deliberate dark look that matches the film's own grade (forest-black, ivory, gold, laterite). */
+:root{
+  --ink:#111512; --panel:#191f1b; --line:#2b332d;
+  --ivory:#efe7d6; --muted:#a3a89c; --gold:#c9a25b; --laterite:#b65b3c;
+  --ok:#76a982; --warn:#d2553c;
+  --display:"Cormorant Garamond",Georgia,"Times New Roman",serif;
+  --body:"Inter Tight","Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --odia:"Noto Serif Oriya","Anek Odia","Kalinga",serif;
+  --odia-sans:"Anek Odia","Noto Sans Oriya","Kalinga",sans-serif;
+  color-scheme:dark;
+}
+html{background:var(--ink)}
+body{background:var(--ink);color:var(--ivory);font:15px/1.6 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 80px}
+.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:56px}
+h1,h2,h3{font-family:var(--display);font-weight:500;text-wrap:balance;margin:0;line-height:1.1}
+h1{font-size:clamp(40px,7vw,68px)}
+h2{font-size:clamp(28px,4vw,38px)}
+h3{font-size:24px}
+p{margin:0;max-width:66ch}
+.eyebrow{font:600 12px/1 var(--body);letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+.muted{color:var(--muted)}
+.od{font-family:var(--odia);}
+.gold{color:var(--gold)}
+header{display:flex;flex-direction:column;gap:18px;border-bottom:1px solid var(--line);padding-bottom:36px}
+header .meta{display:flex;flex-wrap:wrap;gap:8px 28px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+header .meta b{color:var(--ivory);font-weight:500}
+section{display:flex;flex-direction:column;gap:20px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.cols > *{min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:22px;display:flex;flex-direction:column;gap:10px}
+.verdict{border-left:2px solid var(--gold);padding:4px 0 4px 20px;display:flex;flex-direction:column;gap:12px}
+.verdict .big{font-family:var(--display);font-size:clamp(24px,3.4vw,32px);line-height:1.25}
+ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+li{max-width:66ch}
+.swatches{display:flex;flex-wrap:wrap;gap:10px}
+.sw{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted);width:96px}
+.sw i{display:block;height:54px;border-radius:4px;border:1px solid var(--line)}
+
+/* timeline */
+.tl{overflow-x:auto}
+.tl svg{display:block;min-width:720px;width:100%}
+
+/* caption demo */
+.capdemo{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.cap{background:linear-gradient(180deg,#2a2f26,#151a16);border-radius:6px;padding:26px 16px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;border:1px solid var(--line)}
+.cap .w{font-family:var(--odia);font-weight:700;font-size:34px;line-height:1.25;color:var(--ivory)}
+.cap .w.warn{color:var(--warn)}
+.cap .g{font:600 11px/1 var(--body);letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+.cap .s{font:italic 500 18px/1.2 var(--display);color:var(--gold)}
+
+/* boards */
+.board{display:grid;grid-template-columns:minmax(150px,210px) 1fr;gap:26px;padding-block:28px;border-top:1px solid var(--line)}
+.board > *{min-width:0}
+.board svg{width:100%;height:auto;border-radius:6px;display:block;max-width:100%}
+.bhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px}
+.tc{font:500 13px/1 var(--body);color:var(--gold);font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.notes{display:flex;flex-direction:column;gap:14px}
+.vo{display:flex;flex-direction:column;gap:2px;padding:12px 14px;background:var(--panel);border-radius:4px}
+.vo .od{font-size:17px;line-height:1.5}
+.vo .en{font-size:13px;color:var(--muted)}
+dl{display:grid;grid-template-columns:110px 1fr;gap:6px 16px;margin:0}
+dt{font:600 11px/1.9 var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+dd{margin:0;min-width:0}
+.tag{display:inline-block;font:600 10px/1 var(--body);letter-spacing:.14em;text-transform:uppercase;padding:5px 7px;border-radius:3px;border:1px solid var(--line);color:var(--gold)}
+.hook{color:var(--ink);background:var(--gold);border-color:var(--gold)}
+
+/* hook table */
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 11px/1.4 var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+td:first-child{font-variant-numeric:tabular-nums;color:var(--gold);white-space:nowrap}
+
+.ask{background:var(--panel);border:1px solid var(--gold);border-radius:6px;padding:24px;display:flex;flex-direction:column;gap:12px}
+ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
+
+@media (max-width:620px){
+  .board{grid-template-columns:1fr}
+  .board svg{max-width:220px}
+  dl{grid-template-columns:1fr;gap:2px}
+  dd{margin-bottom:8px}
+}
+@media (prefers-reduced-motion:no-preference){ .board svg{transition:transform .3s ease} .board svg:hover{transform:scale(1.02)} }
+</style>
+
+<div class="wrap">
+
+<header>
+  <span class="eyebrow">Property page · Video 1 · Storyboard for approval</span>
+  <h1>The Gate</h1>
+  <p class="muted">A ₹20 lakh plot, a road that turned out to be someone else's land, and the one check that prevents it. Odia voiceover, 9:16 vertical, made for Instagram Reels.</p>
+  <div class="meta">
+    <span>Length <b>55.6 s</b></span>
+    <span>Format <b>1080 × 1920, 30 fps</b></span>
+    <span>Voice loudness now <b>−17.4 LUFS</b>, final <b>−14 LUFS</b></span>
+    <span>Spoken lines <b>34 phrases</b></span>
+  </div>
+</header>
+
+<!-- DECISION 1 -->
+<section>
+  <span class="eyebrow">Decision 1 · One shot or cuts</span>
+  <div class="verdict">
+    <p class="big">One continuous camera, no cuts. Your instinct was right, but for a stronger reason than “it looks classy”.</p>
+    <p>This story is about one piece of land seen two ways: the road your eyes see, and the road the government record shows. If the camera never leaves that land, the twist lands physically. We start at ground level on the plot, the gate slams shut in front of the lens, then the camera rises straight up until the same land flattens into the Bhulekh map. The viewer feels that the map and the ground are the same place. A cut would break exactly that link.</p>
+  </div>
+  <div class="cols">
+    <div class="card">
+      <h3>Why not cuts</h3>
+      <ul>
+        <li>Cuts give pace, but a cut between “road” and “map” makes them two different pictures. The lesson becomes a slideshow.</li>
+        <li>Every serious property brand on Reels uses stock drone clips with fast cuts. One continuous miniature world looks like nobody else's page from video 1.</li>
+        <li>You prefer slow, subtle motion and hate frame pops. A single camera never pops.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>The real risk of one shot, and the fix</h3>
+      <ul>
+        <li>The risk is that a slow camera feels slow, and Reels viewers leave in the first 2 seconds.</li>
+        <li>The fix: the camera moves slowly, but something <em>happens</em> inside the frame roughly every 1.5 seconds. A price ticks up, the sun races, the gate slams, a sign appears, a boundary line draws itself, a stamp lands.</li>
+        <li>No fade from black and no logo at the start. Frame 1 already shows the plot and the price.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- DECISION 2 -->
+<section>
+  <span class="eyebrow">Decision 2 · Subtitles</span>
+  <div class="verdict">
+    <p class="big">Key words only, in Odia script, each with a small English label under it.</p>
+    <p>Your buyers are Odia, and many are parents or older relatives who read Odia script far faster than romanised Odia, so the big word is Odia. The legal terms in your voiceover are already English (Plot, Advance, Sale Deed, Right of Way, Registered), so a small gold English label under each hero word costs nothing and lets young, NRI and non-Odia viewers follow the idea too. About 14 words appear in the whole film, never a full sentence.</p>
+    <p>Where it is natural, the word is written <em>inside the world</em> instead of as a caption: “ଏ ରାସ୍ତା ମୋ ଜମି” is painted on a board on the gate, “ଓଡ଼ିଶା ସରକାର” is printed on the record itself. That is what makes it feel premium instead of a template. All text stays out of the top 250 px and the bottom 450 px, where Instagram puts its buttons and caption.</p>
+  </div>
+  <div class="capdemo" aria-label="Caption style samples">
+    <div class="cap"><span class="w">₹୨୦ ଲକ୍ଷ</span><span class="g">₹20,00,000</span></div>
+    <div class="cap"><span class="w">ସରକାରୀ Road ନୁହେଁ</span><span class="g">Not a government road</span></div>
+    <div class="cap"><span class="w warn">ସାବଧାନ୍</span><span class="g">Caution</span></div>
+    <div class="cap"><span class="s">Right of Way</span><span class="g">Proof of passage</span></div>
+  </div>
+  <p class="muted">Type: Noto Serif Oriya for the Odia hero words (a classic book serif, not a rounded sticker font), Inter Tight for the letter-spaced English labels, and Cormorant italic in gold for the one accent term per scene. The labels and italic are carried over from your Bali Jatra films.</p>
+</section>
+
+<!-- LOOK -->
+<section>
+  <span class="eyebrow">The look</span>
+  <h2>An architect's model of an Odisha plot, at golden hour</h2>
+  <p>The whole film lives on one miniature landscape, built in 3D like a premium real estate scale model: red laterite soil, a few coconut palms, a paddy edge, survey pegs with a rope line, and a narrow mud road leading to the plot. Soft low sun, gentle depth of field, no people. The neighbour is shown only by his gate, his padlock and his painted board, which keeps it classy and avoids drawn cartoon characters.</p>
+  <p>From your earlier work I'm reusing four looks, joined by the camera instead of transitions, rather than the eight or nine styles of a music video. A property page needs one recognisable house look that video 2, 3 and 4 can share.</p>
+  <div class="cols">
+    <div class="card"><span class="tag">3D scale model</span><p>The land, road and gate. Built with the Blender setup from your code-motion skill, with the same sun-and-sky light rig as the Rath Yatra example.</p></div>
+    <div class="card"><span class="tag">Line-art cutaway</span><p>When the camera rises, thin ivory survey lines draw over the 3D ground and show where the parcel boundaries really run. From the voiceover-reel catalogue (“evidence under the ground”).</p></div>
+    <div class="card"><span class="tag">Pen plotter map</span><p>Top-down, the land becomes a cream cadastral map. One gold line traces the road and can stop at the boundary. Also from the catalogue (“a route that can stop”).</p></div>
+    <div class="card"><span class="tag">Archive light table</span><p>The patta and the Sale Deed lie on a backlit table with a brass magnifier and small-caps labels. For the documents part (“two objects compared”).</p></div>
+  </div>
+  <div class="swatches" aria-label="Film palette">
+    <div class="sw"><i style="background:#efe7d6"></i>Ivory paper</div>
+    <div class="sw"><i style="background:#b65b3c"></i>Laterite soil</div>
+    <div class="sw"><i style="background:#2f4a36"></i>Palm green</div>
+    <div class="sw"><i style="background:#c9a25b"></i>Gold line</div>
+    <div class="sw"><i style="background:#111512"></i>Forest black</div>
+    <div class="sw"><i style="background:#76a982"></i>Safe (green)</div>
+    <div class="sw"><i style="background:#d2553c"></i>Caution (red)</div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section>
+  <span class="eyebrow">Voiceover map</span>
+  <h2>What I measured in the recording</h2>
+  <p>I found every pause in the audio and matched each spoken phrase to your transcript (34 phrases, 55.6 s). Three moments stand out in the delivery, and the picture is built around them:</p>
+  <ul>
+    <li><b>7.5–12.3 s:</b> your pitch rises to about 200 Hz from your usual 170 Hz. You are acting the neighbour's voice, so this is the dramatic peak of the hook.</li>
+    <li><b>31.2 s, “ସାବଧାନ୍”:</b> you drop to a low, quiet voice, about 3 dB softer than the rest. So the warning is a hush, not a shout. The music cuts out and the frame darkens instead of flashing red.</li>
+    <li><b>48.4 s, “ଘରେ କେହି ଜମି କିଣିବାକୁ ଭାବୁଛନ୍ତି?”:</b> highest pitch in the file, a real question to the viewer. The camera pulls back here to make room for the call to action.</li>
+  </ul>
+  <div class="tl" id="tl"></div>
+  <p class="muted">Bars are speech, gaps are pauses, colours are scenes. Exact word-level times will be locked before render.</p>
+</section>
+
+<!-- HOOK -->
+<section>
+  <span class="eyebrow">The first 10 seconds</span>
+  <h2>The hook, second by second</h2>
+  <p>The goal: a reason to stay at 0 s (a big number), a shock at 6.5 s (the gate), and an open question at 11 s (“and he wasn't wrong”) that only the rest of the video answers.</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Time</th><th>Voice</th><th>Picture</th><th>Sound</th></tr></thead>
+    <tbody>
+      <tr><td>0.0</td><td class="od">କୋଡ଼ିଏ ଲକ୍ଷ…</td><td>First frame is already moving: low camera gliding over the pegged plot at golden hour. “₹20,00,000” counts up in the sky, gold.</td><td>Soft warm pad, a single low piano note</td></tr>
+      <tr><td>1.6</td><td class="od">…Plot କିଣିଲେ</td><td>A small brass “SOLD” tag swings on the corner peg.</td><td>Tag chime</td></tr>
+      <tr><td>2.7</td><td class="od">ହେଲେ,</td><td>Light cools a little, music falls away. Half a second of near stillness.</td><td>Music ducks to silence</td></tr>
+      <tr><td>3.6</td><td class="od">ତିନି ମାସ ପରେ</td><td>The sun races across the sky, shadows swing, grass grows on the plot. Label “3 MONTHS LATER”.</td><td>Soft whoosh, ticking clock</td></tr>
+      <tr><td>4.8</td><td class="od">Plot କୁ ଯିବା ରାସ୍ତାରେ</td><td>Camera travels forward along the mud road toward the plot, at buyer's eye height.</td><td>Footsteps on gravel</td></tr>
+      <tr><td>≈6.4</td><td class="od">Gate ଲାଗିଗଲା</td><td>A dark iron gate swings shut across the road, right in front of the lens. The camera stops dead behind the bars. The only hard hit in the film.</td><td>Heavy metal clang, then silence</td></tr>
+      <tr><td>7.5</td><td class="od">ପାଖ ଜମି ମାଲିକ କହିଲେ</td><td>Through the bars: a hand-painted board is hung on the gate, and a padlock clicks shut.</td><td>Chain rattle, padlock click</td></tr>
+      <tr><td>9.2</td><td class="od">“ଏ ରାସ୍ତା ମୋ ଜମି”</td><td>The board's words are the subtitle: “ଏ ରାସ୍ତା ମୋ ଜମି”, painted in white on rusted tin.</td><td>Wind</td></tr>
+      <tr><td>11.0</td><td class="od">ଆଉ ସେ ଭୁଲ୍ କହୁନଥିଲେ</td><td>Camera starts to rise above the gate. Gold italic: “He wasn't wrong.”</td><td>A low string swell begins</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- BOARDS -->
+<section id="boards">
+  <span class="eyebrow">Storyboard · 11 beats, one camera</span>
+  <h2>Shot by shot</h2>
+  <div id="boardlist"></div>
+</section>
+
+<!-- AUDIO -->
+<section>
+  <span class="eyebrow">Sound</span>
+  <h2>Audio plan</h2>
+  <div class="cols">
+    <div class="card"><h3>Voice</h3><p>Your recording is clean, at −17.4 LUFS with peaks at −1.3 dB. I'll keep it untouched apart from bringing it up to −14 LUFS with a true-peak limit of −1.5 dB, so it plays at full Instagram loudness without distortion.</p></div>
+    <div class="card"><h3>Music</h3><p>A calm premium bed made in code: soft piano, warm string pad, a slow pulse. About 10 dB under the voice and ducked whenever you speak. It drops out at “ହେଲେ”, after the gate clang and at “ସାବଧାନ୍”, then returns.</p></div>
+    <div class="card"><h3>Sound effects</h3><p>Only five, each tied to a story beat: the SOLD tag, the gate clang, the padlock, the registration stamp, and the gate opening at the end. No whooshes on every move.</p></div>
+  </div>
+</section>
+
+<!-- ASK -->
+<section>
+  <div class="ask">
+    <span class="eyebrow">What I need from you</span>
+    <ol>
+      <li><b>Approve the storyboard</b>, or tell me what to change. I won't render anything until you say go.</li>
+      <li><b>The page name and Instagram handle</b> for the follow card at the end. Until then the card shows a placeholder.</li>
+      <li><b>Plot number and owner name on screen:</b> I plan a made-up plot number (“412”) and a blurred owner name, so no real person's land is shown. Say if you prefer otherwise.</li>
+    </ol>
+    <p class="muted">The map and record are styled illustrations of a Bhulekh map and a patta, not copies of the government website, so nothing on screen pretends to be an official page.</p>
+  </div>
+</section>
+
+</div>
+
+<script>
+(function(){
+const DUR=55.56;
+const scenes=[
+ {id:1,t0:0,t1:2.7,c:"#c9a25b",name:"₹20 lakh plot",hook:true,
+  od:"କୋଡ଼ିଏ ଲକ୍ଷ ଟଙ୍କାରେ Plot କିଣିଲେ।",en:"Bought a plot for 20 lakh rupees.",
+  see:"Golden-hour scale model of the plot: red laterite soil, survey pegs and rope, two coconut palms, a paddy edge. Low camera already gliding forward on frame 1. “₹20,00,000” counts up in gold above the horizon. A brass SOLD tag swings on a peg.",
+  cam:"Slow low push-in, 15 cm above the ground.",txt:"₹୨୦ ଲକ୍ଷ · ₹20,00,000",snd:"Warm pad, one low piano note, tag chime.",sk:"plot"},
+ {id:2,t0:2.7,t1:7.3,c:"#b65b3c",name:"Three months later · Gate",hook:true,
+  od:"ହେଲେ, ତିନି ମାସ ପରେ, Plot କୁ ଯିବା ରାସ୍ତାରେ Gate ଲାଗିଗଲା।",en:"But three months later, a gate went up on the road to the plot.",
+  see:"Music stops at “ହେଲେ”. Time-lapse: the sun arcs, shadows sweep, grass grows. The camera turns onto the mud road toward the plot. An iron gate swings shut across the road right in front of the lens.",
+  cam:"Turns onto the road, travels forward, stops dead behind the bars on the clang.",txt:"3 MONTHS LATER (small caps) · Gate ଲାଗିଗଲା",snd:"Silence, ticking, gravel steps, heavy clang at ≈6.4 s.",sk:"gate"},
+ {id:3,t0:7.3,t1:12.5,c:"#8a3b2a",name:"“This road is my land”",hook:true,
+  od:"ପାଖ ଜମି ମାଲିକ କହିଲେ— “ଏ ରାସ୍ତା ମୋ ଜମି।” ଆଉ ସେ ଭୁଲ୍ କହୁନଥିଲେ।",en:"The neighbouring owner said, “This road is my land.” And he wasn't wrong.",
+  see:"Through the bars: a rusted tin board is hung on the gate with “ଏ ରାସ୍ତା ମୋ ଜମି” painted on it. A padlock snaps shut. On “ଆଉ ସେ ଭୁଲ୍ କହୁନଥିଲେ” the camera begins rising over the gate.",
+  cam:"Hold, then a slow crane up.",txt:"Painted board (in the world) · gold italic “He wasn't wrong.”",snd:"Chain, padlock click, wind, string swell begins.",sk:"sign"},
+ {id:4,t0:12.5,t1:16.8,c:"#76a982",name:"The road you see",
+  od:"କାରଣ ଆଖିକୁ ଦିଶୁଥିବା Road, ସବୁବେଳେ ସରକାରୀ Road ନୁହେଁ।",en:"Because the road you can see is not always a government road.",
+  see:"Camera keeps rising to a 45° view. Thin ivory survey lines draw themselves over the land. The boundary of the neighbour's parcel runs straight through the middle of the road. The road's own colour drains from warm to grey where it sits on his land.",
+  cam:"Crane up and tilt down, slow.",txt:"ସରକାରୀ Road ନୁହେଁ · NOT ALWAYS A GOVERNMENT ROAD",snd:"Pen-scratch as lines draw.",sk:"cutaway"},
+ {id:5,t0:16.8,t1:22.9,c:"#c9a25b",name:"Bhulekh map · plot number · patta",
+  od:"Advance ପୂର୍ବରୁ, Bhulekh Map ରେ ରାସ୍ତାର Plot Number ବାହାର କରି ପଟ୍ଟା ଦେଖନ୍ତୁ।",en:"Before paying an advance, find the road's plot number on the Bhulekh map and check its patta.",
+  see:"The camera reaches straight top-down and the 3D land flattens into a cream cadastral map, same shapes, same place. A gold pen line traces the road strip. Its number “412” types in. A patta (Record of Rights) card slides up out of the map like a sheet of paper.",
+  cam:"Top-down, slow push toward the road strip.",txt:"ADVANCE ପୂର୍ବରୁ · BHULEKH MAP · PLOT NO. 412 · ପଟ୍ଟା",snd:"Paper slide.",sk:"map"},
+ {id:6,t0:22.9,t1:28.7,c:"#76a982",name:"Safe case",
+  od:"ସେଠି “ଓଡ଼ିଶା ସରକାର” କିମ୍ବା “କିସମ ରାସ୍ତା” ଲେଖାଥିଲେ— ବଢ଼ିଆ, କିଛି tension ନାହିଁ।",en:"If it says “Odisha Sarkar” or “Kisam: Rasta”, great, no tension.",
+  see:"On the archive light table the patta's owner column fills in: “ଓଡ଼ିଶା ସରକାର”, then the land-type column: “କିସମ: ରାସ୍ତା”. A soft green tick for each. The road on the map behind glows green.",
+  cam:"Slow drift across the document, brass magnifier follows.",txt:"Words printed on the record itself · green ticks",snd:"Music warms up, a relieved chord on “ବଢ଼ିଆ”.",sk:"safe"},
+ {id:7,t0:28.7,t1:32.1,c:"#d2553c",name:"Caution",
+  od:"କିନ୍ତୁ କୌଣସି ବ୍ୟକ୍ତିଙ୍କ ନାମ ଥିଲେ— ସାବଧାନ୍!",en:"But if it has a person's name, careful!",
+  see:"The owner line flips to a person's name (blurred). The road on the map turns red. On “ସାବଧାନ୍” the room dims to near black, one light stays on the document, a single red underline draws under the name.",
+  cam:"Camera stops completely for one second. Stillness is the emphasis.",txt:"ସାବଧାନ୍ · CAUTION (red)",snd:"Music cuts to silence, low heartbeat thud.",sk:"warn"},
+ {id:8,t0:32.1,t1:37.7,c:"#c9a25b",name:"Sale Deed · Right of Way",
+  od:"Sale Deed ଓ ପୁରୁଣା Documents ରେ Right of Way ର ପ୍ରମାଣ ଅଛି କି ନାହିଁ ଯାଞ୍ଚ କରନ୍ତୁ।",en:"Check whether the Sale Deed and old documents prove a Right of Way.",
+  see:"Lights come back. Older documents slide onto the light table and fan out: the Sale Deed on top, older yellowed papers under it. The magnifier sweeps the lines and stops on a clause; the words “Right of Way” glow gold.",
+  cam:"Slow lateral slide along the papers.",txt:"SALE DEED · gold italic “Right of Way”",snd:"Paper rustle, music returns softly.",sk:"deed"},
+ {id:9,t0:37.7,t1:42.55,c:"#efe7d6",name:"Registered, not spoken",
+  od:"ନ ଥିଲେ, ତାଙ୍କଠୁ Registered କାଗଜରେ ବାଟ ନିଅନ୍ତୁ— ମୁହଁ କଥାରେ ନୁହେଁ।",en:"If not, get the passage from them on registered paper, not by word of mouth.",
+  see:"A fresh stamp paper slides in and a registration seal stamps down on it. On “ମୁହଁ କଥାରେ ନୁହେଁ” a faint spoken-word line of text beside it blows away like dust; the stamped paper stays.",
+  cam:"Slight push-in on the stamp, then hold.",txt:"Registered କାଗଜ ✓ · ମୁହଁ କଥା ✗",snd:"Stamp thud, a breath of wind for the dust.",sk:"stamp"},
+ {id:10,t0:42.55,t1:48.25,c:"#76a982",name:"The rule · gate opens",
+  od:"Gate ଲାଗିବା ପରେ ନୁହେଁ— Advance ଦେବା ପୂର୍ବରୁ ରାସ୍ତାର ଅଧିକାର ନିଶ୍ଚିତ କରନ୍ତୁ।",en:"Not after the gate goes up. Before you pay the advance, make sure of the right to the road.",
+  see:"The whole move in reverse: document drops back into the map, the map rises back into 3D land, the camera comes down to the road. This time the gate swings open and the road ahead to the plot is clear and warm.",
+  cam:"Crane down from top-down to ground level in one breath.",txt:"ADVANCE ପୂର୍ବରୁ · ରାସ୍ତାର ଅଧିକାର",snd:"Gate creaks open, full warm chord.",sk:"open"},
+ {id:11,t0:48.25,t1:55.56,c:"#c9a25b",name:"Send · Follow · loop",
+  od:"ଘରେ କେହି ଜମି କିଣିବାକୁ ଭାବୁଛନ୍ତି?— ତାଙ୍କୁ ପଠାନ୍ତୁ। ଆଉ Property ବିଷୟରେ ଏମିତି ଜରୁରୀ ତଥ୍ୟ ପାଇଁ Follow କରନ୍ତୁ।",en:"Is someone at home thinking of buying land? Send this to them. And follow for important property facts like this.",
+  see:"Camera glides through the open gate to the plot, sun touching the horizon. A small share arrow and “ତାଙ୍କୁ ପଠାନ୍ତୁ”, then the page name and Follow in gold. In the last 0.4 s the frame settles back to the exact opening shot, so the reel loops without a seam.",
+  cam:"Slow forward glide, ends on the frame-1 position.",txt:"ତାଙ୍କୁ ପଠାନ୍ତୁ · [Page name] · Follow",snd:"Music resolves, fades under the loop.",sk:"cta"}
+];
+const chunks=[[0.12,2.07],[2.73,3.16],[3.56,4.54],[4.83,7.04],[7.49,8.89],[9.2,10.5],[10.96,12.31],[12.67,14.53],[14.74,16.63],[16.95,17.34],[17.76,18.81],[19.02,22.08],[22.2,22.77],[23.07,23.5],[23.65,24.6],[24.78,25.12],[25.27,26.67],[26.9,27.35],[27.56,28.48],[28.8,29.76],[29.9,30.92],[31.15,31.85],[32.3,34.44],[34.6,37.57],[37.83,38.47],[38.62,40.95],[41.22,42.36],[42.71,44.09],[44.35,45.81],[45.96,48.05],[48.4,50.31],[50.6,51.39],[51.72,52.93],[53.09,55.31]];
+const fmt=t=>{const s=Math.floor(t),d=Math.round((t-s)*10);return `0:${String(s).padStart(2,"0")}.${d}`};
+
+// timeline
+const W=960,X=t=>20+t/DUR*(W-40);
+let s=`<svg viewBox="0 0 ${W} 120" role="img" aria-label="Voiceover timeline with scenes">`;
+scenes.forEach(sc=>{s+=`<rect x="${X(sc.t0)}" y="10" width="${X(sc.t1)-X(sc.t0)-2}" height="22" rx="2" fill="${sc.c}" opacity=".85"/><text x="${X(sc.t0)+4}" y="25" font-size="11" font-family="Inter Tight,sans-serif" fill="#111512" font-weight="600">${sc.id}</text>`});
+chunks.forEach(([a,b])=>{s+=`<rect x="${X(a)}" y="44" width="${Math.max(1,X(b)-X(a))}" height="30" rx="1.5" fill="#efe7d6" opacity=".78"/>`});
+[[6.4,"gate clang"],[11.0,"open question"],[31.2,"ସାବଧାନ୍"],[48.4,"ask viewer"]].forEach(([t,l])=>{s+=`<line x1="${X(t)}" x2="${X(t)}" y1="40" y2="86" stroke="#c9a25b" stroke-width="1.2"/><text x="${X(t)+3}" y="98" font-size="11" fill="#c9a25b" font-family="Inter Tight,Noto Serif Oriya,sans-serif">${l}</text>`});
+for(let t=0;t<=55;t+=5){s+=`<text x="${X(t)}" y="115" font-size="10" fill="#a3a89c" text-anchor="middle" font-family="Inter Tight,sans-serif">${t}s</text>`}
+s+=`</svg>`;document.getElementById("tl").innerHTML=s;
+
+// sketches (viewBox 90x160, 9:16)
+const defs=`<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8b878"/><stop offset=".55" stop-color="#f3dcb0"/><stop offset="1" stop-color="#cfa77a"/></linearGradient><linearGradient id="dusk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3a4a"/><stop offset=".5" stop-color="#d68a52"/><stop offset="1" stop-color="#8d4a2c"/></linearGradient><radialGradient id="lamp" cx=".5" cy=".45" r=".6"><stop offset="0" stop-color="#f6ecd6"/><stop offset="1" stop-color="#1a1d1a"/></radialGradient></defs>`;
+const safe=`<rect x="0" y="0" width="90" height="12" fill="#000" opacity=".18"/><rect x="0" y="122" width="90" height="38" fill="#000" opacity=".18"/>`;
+const palm=(x,y,k=1)=>`<path d="M${x} ${y} q${1*k} ${-14*k} ${-1*k} ${-26*k}" stroke="#5a3d26" stroke-width="${1.4*k}" fill="none"/><g fill="#2f4a36"><path d="M${x-1*k} ${y-26*k} q-9 -2 -13 5 q7 -6 13 -5z"/><path d="M${x-1*k} ${y-26*k} q9 -3 13 4 q-7 -5 -13 -4z"/><path d="M${x-1*k} ${y-26*k} q-3 -8 -9 -9 q6 3 9 9z"/><path d="M${x-1*k} ${y-26*k} q4 -8 10 -8 q-6 3 -10 8z"/></g>`;
+const ground=`<path d="M0 92 L90 84 L90 160 L0 160Z" fill="#b65b3c"/><path d="M0 92 L90 84 L90 92 L0 100Z" fill="#7c8c4a" opacity=".55"/>`;
+const T=(x,y,t,o={})=>`<text x="${x}" y="${y}" text-anchor="${o.a||"middle"}" font-size="${o.s||7}" fill="${o.f||"#efe7d6"}" font-family="${o.ff||"Noto Serif Oriya,serif"}" font-weight="${o.w||700}" ${o.i?'font-style="italic"':""} letter-spacing="${o.ls||0}">${t}</text>`;
+const L=(x,y,t,f="#c9a25b")=>T(x,y,t,{s:3.4,f,ff:"Inter Tight,sans-serif",w:600,ls:.6});
+const SK={
+ plot:`<rect width="90" height="160" fill="url(#sky)"/><circle cx="66" cy="70" r="7" fill="#fbeccc"/>${ground}${palm(14,96)}${palm(78,90,.8)}
+  <path d="M28 118 L62 112 L72 134 L32 142Z" fill="none" stroke="#efe7d6" stroke-width=".6" stroke-dasharray="1.5 1"/>
+  ${[[28,118],[62,112],[72,134],[32,142]].map(([x,y])=>`<rect x="${x-.6}" y="${y-5}" width="1.2" height="5" fill="#efe7d6"/>`).join("")}
+  <rect x="61" y="104" width="6" height="3.2" rx=".6" fill="#c9a25b"/>
+  ${T(45,44,"₹୨୦ ଲକ୍ଷ",{s:10})}${L(45,51,"₹20,00,000")}`,
+ gate:`<rect width="90" height="160" fill="url(#sky)"/>${ground}<path d="M30 160 L42 88 L50 88 L64 160Z" fill="#9b4d33"/>${palm(10,94)}
+  <g stroke="#1b1d1c" stroke-width="1.6">${[12,22,32,42,52,62,72,82].map(x=>`<line x1="${x}" y1="60" x2="${x}" y2="150"/>`).join("")}<line x1="6" y1="64" x2="86" y2="64" stroke-width="2.4"/><line x1="6" y1="104" x2="86" y2="104" stroke-width="1.8"/></g>
+  ${L(45,26,"3 MONTHS LATER")}${T(45,40,"Gate ଲାଗିଗଲା",{s:7})}`,
+ sign:`<rect width="90" height="160" fill="url(#sky)"/>${ground}
+  <g stroke="#1b1d1c" stroke-width="1.6">${[12,22,32,42,52,62,72,82].map(x=>`<line x1="${x}" y1="40" x2="${x}" y2="150"/>`).join("")}<line x1="6" y1="44" x2="86" y2="44" stroke-width="2.4"/></g>
+  <rect x="17" y="66" width="56" height="26" fill="#6e3a26" stroke="#3b2418" stroke-width="1"/>${T(45,82,"ଏ ରାସ୍ତା ମୋ ଜମି",{s:6.2})}
+  <rect x="40" y="100" width="10" height="9" rx="1.5" fill="#7c6a46"/><path d="M42 100 v-3 a3 3 0 0 1 6 0 v3" stroke="#7c6a46" stroke-width="1.4" fill="none"/>
+  ${T(45,116,"He wasn't wrong.",{s:5,f:"#c9a25b",ff:"Cormorant Garamond,serif",w:500,i:1})}`,
+ cutaway:`<rect width="90" height="160" fill="#2a2b24"/><path d="M0 40 L90 30 L90 150 L0 160Z" fill="#a45437"/>
+  <path d="M38 160 L46 33 L54 32 L58 156Z" fill="#8c8b80"/><path d="M38 160 L46 33 L50 32.5 L49 158Z" fill="#9b4d33"/>
+  <g fill="none" stroke="#efe7d6" stroke-width=".5" stroke-dasharray="2 1"><path d="M0 70 L90 62"/><path d="M0 115 L90 108"/><path d="M50 32 L50 160"/></g>
+  <rect x="50" y="62" width="40" height="46" fill="#d2553c" opacity=".18"/>${L(70,86,"NEIGHBOUR'S","#efe7d6")}${L(70,91,"PARCEL","#efe7d6")}
+  ${palm(16,64,.6)}${palm(78,130,.6)}
+  ${T(45,20,"ସରକାରୀ Road ନୁହେଁ",{s:6.6})}${L(45,26,"NOT ALWAYS A GOVERNMENT ROAD")}`,
+ map:`<rect width="90" height="160" fill="#efe7d6"/>
+  <g fill="none" stroke="#7d7462" stroke-width=".45"><path d="M0 40 L60 36 L90 44"/><path d="M0 80 L44 78 L90 84"/><path d="M0 118 L90 112"/><path d="M30 0 L28 160"/><path d="M62 0 L66 160"/><path d="M44 78 L46 112"/></g>
+  <path d="M46 160 L47 0" stroke="#c9a25b" stroke-width="2.2"/>${T(51,60,"412",{s:5,f:"#4a4335",ff:"Inter Tight,sans-serif",w:600,a:"start"})}
+  ${T(14,60,"409",{s:3.5,f:"#8b8370",ff:"Inter Tight,sans-serif",w:500})}${T(76,60,"413",{s:3.5,f:"#8b8370",ff:"Inter Tight,sans-serif",w:500})}
+  <rect x="14" y="88" width="62" height="34" rx="1" fill="#fbf6ea" stroke="#c9a25b" stroke-width=".5"/>${T(45,101,"ପଟ୍ଟା",{s:7,f:"#2a2620"})}${L(45,108,"RECORD OF RIGHTS · PLOT 412","#8a6b33")}
+  ${L(45,18,"BHULEKH MAP · PLOT NO.","#8a6b33")}${T(45,28,"Advance ପୂର୍ବରୁ",{s:6.2,f:"#2a2620"})}`,
+ safe:`<rect width="90" height="160" fill="url(#lamp)"/><rect x="12" y="30" width="66" height="84" rx="1" fill="#fbf6ea" transform="rotate(-2 45 72)"/>
+  <g transform="rotate(-2 45 72)">${L(45,40,"RECORD OF RIGHTS","#8a6b33")}<line x1="18" y1="44" x2="72" y2="44" stroke="#c9a25b" stroke-width=".4"/>
+  ${L(20,54,"OWNER","#8b8370").replace('text-anchor="middle"','text-anchor="start"')}${T(20,63,"ଓଡ଼ିଶା ସରକାର",{s:6,f:"#2a2620",a:"start"})}<text x="70" y="63" font-size="7" fill="#4c8a5b" text-anchor="end">✓</text>
+  ${L(20,76,"KISAM","#8b8370").replace('text-anchor="middle"','text-anchor="start"')}${T(20,85,"ରାସ୍ତା",{s:6,f:"#2a2620",a:"start"})}<text x="70" y="85" font-size="7" fill="#4c8a5b" text-anchor="end">✓</text>
+  ${[96,101,106].map(y=>`<line x1="20" y1="${y}" x2="66" y2="${y}" stroke="#d8cfbb" stroke-width=".8"/>`).join("")}</g>
+  <circle cx="64" cy="122" r="9" fill="none" stroke="#a88a4e" stroke-width="1.6"/><line x1="70" y1="128" x2="78" y2="136" stroke="#a88a4e" stroke-width="2"/>`,
+ warn:`<rect width="90" height="160" fill="#0c0e0c"/><ellipse cx="45" cy="72" rx="40" ry="34" fill="#f6ecd6" opacity=".12"/>
+  <rect x="14" y="44" width="62" height="50" rx="1" fill="#e9e1cd"/>${L(20,54,"OWNER","#8b8370").replace('text-anchor="middle"','text-anchor="start"')}
+  <rect x="20" y="58" width="44" height="7" rx="1.5" fill="#9b9483" opacity=".7"/><line x1="20" y1="68" x2="64" y2="68" stroke="#d2553c" stroke-width="1"/>
+  ${[78,83,88].map(y=>`<line x1="20" y1="${y}" x2="66" y2="${y}" stroke="#cfc6b1" stroke-width=".8"/>`).join("")}
+  ${T(45,112,"ସାବଧାନ୍",{s:11,f:"#d2553c"})}${L(45,119,"CAUTION","#d2553c")}`,
+ deed:`<rect width="90" height="160" fill="url(#lamp)"/>
+  <rect x="10" y="40" width="58" height="76" fill="#d9c79f" transform="rotate(-8 39 78)"/><rect x="18" y="36" width="58" height="76" fill="#e6d8b6" transform="rotate(4 47 74)"/>
+  <rect x="16" y="34" width="60" height="80" fill="#fbf6ea"/>${L(46,44,"SALE DEED","#8a6b33")}
+  ${[52,57,62,67,77,82,87,92,97].map(y=>`<line x1="22" y1="${y}" x2="70" y2="${y}" stroke="#d8cfbb" stroke-width=".8"/>`).join("")}
+  <rect x="22" y="69" width="40" height="6" fill="#c9a25b" opacity=".3"/>${T(42,74,"Right of Way",{s:5.4,f:"#8a6b33",ff:"Cormorant Garamond,serif",w:600,i:1})}
+  <circle cx="42" cy="72" r="13" fill="none" stroke="#a88a4e" stroke-width="1.6"/><line x1="51" y1="81" x2="60" y2="91" stroke="#a88a4e" stroke-width="2.4"/>`,
+ stamp:`<rect width="90" height="160" fill="url(#lamp)"/><rect x="14" y="34" width="62" height="82" fill="#f3ead2"/><rect x="14" y="34" width="62" height="12" fill="#b9a06a" opacity=".5"/>
+  ${L(45,42,"REGISTERED","#5a4a26")}${[56,61,66,71,76].map(y=>`<line x1="20" y1="${y}" x2="70" y2="${y}" stroke="#d8cfbb" stroke-width=".8"/>`).join("")}
+  <circle cx="58" cy="98" r="10" fill="none" stroke="#9e3b2c" stroke-width="1.4"/><circle cx="58" cy="98" r="7" fill="none" stroke="#9e3b2c" stroke-width=".6"/>
+  ${T(45,130,"Registered କାଗଜ ✓",{s:5.2})}${T(45,138,"ମୁହଁ କଥା ✗",{s:4.6,f:"#a3a89c"})}
+  ${Array.from({length:14},(_,i)=>`<circle cx="${76+i*1.1}" cy="${70+Math.sin(i)*6}" r=".5" fill="#efe7d6" opacity="${1-i/14}"/>`).join("")}`,
+ open:`<rect width="90" height="160" fill="url(#sky)"/>${ground}<path d="M30 160 L42 88 L50 88 L64 160Z" fill="#c07a4e"/>${palm(12,94)}${palm(80,90,.8)}
+  <g stroke="#1b1d1c" stroke-width="1.4" transform="skewY(-14) translate(0 2)">${[4,10,16,22].map(x=>`<line x1="${x}" y1="66" x2="${x}" y2="146"/>`).join("")}<line x1="2" y1="70" x2="24" y2="70" stroke-width="2"/></g>
+  <g stroke="#1b1d1c" stroke-width="1.4" transform="skewY(14) translate(0 -22)">${[68,74,80,86].map(x=>`<line x1="${x}" y1="66" x2="${x}" y2="146"/>`).join("")}<line x1="66" y1="70" x2="88" y2="70" stroke-width="2"/></g>
+  ${L(45,22,"ADVANCE ପୂର୍ବରୁ")}${T(45,34,"ରାସ୍ତାର ଅଧିକାର",{s:7})}`,
+ cta:`<rect width="90" height="160" fill="url(#dusk)"/><circle cx="45" cy="84" r="9" fill="#f6c98a"/>${ground}${palm(14,96)}${palm(78,90,.8)}
+  <path d="M28 118 L62 112 L72 134 L32 142Z" fill="none" stroke="#efe7d6" stroke-width=".6" stroke-dasharray="1.5 1"/>
+  <path d="M38 34 l5 -4 v2.5 h5 v3 h-5 v2.5z" fill="#c9a25b"/>${T(45,48,"ତାଙ୍କୁ ପଠାନ୍ତୁ",{s:7})}
+  ${T(45,64,"[Page name]",{s:5.4,f:"#c9a25b",ff:"Cormorant Garamond,serif",w:600,i:1})}<rect x="33" y="68" width="24" height="7" rx="3.5" fill="none" stroke="#c9a25b" stroke-width=".6"/>${L(45,72.6,"FOLLOW")}`
+};
+const list=document.getElementById("boardlist");
+list.innerHTML=scenes.map(sc=>`
+ <article class="board">
+  <svg viewBox="0 0 90 160" role="img" aria-label="Sketch of beat ${sc.id}: ${sc.name}">${defs}${SK[sc.sk]}${safe}</svg>
+  <div class="notes">
+   <div class="bhead"><span class="tc">${fmt(sc.t0)} – ${fmt(sc.t1)}</span><h3>${sc.id}. ${sc.name}</h3>${sc.hook?'<span class="tag hook">Hook</span>':""}</div>
+   <div class="vo"><span class="od">${sc.od}</span><span class="en">${sc.en}</span></div>
+   <dl><dt>We see</dt><dd>${sc.see}</dd><dt>Camera</dt><dd>${sc.cam}</dd><dt>On screen</dt><dd>${sc.txt}</dd><dt>Sound</dt><dd>${sc.snd}</dd></dl>
+  </div>
+ </article>`).join("");
+})();
+</script>
