@@ -78,7 +78,7 @@ export function drawProj(g, t, D) {
     outline(g, R4(NEIGH), VERM, claim * crisp, 4); outline(g, R4(LANE), VERM, claim * crisp, 4); hatch(g, R4(LANE), VERM, claim * crisp * .55);
     label(g, OD(341), 4.5, 20, 44, '255,220,200', claim * crisp); label(g, OD(340), -20, 8, 44, '255,220,200', claim * crisp); }
   // —— 12.7–17.5: house lights out; the record is projected: every boundary, every number ——
-  const mapA = ss(seg(t, 12.7, 13.2)) * (1 - ss(seg(t, 42.9, 43.6)));
+  const mapA = ss(seg(t, 12.7, 13.2)) * (1 - ss(seg(t, 42.95, 43.4)));
   if (mapA > 0 && t < 44) {
     PLOTS.forEach((p, i) => { const pr = ss(seg(t, 12.8 + i * .07, 13.6 + i * .07)); outline(g, p.poly, CREAM, mapA * .85, 3, null, pr); });
     PLOTS.forEach((p, i) => label(g, OD(p.n), ...cent(p.poly), p.n > 999 ? 40 : 36, CREAM, mapA * ss(seg(t, 13.6 + i * .05, 14.1 + i * .05))));

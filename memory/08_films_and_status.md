@@ -3,7 +3,8 @@
 ## Film index
 | Film | Project dir (repo → restored) | Entry / render | Final deliverable(s) in `deliverables/` | Status |
 |---|---|---|---|---|
-| Manabasa Gurubara (Lakshmi Purana, 55.8 s VO) | `projects/manabasa` → `/home/user/manabasa` | `film.js` (+ `sc_flow.js`, `sc_new.js`, `sc_final.js`, `sc_temple.js`, `sc_people.js`, `sc_jhoti.js`, `sc_lane.js`), `mix.py` | `Manabasa_Gurubara_final_v7.mp4` (**latest, delivered**); older: `_v6`, `_v5_onetake`, `_final` | done unless owner sends more notes |
+| **Plot · Right of Way** (new Odisha property channel, film 1, 55.7 s VO) | `projects/plot1` → `/home/user/plot1` | `film.js` (+ `world.js` three.js model/projector, `proj.js`, `table.js` records, `layout.js`), `mix.py` | `Plot_RightOfWay_v1.mp4`; storyboard `Plot_RightOfWay_STORYBOARD_v1*.jpg` | **latest, delivered 2026-11-25** |
+| Manabasa Gurubara (Lakshmi Purana, 55.8 s VO) | `projects/manabasa` → `/home/user/manabasa` | `film.js` (+ `sc_flow.js`, `sc_new.js`, `sc_final.js`, `sc_temple.js`, `sc_people.js`, `sc_jhoti.js`, `sc_lane.js`), `mix.py` | `Manabasa_Gurubara_final_v7.mp4` (delivered); older: `_v6`, `_v5_onetake`, `_final` | done unless owner sends more notes |
 | Aa Ka Ma Bai / Boita Bandana (Danga, 53.6 s VO) | `projects/danga` | `film.js`, `sc_*.js`, `mix.py` | `AaKaMaBai_BoitaBandana_final_v2.mp4` | done |
 | Kartika Wind (Bali Jatra, 49 s VO) | `projects/bj-wind` | `film.js` (render film.js directly) | `KartikaWind_BaliJatra_v3.mp4` + cover | done (3rd most viewed) |
 | Bali Jatra VO (62 s) | `projects/balijatra-vo` | `film.js` via `?p=film` | `BaliJatra_VO_final_v3.mp4` + cover | done |
@@ -36,3 +37,11 @@ VO phrase table: `projects/manabasa/ph.npy`; word onsets measured: "Jagannath" 0
   Aerial devotees are simple shapes; the eye push (35.9–36.4 s) is the fastest move.
 - Future films: owner may send a new VO/script any time; follow 03_workflow.md. Owner-ranked best references: Panchuka, Radha Pada
   Darshan, Kartika Wind, plus Manabasa v7 for one-take machinery.
+
+## Plot · Right of Way (property channel, film 1) — notes
+- New channel: premium, non-religious, Odisha real estate / property facts. Owner approved storyboard v1 and asked for the video.
+- Look: warm-white 1:150 architectural model on a plinth (Opuscar `white-model` grammar: data = projected light; gold = ours/safe,
+  vermilion = claim/danger, cream = the record) + an `archive-lighttable` table of records (Bhulekh sheet, pattas, deeds, loupe).
+  2D table drawn crisply between 17.85 and 42.55 s; hand-overs at an identical top-down view (D 3.6 ↔ 1155 px/unit).
+- Captions: one Odia key phrase per line (one gold accent) + a small English line; readouts (₹, days) and pins in-picture.
+- Open: channel name/handle for the end card (currently only "FOLLOW"); the patta's owner name ଶ୍ରୀ ହରିହର ମହାନ୍ତି is invented — owner to confirm.

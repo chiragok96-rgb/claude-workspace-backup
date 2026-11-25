@@ -57,3 +57,9 @@ e.g. #18 Klimt gold leaf), claude-drawing (83 painterly styles), OpenVideoHarnes
 ## Typography inside the picture
 - Odia gold foil/engraved titles (`bj-wind/sc_word.js`: ବାଲିଯାତ୍ରା splits into ବାଲି→island, ଯାତ୍ରା→boat), Odia numerals counters
   (`manabasa/sc_flow.js potCounter`: steady, counts 1→56 one by one).
+
+## Architectural model + projector + light table (`plot1`)
+- `world.js`: three.js white model (houses with parapets/mumty/tanks/windows that glow `uWin`, palms, scale figures, gate with rising pillars
+  and swinging leaves), projection shader (top-down canvas → emissive add × (0.42+0.58·N·up)), key light that can run like the sun, Opuscar
+  `makePost` (DOF, bloom, grade). `proj.js` layers (soft washes, running gold path, cadastral map), `table.js` vector records (map sheet,
+  patta cards, stamp-paper deed, registered deed with embossed seal), `film.js` loupe, pins, readouts, smoke words, monotone camera keys.

@@ -60,3 +60,8 @@ Lakshmi-pada jhoti drawn by Shriya's hand; push into the gold doorway light → 
 speaks; Lakshmi becomes her own shadow puppet; rice→dust wipe; doorway portal (opaque light → translucent) into the hut; aroma thread;
 Lakshmi inside Jagannath's eye; tilt down into the feast; red lines washed away; every hand in one pot; aerial rows → palm-leaf lines;
 lamp flame → hearth fire loop.
+
+**Plot · Right of Way (`plot1`)** — technical lessons: GTAO on a big flat plate darkens wide/grazing views (whole plate goes grey) → AO off;
+shadow bias −0.0006 / normalBias .0025 at 1:150 scale; low camera orbits must rise over roofs (a 1.1 s orbit clipped through a house);
+a 2D↔3D hand-over must hold the identical view on both sides through a ≥0.4 s crossfade (else ghosting); a light "flicker on" reads
+as a pop — ramp it; projected red on white reads terracotta (additive light); Hermite keys overshoot — use monotone (Fritsch–Carlson).

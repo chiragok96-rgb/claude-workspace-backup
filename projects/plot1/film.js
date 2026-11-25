@@ -23,9 +23,9 @@ const Wd = makeWorld(W, H, PC, TC), cam = Wd.camera, DEG = Math.PI / 180;
 const K3 = [
   [0, .02, 0, .0, 24, 48, 4.4, 1.5], [.95, .03, .004, -.11, 8, 16, .78, 6], [2.6, .033, .004, -.14, 2, 13, .5, 7], [3.6, .033, .004, -.15, -6, 15, .47, 7],
   [4.7, .03, .01, -.1, -25, 34, .64, 5], [5.5, .03, .01, .18, -130, 40, .78, 4], [6.25, .03, .008, .40, -175, 17, .40, 7], [7.3, .025, .008, .41, -182, 16, .36, 7],
-  [8.4, -.012, .006, .396, -312, 13, .30, 8], [9.3, -.02, .006, .39, -318, 16, .36, 7], [10.4, -.06, 0, .25, -325, 40, 1.05, 4], [12.4, -.02, 0, .15, -345, 64, 1.7, 2.5], [14.5, 0, 0, .05, -358, 82, 2.6, 1.5],
-  [16.4, 0, 0, 0, -360, 90, 3.5, 1], [17.95, 1.52, 0, 0, -360, 90, 3.6, 0],
-  [42.95, 1.52, 0, 0, -360, 90, 3.6, 0], [43.6, .05, 0, .1, -360, 84, 3.0, 1], [44.3, .03, .006, .40, -350, 26, .6, 5], [45.4, .03, .006, .36, -352, 22, .5, 6],
+  [7.95, .0, .012, .40, -248, 46, .58, 3], [8.45, -.02, .006, .40, -312, 12, .24, 9], [9.3, -.022, .006, .395, -318, 13, .28, 8], [10.4, -.06, 0, .25, -325, 40, 1.05, 4], [12.4, -.02, 0, .15, -345, 64, 1.7, 2.5], [14.5, 0, 0, .05, -358, 82, 2.6, 1.5],
+  [16.4, 0, 0, 0, -360, 90, 3.5, 1], [17.7, 1.52, 0, 0, -360, 90, 3.6, 0], [18.2, 1.52, 0, 0, -360, 90, 3.6, 0],
+  [42.55, 1.52, 0, 0, -360, 90, 3.6, 0], [43.3, .78, 0, .04, -360, 88, 5.0, 0], [44.3, .04, .006, .37, -352, 30, .72, 5], [45.4, .03, .006, .36, -352, 22, .5, 6],
   [46.6, .03, .006, .15, -356, 20, .6, 6], [48.0, .033, .006, -.08, -360, 18, .55, 7], [49.6, .25, .01, .05, -330, 26, .8, 5], [51.0, .47, .02, .15, -300, 22, .55, 6],
   [52.5, .3, 0, .08, -320, 34, 1.6, 3], [55.7, .02, 0, .0, -336, 48, 4.4, 1.5],
 ];
@@ -48,9 +48,9 @@ function cam3(t) {
 const scr = (x, y, z) => { const p = new THREE.Vector3(x, y, z).project(cam); return [(p.x + 1) / 2 * W, (1 - p.y) / 2 * H, p.z]; };
 // ———————————————— the 2D camera over the light table (s = px per scene unit; matches the 3D top-down at D = 3.6) ————————————————
 const S36 = 960 / (3.6 * Math.tan(13 * DEG));
-const K2 = [[17.9, 1.52, 0, S36], [18.9, 1.62, -.33, 1500], [20.0, 1.33, -.31, 2300], [20.6, 1.37, -.17, 3500], [21.2, 1.39, -.15, 3300], [22.3, 1.77, -.12, 2300],
+const K2 = [[18.2, 1.52, 0, S36], [19.0, 1.62, -.33, 1500], [20.0, 1.33, -.31, 2300], [20.6, 1.37, -.17, 3500], [21.2, 1.39, -.15, 3300], [22.3, 1.77, -.12, 2300],
   [22.95, 1.765, -.245, 2900], [28.6, 1.775, -.205, 2950], [29.5, 1.84, .16, 2900], [31.9, 1.845, .17, 3050], [32.9, 1.36, .40, 2550], [37.6, 1.37, .42, 2700],
-  [38.6, 1.55, .41, 2450], [39.5, 1.60, .41, 2600], [40.3, 1.62, .39, 3300], [41.3, 1.60, .40, 2600], [42.95, 1.52, 0, S36]];
+  [38.6, 1.55, .41, 2450], [39.5, 1.60, .41, 2600], [40.3, 1.62, .39, 3300], [41.3, 1.60, .40, 2600], [42.55, 1.52, 0, S36]];
 const cam2 = t => ({ cx: herm(K2, t, 1), cz: herm(K2, t, 2), s: herm(K2, t, 3) });
 const T2S = (c, x, z) => [W / 2 + (x - c.cx) * c.s, H / 2 + (z - c.cz) * c.s];
 
@@ -58,14 +58,14 @@ const T2S = (c, x, z) => [W / 2 + (x - c.cx) * c.s, H / 2 + (z - c.cz) * c.s];
 function lights(t) {
   const tw = t > DUR - 3 ? t - DUR : t;
   const sweep = eio(seg(t, 3.5, 4.95)) - eio(seg(t, 44.4, 45.55));          // the sun runs a full turn (3 months), and back
-  const out = ss(seg(t, 12.68, 12.95)) * (1 - ss(seg(t, 42.95, 43.95)));    // house lights: a relay out, a slow return
+  const out = ss(seg(t, 12.68, 12.95)) * (1 - ss(seg(t, 42.6, 43.6)));    // house lights: a relay out, a slow return
   const dusk = ss(seg(t, 48.4, 49.6)) * (1 - ss(seg(t, 53.4, 55.4)));
   const az = -.75 + sweep * Math.PI * 2, el = lerp(.52, .3, dusk) + .25 * Math.sin(sweep * Math.PI);
   Wd.setKey(az, el, lerp(lerp(.85, .5, dusk), .03, out)); Wd.key.color.set(dusk > 0 ? new THREE.Color('#ffe8cf').lerp(new THREE.Color('#ff9f5a'), dusk) : '#ffe8cf');
   Wd.hemi.intensity = lerp(lerp(.16, .1, dusk), .02, out); Wd.scene.environmentIntensity = lerp(lerp(.32, .16, dusk), .03, out);
   Wd.U.uWin.value = dusk * (.6 + .4 * ss(seg(t, 49.0, 50.2)));
   Wd.U.uProjOn.value = 1;
-  const lit = t < 30 ? ss(seg(t, 17.2, 17.55)) * (.82 + .18 * Math.sin(seg(t, 17.2, 17.55) * 40) * (1 - seg(t, 17.2, 17.55))) : 1 - ss(seg(t, 43.0, 43.8));
+  const lit = t < 30 ? eio(seg(t, 16.9, 17.7)) : 1 - ss(seg(t, 43.4, 44.1));
   return { lit: Math.max(.06, lit) };
 }
 function gateState(t) { const rise = ss(seg(t, 5.7, 6.05)) * (1 - ss(seg(t, 45.05, 45.5))), shut = eo(seg(t, 5.95, 6.27)) * (1 - eio(seg(t, 44.55, 45.2))); Wd.setGate(rise, shut); }
@@ -228,7 +228,7 @@ let tableStamp = -1, lastLit = -1;
 function scene3D(c, t) {
   const L = lights(t); gateState(t); cam3(t);
   drawProj(pg, t, DUR); Wd.projTex.needsUpdate = true;
-  if ((t > 15.8 && t < 18.2) || (t > 42.7 && t < 44.5) || tableStamp < 0 || Math.abs(L.lit - lastLit) > .01) { lastLit = L.lit; tcx.setTransform(TC.width / TABLE.w, 0, 0, TC.height / TABLE.d, -(TABLE.x - TABLE.w / 2) * TC.width / TABLE.w, -(TABLE.z - TABLE.d / 2) * TC.height / TABLE.d); drawTable(tcx, t, L.lit); Wd.tableTex.needsUpdate = true; tableStamp = t; }
+  if ((t > 15.8 && t < 18.2) || (t > 42.3 && t < 44.5) || tableStamp < 0 || Math.abs(L.lit - lastLit) > .01) { lastLit = L.lit; tcx.setTransform(TC.width / TABLE.w, 0, 0, TC.height / TABLE.d, -(TABLE.x - TABLE.w / 2) * TC.width / TABLE.w, -(TABLE.z - TABLE.d / 2) * TC.height / TABLE.d); drawTable(tcx, t, L.lit); Wd.tableTex.needsUpdate = true; tableStamp = t; }
   Wd.tableGlow.intensity = L.lit * 1.2;
   Wd.post.composer.render(); c.drawImage(Wd.renderer.domElement, 0, 0);
 }
@@ -257,14 +257,14 @@ let GRAIN; function grain(c, t) {
   const f = Math.floor(t * 30), ox = (f * 197) % 512, oy = (f * 311) % 512; c.save(); c.globalCompositeOperation = 'overlay'; c.globalAlpha = .06; c.fillStyle = c.createPattern(GRAIN, 'repeat'); c.translate(-ox, -oy); c.fillRect(ox, oy, W, H); c.restore();
 }
 // ———————————————— the frame ————————————————
-const TWO_A = 17.92, TWO_B = 42.93;   // the light table is drawn in 2D between these (the hand-overs are frame-exact at the same top-down view)
+const TWO_A = 17.85, TWO_B = 42.55;   // the light table is drawn in 2D between these (the hand-overs are frame-exact at the same top-down view)
 window.render = t0 => {
   const t = t0 + FROM;
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none';
   try {
-    const in2 = t >= TWO_A + .1 && t <= TWO_B - .1, x2 = !in2 && t > TWO_A - .02 && t < TWO_B + .02;
+    const in2 = t >= TWO_A + .3 && t <= TWO_B - .1, x2 = !in2 && t > TWO_A - .1 && t < TWO_B + .02;
     if (!in2) scene3D(ctx, t);
-    if (in2 || x2) { ctx.save(); ctx.globalAlpha = in2 ? 1 : (t < 30 ? ss(seg(t, TWO_A - .02, TWO_A + .1)) : 1 - ss(seg(t, TWO_B - .1, TWO_B + .02))); scene2D(ctx, t); ctx.restore(); }
+    if (in2 || x2) { ctx.save(); ctx.globalAlpha = in2 ? 1 : (t < 30 ? ss(seg(t, TWO_A - .1, TWO_A + .3)) : 1 - ss(seg(t, TWO_B - .1, TWO_B + .02))); scene2D(ctx, t); ctx.restore(); }
     if (!in2) overlays3D(ctx, t);
     const inkMode = tt => tt > 17.75 && tt < 42.75;
     const capA = CAPS.reduce((m, [a, b]) => Math.max(m, ss(seg(t, a - .2, a + .2)) * (1 - ss(seg(t, b - .2, b + .2)))), 0);
