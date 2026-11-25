@@ -41,8 +41,8 @@ if [ $EXTRAS = 1 ]; then
   clone https://github.com/cloveric/claude-drawing-skill "$H/claude-drawing-skill" 6af36dc || echo "note: claude-drawing not cloned"
   [ -e "$H/.claude/skills/claude-drawing" ] || ln -s "$H/claude-drawing-skill" "$H/.claude/skills/claude-drawing" 2>/dev/null || true
   if [ ! -d "$H/OpenVideoHarness/.git" ]; then
-    git clone -q https://github.com/ZLHad/OpenVideoHarness "$H/OpenVideoHarness" && ( cd "$H/OpenVideoHarness" && git checkout -q 962019b 2>/dev/null; \
-      PATH="$WORK/tools/ffmpeg/bin:$PATH" bash install.sh --dir "$H/OpenVideoHarness" --no-refs >/dev/null 2>&1 || echo "note: OVH install.sh reported issues (needs ffmpeg on PATH; re-run after ffmpeg)" ) || echo "note: OVH not cloned"
+    git clone -q https://github.com/ZLHad/OpenVideoHarness "$H/OpenVideoHarness" && ( cd "$H/OpenVideoHarness" && \
+      PATH="$WORK/tools/ffmpeg/bin:$PATH" bash install.sh --dir "$H/OpenVideoHarness" --no-refs >/dev/null 2>&1 || echo "note: OVH install.sh reported issues (run: bash $H/OpenVideoHarness/install.sh --dir $H/OpenVideoHarness --no-refs)" ) || echo "note: OVH not cloned"   # stays on main: its installer needs a branch
   fi
 fi
 

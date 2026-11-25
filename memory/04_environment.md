@@ -32,7 +32,7 @@
 | github.com/alchaincyf/huashu-art-motion | skill v1.3.0 (upstream `1468196`) | copy `skills/huashu-art-motion` to `~/.claude/skills/` and `/home/user/.claude/skills/` |
 | github.com/artemnovitckii/claude-animation-skills | `5dbea55` | clone to `/root/claude-animation-skills`, symlink `skills/*` into `~/.claude/skills/` |
 | github.com/cloveric/claude-drawing-skill | `6af36dc` | clone to `/root/claude-drawing-skill`, symlink as `~/.claude/skills/claude-drawing` (83 painting styles) |
-| github.com/ZLHad/OpenVideoHarness | `962019b` | `bash install.sh --dir /root/OpenVideoHarness --no-refs` (writes the two skills) |
+| github.com/ZLHad/OpenVideoHarness | main (was `962019b`; keep it on a branch — its installer updates by fast-forward) | `bash install.sh --dir /root/OpenVideoHarness --no-refs` (writes the two skills) |
 | BtbN FFmpeg-Builds | n8.1 latest | `ffmpeg-n8.1-latest-linux64-gpl-8.1.tar.xz` → `/home/user/tools/ffmpeg` |
 All of this is automated by `scripts/bootstrap.sh` (idempotent, never overwrites). `scripts/verify.sh` checks it.
 

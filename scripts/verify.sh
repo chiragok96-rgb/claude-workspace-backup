@@ -16,8 +16,10 @@ chk "node >= 20"                           "node -e 'process.exit(+process.versi
 chk "ffmpeg >= 7"                          "$W/tools/ffmpeg/bin/ffmpeg -version | head -1 | grep -E 'version (n?[7-9]|n?[1-9][0-9])'"
 chk "three installed"                      "[ -d $L/node_modules/three ]"
 chk "opuscar venv (numpy/scipy/soundfile)" "$L/.venv/bin/python -c 'import numpy, scipy, soundfile, PIL'"
-chk "tools popscan/contact_sheet"          "[ -f $W/scripts/popscan.py ] && [ -f $W/scripts/contact_sheet.py ]"
+R="$(cd "$(dirname "$0")" && pwd)"
+chk "tools popscan/contact_sheet"          "[ -f $R/tools/popscan.py ] && [ -f $R/tools/contact_sheet.py ]"
 [ -d $L/core/audio/instruments/salamander ] && echo "ok   instrument libraries present" || echo "note instrument libraries not downloaded yet (bootstrap --instruments, or sampler downloads on first use)"
+for k in claude-drawing open-video-harness stick-figure map-route; do [ -e $H/.claude/skills/$k ] && echo "ok   skill $k" || echo "note skill $k missing (bootstrap without --no-extras)"; done
 [ -d /tmp/claude-0/asr/models/sherpa-onnx-whisper-turbo ] && echo "ok   ASR model present" || echo "note ASR not installed (bootstrap --asr; only needed for timing)"
 if [ "${1:-}" = "--render" ]; then
   T=$(mktemp -d); ( cd $L && node core/render/still.mjs $W/manabasa 20.0 --size 1080x1920 --out $T >/dev/null 2>&1 ); chk "render a Manabasa still" "ls $T/*.jpg"
