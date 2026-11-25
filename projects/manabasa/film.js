@@ -8,7 +8,7 @@ import { initJhoti, floor, foot, THRESH } from './sc_jhoti.js';
 import { dark, glow, lamp, templeDoor, idol, raisedHand, riceFall, twelveLamps } from './sc_temple.js';
 import { sanctum, templeNight, hearth, devotees, kudua, shriyaDoor } from './sc_new.js';
 import { shadowPlay } from './sc_final.js';
-import { pitchView, tiltAt, rosaghara, hut, HUT, inEye, lakshmiGold, feast, palmLeafOne } from './sc_flow.js';
+import { pitchView, tiltAt, potCounter, rosaghara, hut, HUT, inEye, lakshmiGold, feast, palmLeafOne } from './sc_flow.js';
 import { motherStanding, setLook } from './sc_people.js';
 const Q = new URLSearchParams(location.search), cv = document.getElementById('c'); cv.width = W; cv.height = H; const ctx = cv.getContext('2d');
 const DUR = 55.8; const FROM = +(Q.get('from') || 0); window.DUR = (+(Q.get('to') || DUR)) - FROM;
@@ -64,9 +64,11 @@ function off(x, w = W) { x.setTransform(1, 0, 0, 1, 0, 0); x.globalAlpha = 1; x.
 function sHook(c, t) {   // on "Jagannath" his face; the 56 pots land tier by tier as we pull back; their steam rises to him; on "door to door" the fires die, and a sunrise sweeps across: his face becomes his shadow on a lane wall
   const tt = t > 50 ? t - DUR : t, zIn = lerp(1.5, 1, eio(seg(tt, .3, 1.75))), Z2 = Math.exp(Math.log(1.675) * eio(seg(tt, 2.7, 3.45)));
   c.save(); zoomAt(c, 540, 175, Z2); zoomAt(c, 540, 600, zIn);
-  rosaghara(c, tt, { face: ss(seg(tt, .17, .34)), rise: ss(seg(tt, 1.9, 2.5)) * (1 - ss(seg(tt, 2.75, 3.05))), faceSil: ss(seg(tt, 2.72, 2.98)), count: ss(seg(tt, .75, 1.05)) * (1 - ss(seg(tt, 2.5, 2.8))), fire: 1 - ss(seg(tt, 2.7, 3.0)), potsA: 1 - ss(seg(tt, 2.85, 3.1)) });
-  glow(c, 540, 600, 520, .75 * Math.exp(-Math.pow((tt - .3) / .22, 2)), '255,200,120');   // the lamplight catches his face
+  const fa = ss(seg(tt, .2, 1.25));   // his face comes slowly out of the dark as the name is spoken
+  rosaghara(c, tt, { face: fa, rise: ss(seg(tt, 1.9, 2.5)) * (1 - ss(seg(tt, 2.75, 3.05))), faceSil: ss(seg(tt, 2.72, 2.98)), count: 0, fire: 1 - ss(seg(tt, 2.7, 3.0)), potsA: 1 - ss(seg(tt, 2.85, 3.1)) });
+  glow(c, 540, 640, 560, .32 * fa * (1 - ss(seg(tt, 2.6, 2.9))), '255,190,110');   // the lamplight rising on him
   c.restore();
+  potCounter(c, tt, Math.max(1, Math.round(56 * ss(seg(tt, .45, 1.95)))), ss(seg(tt, .45, .85)) * (1 - ss(seg(tt, 2.5, 2.8))));
   const w = seg(tt, 2.84, 3.42); if (w <= 0 || t > 50) return;
   off(dx); laneWall(dx, t); const ex = lerp(-420, 1560, eio(w)), edge = (y, o2) => ex + o2 + 40 * Math.sin(y * .003 + 1.1);
   for (const [o2, al] of [[-240, 1], [-210, .2], [-180, .2], [-150, .2], [-120, .2], [-90, .2], [-60, .2], [-30, .2], [0, .2], [30, .15]]) { c.save(); c.globalAlpha *= al; c.beginPath(); c.moveTo(-10, -10); for (let y = 0; y <= H; y += 40) c.lineTo(edge(y, o2), y); c.lineTo(-10, H + 10); c.closePath(); c.clip(); c.drawImage(DC, 0, 0); c.restore(); }
@@ -110,7 +112,9 @@ function sUp(c, t) {
   else sShriya(c, t);
 }
 // —— 16.2–21.4: along the lane into the night, to the temple; Balabhadra; the doors slam ——
-function sTemple(c, t, o = {}) { templeNight(c, t, { shut: eio(seg(t, 20.15, 20.55)), bala: ss(seg(t, 16.94, 17.3)), stern: ss(seg(t, 17.5, 17.85)), lakshmiA: 1, ...o }); }
+function sTemple(c, t, o = {}) {   // Balabhadra appears on his name; when he speaks ("se gharu asicha?") we move in and his eyes narrow, his brows come down; back out for the doors on "pasibani"
+  const Zb = 1 + .4 * eio(seg(t, 18.05, 18.85)) - .4 * eio(seg(t, 19.75, 20.4));
+  c.save(); zoomAt(c, 760, 760, Zb); templeNight(c, t, { shut: eio(seg(t, 20.15, 20.55)), bala: ss(seg(t, 16.9, 17.45)), stern: ss(seg(t, 18.3, 18.95)), lakshmiA: 1, ...o }); c.restore(); }
 const G0 = [640 + 120 * 1.32, 1290 - 290 * 1.32], G1 = [330, 860];   // her light in the doorway (in the zoomed view) → Lakshmi at the temple
 function sAlong(c, t) {   // the camera goes into the gold of her light at Shriya's door, and comes out of it into the night, where the light is Lakshmi, at the temple door
   const k = seg(t, 15.85, 16.62), e = eio(k), Z = Math.exp(Math.log(4.2) * e), tA = ss(seg(t, 16.34, 16.66));
@@ -145,7 +149,8 @@ function sDusk(c, t) {   // the same lane at dusk; one door lit; inside it, the 
   const door = 4, dcx = DOORX(door, pan), dcy = 1388 - 310, Z = Math.exp(Math.log(3.6) * into);
   c.save(); c.translate(lerp(dcx, 540, into), lerp(dcy, 960, into)); c.scale(Z, Z); c.translate(-dcx, -dcy);
   wall(c, t, { pan, dusk: 1, shut: i => i === door ? 0 : 1, openDoor: door, lit: ss(seg(t, 28.2, 29.4)), shadows: [{ x: xs - 280, who: 'B', bob: 3 * Math.abs(Math.sin(t * 3)) }, { x: xs, who: 'J', bob: 3 * Math.abs(Math.sin(t * 3 + 1.2)) }] });
-  const lit = ss(seg(t, 28.2, 29.4)); if (lit > 0) { off(dx); hut(dx, t, { camX: 0, aroma: 0, wide: 0 }); c.save(); c.beginPath(); c.rect(dcx - 150, dcy - 310, 300, 620); c.clip(); c.fillStyle = '#1a0c06'; c.fillRect(dcx - 150, dcy - 310, 300, 620); c.globalAlpha *= lit; c.drawImage(DC, dcx - 150, dcy - 960 * 300 / 1080, 300, 1920 * 300 / 1080);
+  const lit = ss(seg(t, 28.2, 29.4)); if (lit > 0) { off(dx); hut(dx, t, { camX: 0, aroma: 0, wide: 0 }); c.save(); c.beginPath(); c.rect(dcx - 150, dcy - 310, 300, 620); c.clip(); c.fillStyle = '#1a0c06'; c.fillRect(dcx - 150, dcy - 310, 300, 620); const hv = ss(seg(t, 30.5, 31.9)); c.save(); c.globalAlpha *= lit * hv; c.drawImage(DC, dcx - 150, dcy - 960 * 300 / 1080, 300, 1920 * 300 / 1080); c.restore();   // first only light; then, as we come close, the room shows through it
+    const cur = c.createLinearGradient(0, dcy - 310, 0, dcy + 310); cur.addColorStop(0, '#b8642a'); cur.addColorStop(1, '#f0b060'); c.globalAlpha *= lit * (1 - hv); c.fillStyle = cur; c.fillRect(dcx - 150, dcy - 310, 300, 620); c.globalAlpha = 1;
     c.globalCompositeOperation = 'lighter'; const g = c.createLinearGradient(0, dcy - 310, 0, dcy + 310); g.addColorStop(0, `rgba(255,170,80,${.35 * (1 - into)})`); g.addColorStop(1, `rgba(255,200,110,${.55 * (1 - into)})`); c.fillStyle = g; c.fillRect(dcx - 150, dcy - 310, 300, 620); c.restore(); }
   c.restore();
 }

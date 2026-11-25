@@ -38,6 +38,13 @@ function potSide(c, x, y, r, warm, rim) {   // an earthen kudua from the side, l
   kudua(c, x, y, r, warm);
   if (rim > 0) { c.save(); c.globalCompositeOperation = 'lighter'; c.strokeStyle = `rgba(255,150,60,${.55 * rim})`; c.lineWidth = r * .09; c.beginPath(); c.ellipse(x, y, r * .97, r * .83, 0, Math.PI * .12, Math.PI * .88); c.stroke(); c.restore(); }
 }
+// the count, in Odia numerals, steady in the frame: one number at a time, 1 to 56 (chhapana bhoga)
+export function potCounter(c, t, n, a) {
+  if (a <= 0 || n < 1) return; c.save(); c.globalAlpha *= a; c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.translate(540, 372);
+  c.font = '700 112px "OdiaSerif"'; c.shadowColor = 'rgba(255,150,60,.55)'; c.shadowBlur = 28; const gg = c.createLinearGradient(0, -96, 0, 0); gg.addColorStop(0, '#fff0c0'); gg.addColorStop(1, '#e0a040'); c.fillStyle = gg; c.fillText(odia(n), 0, 0);
+  if (n >= 56) { c.globalCompositeOperation = 'lighter'; c.shadowBlur = 40; c.fillStyle = `rgba(255,210,130,${.35 * Math.exp(-Math.max(0, t - 1.95) * 3)})`; c.fillText(odia(n), 0, 0); c.globalCompositeOperation = 'source-over'; }
+  c.shadowBlur = 0; c.font = '600 27px "InterT"'; c.letterSpacing = '10px'; c.fillStyle = `rgba(244,220,160,${ss(seg(t, 1.85, 2.25))})`; c.fillText('CHHAPANA BHOGA', 5, 50); c.restore();
+}
 export function rosaghara(c, t, o = {}) {
   const { face = 1, rise = 0, faceSil = 0, count = 1, fire = 1, potsA = 1 } = o;
   // the kitchen: a long soot-dark hall, its floor catching the fires
@@ -64,11 +71,6 @@ export function rosaghara(c, t, o = {}) {
       const gr = c.createRadialGradient(gx, gy, 0, gx, gy, (40 + 70 * u) * (.6 + .4 * s)); gr.addColorStop(0, `rgba(255,244,228,${al})`); gr.addColorStop(1, 'rgba(255,244,228,0)'); c.fillStyle = gr; c.fillRect(gx - 130, gy - 130, 260, 260); } }
   c.restore();
   if (rise > 0) { for (const sd of [-1, 1]) { const pts = []; for (let i = 0; i <= 40; i++) { const u = i / 40; pts.push([540 + sd * lerp(330, 0, ss(u)) + Math.sin(u * 7 + t * 1.5) * 24 * (1 - u), lerp(880, 690, u)]); } scent(c, pts, t, eo(rise), rise, { w: 1.5 }); } glow(c, 540, 690, 380, .75 * rise, '255,200,110'); }
-  // the count, in Odia numerals: chhapana bhoga
-  if (count > 0 && n > 0) { c.save(); c.globalAlpha *= count * ss(seg(t, .05, .3)); c.textAlign = 'center'; c.textBaseline = 'alphabetic';
-    const tier = Math.floor(n / 8), pop = n % 8 === 0 ? 1 + .14 * Math.exp(-(t - POT_T(tier - 1, 4)) * 12) : 1; c.translate(540, 340); c.scale(pop, pop);
-    c.font = '700 118px "OdiaSerif"'; c.shadowColor = 'rgba(255,150,60,.6)'; c.shadowBlur = 30; const gg = c.createLinearGradient(0, -100, 0, 0); gg.addColorStop(0, '#fff0c0'); gg.addColorStop(1, '#e0a040'); c.fillStyle = gg; c.fillText(odia(n), 0, 0);
-    c.shadowBlur = 0; c.font = '600 28px "InterT"'; c.letterSpacing = '10px'; c.fillStyle = `rgba(244,220,160,${ss(seg(t, 1.9, 2.3))})`; c.fillText('CHHAPANA BHOGA', 5, 50); c.restore(); }
   return n;
 }
 

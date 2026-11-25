@@ -116,7 +116,7 @@ for j in range(10): note('glockenspiel', ['D6', 'E6', 'F#6', 'A6', 'B6'][j % 5],
 d = .5; tm = tt(d); y = X.lp(nz(d), 400) * np.exp(-tm * 5) * .06; stereo(fx, y, 2.72, 1, 0); note('cellos', 'D2', 2.72, 1.0, .2, .4, 0, .02, .5)   # the fires die
 d = .5; y = X.bp(nz(d), 600, 9000) * (tt(d) / d) ** 3 * .05; stereo(fx, y, 2.72, 1, 0); hit('sus_cymbal', 'roll', 2.8, .2, .25, 0)   # the swell into the dawn
 X.add(fx, X.whoosh(.9, .3), 2.88, .35, -.6); X.add(fx, X.whoosh(.9, .3), 3.1, .3, .6); hit('gong', None, 3.12, .3, .42, 0); note('glass', 'D5', 3.13, 3.0, .3, .44); note('hand_chimes', 'A5', 3.16, 2.6, .2, .36, .2)   # the sunrise sweeps across
-hit('gong', None, .18, .26, .38, 0); note('tubular_bells', 'D4', .2, 3.4, .3, .42); note('glass', 'A5', .21, 2.4, .18, .32)   # his face, on 'Jagannath'
+pad('vibraphone_bowed', 'D4', .2, 2.6, .14, 0, .45, .8); pad('violins', 'A4', .25, 2.4, .07, .2, .4, .9); note('tubular_bells', 'D4', .24, 3.6, .18, .36)   # his face, slowly, on 'Jagannath'
 pad('cellos', 'D2', 3.3, 3.0, .14, -.2); pad('violas', 'A2', 3.3, 3.0, .1, .2)
 d = .6; y = X.lp(nz(d), 900) * (tt(d) / d) ** 2 * .05; stereo(fx, y, DUR - .6, 1, 0)   # the lamp's flame becomes the hearth's fire (the loop)
 
@@ -155,8 +155,8 @@ note('hand_chimes', 'D6', 15.0, 2.8, .2, .38, .2); pad('vibraphone_bowed', 'A4',
 d = .8; y = X.bp(nz(d), 700, 9000) * (tt(d) / d) ** 3 * .04; stereo(fx, y, 15.75, 1, 0); note('glass', 'A5', 16.46, 2.6, .24, .36); note('hand_chimes', 'D6', 16.48, 2.4, .16, .3, .2)   # into her light, and out at the temple
 hit('nepal_bells', None, 16.94, .3, .42, .3); note('tubular_bells', 'A3', 16.95, 4, .22, .36, -.2)
 pad('contrabass', 'D1', 16.4, 3.8, .18, 0, .5); pad('cellos', 'D2', 16.6, 3.6, .16, -.2); pad('violas', 'G#2', 17.0, 3.2, .1, .2)   # a tritone under him
-pad('horn', 'D3', 16.94, 1.8, .14, -.1, .45, .5); note('cellos', 'D#2', 17.5, 1.2, .3, .45, 0, .02, .6)   # Balabhadra; his eyes narrow
-pad('violins_trem', 'D#4', 18.2, 1.9, .1, -.3, .5, .4); pad('violins_trem', 'A4', 18.4, 1.7, .08, .3, .45, .4)   # stern
+pad('horn', 'D3', 16.94, 1.8, .14, -.1, .45, .5); note('cellos', 'D#2', 18.3, 1.4, .32, .46, 0, .05, .7); pad('violins_trem', 'D#4', 18.3, 1.6, .08, -.2, .45, .3); X.add(fx, X.whoosh(.8, .2), 18.05, .25, .2)   # he speaks: we move in, his eyes narrow
+pad('violins_trem', 'A4', 18.5, 1.6, .08, .3, .45, .4)   # stern
 d = .5; y = X.bp(nz(d), 400, 6000) * (tt(d) / d) ** 3 * .05; stereo(fx, y, 20.1, 1, 0)
 thud(20.54, 2.2, -.1); thud(20.57, 1.8, .1); hit('gong', None, 20.55, .5, .55, 0); X.add(fx, X.rumble(1.4, .8), 20.55, .45, 0)   # the slam, on 'pasibani'
 hit('timpani', None, 20.55, .7, .5, 0)
@@ -189,6 +189,7 @@ note('hand_chimes', 'F#5', 28.3, 2.6, .18, .34, .3); note('glass', 'A5', 28.35, 
 X.add(fx, X.whoosh(1.4, .25), 31.6, .35, 0); d = 1.3; y = X.lp(nz(d), 1800) * (tt(d) / d) ** 2 * .03; stereo(fx, y, 31.65, 1, 0)   # into the doorway, the hut's fire grows
 note('glass', 'D5', 32.85, 3, .28, .4); note('hand_chimes', 'A5', 32.86, 2.6, .2, .34, .2)   # the light inside
 
+note('hand_chimes', 'F#5', 30.6, 2.4, .12, .3, .2); note('glass', 'D6', 30.9, 2.2, .1, .26)   # the room shows through the light
 # ———————— 32.8–37.6: the hut; the aroma crosses to him; his eyes widen; into his eye — she is there ————————
 crackle(32.8, 36.2, 1.0)
 for _ in range(16):   # the pot simmering
