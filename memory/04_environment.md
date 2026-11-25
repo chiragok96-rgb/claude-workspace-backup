@@ -43,8 +43,9 @@ glockenspiel, glass, frame_drum, gong, sus_cymbal, vibraphone_bowed, kalimba, ma
 contrabass(_pizz), horn, timpani. Credits line is printed by `S.credits([...])`.
 
 ## ASR (optional; only for timing)
+`/tmp` is wiped between containers: simply run `bash scripts/bootstrap.sh --asr` again when a new VO arrives (it recreates this).
 ```bash
-uv venv /tmp/claude-0/asr/venv && uv pip install --python /tmp/claude-0/asr/venv/bin/python sherpa-onnx numpy soundfile
+uv venv /tmp/claude-0/asr/venv && uv pip install --python /tmp/claude-0/asr/venv/bin/python sherpa-onnx numpy soundfile   # or -r env/freeze_asr_venv.txt for exact pins
 mkdir -p /tmp/claude-0/asr/models && cd /tmp/claude-0/asr/models && \
   curl -L -o turbo.tar.bz2 https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-whisper-turbo.tar.bz2 && tar xf turbo.tar.bz2
 ```

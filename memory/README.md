@@ -15,7 +15,7 @@ these files do. `CLAUDE.md` (repo root) is the entry point and is loaded automat
 | [08_films_and_status.md](08_films_and_status.md) | to know where things stand | film index, deliverables, the Manabasa v7 timeline, open items |
 
 ## New-session checklist (do this before anything else)
-1. `bash /home/user/claude-workspace-backup/scripts/bootstrap.sh` (idempotent; add `--instruments` before scoring, `--asr` before timing a new VO).
+1. `bash /home/user/claude-workspace-backup/scripts/bootstrap.sh --instruments` (idempotent; add `--asr` when a new VO must be timed).
 2. `bash /home/user/claude-workspace-backup/scripts/verify.sh --render` → must end with `ALL GOOD`.
 3. Read `memory/01` → `02` → `07` → `08`; skim `03`–`06`.
 4. Reply to the owner with a short confirmation (what is restored, latest film = Manabasa final v7) and wait for the next request.

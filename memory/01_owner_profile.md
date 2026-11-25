@@ -43,7 +43,7 @@
     back the project up into this repo and push (a stop hook enforces committing untracked files).
 13. **Work only in the cloud container.** Never install anything on the owner's local computer.
 14. **Do not delete or overwrite their work.** New versions go next to old ones (`film_v4_dissolves.js`, `mix_v4.py`, `_v2.mp4` …).
-15. **Cheapest model that keeps the best quality**; reuse existing scenes/code instead of rebuilding when tokens are tight
+15. **Cheapest model that keeps the best quality** (default: the session's configured model; use a separate planning model only if the owner asks); reuse existing scenes/code instead of rebuilding when tokens are tight
     ("whichever scene you want to keep, reuse it, don't recreate"). Rap era note: "first plan/imagine with Fable, then use Opus to create".
 16. Keep their email/personal details private; never send them to external services.
 

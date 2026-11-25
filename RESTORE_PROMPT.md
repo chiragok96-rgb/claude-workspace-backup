@@ -6,7 +6,7 @@
 
 ```
 This repo is my film studio and its memory. Before anything else:
-1) Run `bash scripts/bootstrap.sh --instruments` and then `bash scripts/verify.sh --render` (it must end with ALL GOOD; fix anything that fails).
+1) Run `bash scripts/bootstrap.sh --instruments` (add `--asr` too if I am about to send a new voiceover) and then `bash scripts/verify.sh --render` (it must end with ALL GOOD; fix anything that fails).
 2) Read CLAUDE.md and every file in memory/ (start with memory/README.md; 01, 02, 07 and 08 carefully).
 3) Treat them as my standing instructions, taste, workflow and lessons. Work only under /home/user, keep my existing work untouched,
    and commit/push to the `stage` branch.

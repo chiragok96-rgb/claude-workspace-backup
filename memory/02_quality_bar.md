@@ -7,6 +7,8 @@
   Nothing essential under the right ~140 px (Reels buttons).
 
 ## Captions
+- **Default for a new VO film:** English gloss lines (owner's meaning, not literal) in Cormorant Garamond + one gold italic word — used in
+  Danga, Kartika Wind and Manabasa. Use romanised Odia (Inter Tight) only if the owner asks for Odia captions; rap/song films: none unless asked.
 - Look: posh, calm, never overlapping a key subject. Used successfully:
   - English gloss lines in **Cormorant Garamond 600 (50 px)** with **one gold italic accent word** (`*word*` → italic 56 px, #f0c672),
     soft dark shadow; fade in over 0.3 s, out over 0.28 s, rising 10 px (Manabasa, Danga, Kartika Wind).
@@ -22,6 +24,9 @@
   (a doorway that shows the next room inside it, an eye whose pupil holds the next scene, a lamp flame that becomes a hearth fire),
   a 2.5D camera tilt (wall → floor, floor → wall), dust/rice blown across as a soft wipe, a pull-back where a shape becomes another
   (rows of people → lines of a palm leaf).
+- A crossfade is acceptable only (a) on the same object at the same position/scale (figure → its puppet), or (b) hidden inside a motivated
+  light bloom/flash or a camera push that carries the eye (gold light → temple). A wipe carried by matter (dust, wet wash, sunrise) is fine
+  once; the same device repeated line after line is not (Manabasa v2 rice swirls were rejected for repetition).
 - **Forbidden:** plain crossfades between unrelated scenes, hard pops, side swipes, white flashes used as a cut, "hundreds of cuts" feel.
 - Light flashes are allowed only when they *build and decay* inside a motivated light (sunrise, lamp, door light), never as a cut.
 - When two styles meet, match position/scale/colour at the hand-over so the style changes on the same object.

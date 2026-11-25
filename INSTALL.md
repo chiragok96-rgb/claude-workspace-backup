@@ -20,16 +20,16 @@ Existing files are never overwritten (`cp -n`). See `memory/04_environment.md` f
 ## 2. Manual equivalents
 ```bash
 # Opuscar (public upstream, pinned in MANIFEST.md)
-git clone https://github.com/lemomo-ai/lemo-opuscar ~/lemomo-ai/lemo-opuscar
-cd ~/lemomo-ai/lemo-opuscar && git checkout 3a7132b996be0241c1ea0ab180d519f06e6f10b6   # v2.0.0, 99 styles
+git clone https://github.com/lemomo-ai/lemo-opuscar /home/user/lemomo-ai/lemo-opuscar
+cd /home/user/lemomo-ai/lemo-opuscar && git checkout 3a7132b996be0241c1ea0ab180d519f06e6f10b6   # v2.0.0, 99 styles
 npm install                                   # playwright-core, three@0.170
 uv venv .venv && uv pip install --python .venv/bin/python -r requirements.txt scikit-image
 sh plugin/skills/lemo-opuscar/scripts/setup.sh deps          # core tier (+ `voice`, `music` if needed)
 
 # ffmpeg >= 7 (mux.sh requires it)
-mkdir -p ~/tools && cd ~/tools && curl -L -o ffmpeg.tar.xz \
+mkdir -p /home/user/tools && cd /home/user/tools && curl -L -o ffmpeg.tar.xz \
   https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-linux64-gpl-8.1.tar.xz
-tar xf ffmpeg.tar.xz && mv ffmpeg-n8.1-*-gpl-8.1 ffmpeg && export PATH=~/tools/ffmpeg/bin:$PATH
+tar xf ffmpeg.tar.xz && mv ffmpeg-n8.1-*-gpl-8.1 ffmpeg && export PATH=/home/user/tools/ffmpeg/bin:$PATH
 ```
 Rendering uses software WebGL: prefix WebGL pages with `LEMO_ANGLE=swiftshader` (canvas-2D films like Manabasa/Danga don't need it).
 

@@ -54,24 +54,28 @@ cd $LIB && node core/render/video.mjs /home/user/<film> --fps 30 --size 1080x192
 Patch a range instead of re-rendering: `--q "from=16&to=18"` then splice (only when frame-exact).
 
 ## 7. Score & foley
-`/home/user/lemomo-ai/lemo-opuscar/.venv/bin/python mix.py` → `out/mix.wav` (see 06_audio.md). Prints voice vs bed levels.
+`cd /home/user/<film> && /home/user/lemomo-ai/lemo-opuscar/.venv/bin/python mix.py` → `out/mix.wav` (see 06_audio.md). Prints voice vs bed levels.
 
 ## 8. Verify, mux, gate, encode
 ```bash
-$LIB/.venv/bin/python /home/user/claude-workspace-backup/scripts/tools/popscan.py out/video.mp4   # isolated jumps + loop seam
+F=/home/user/<film>; cd $F                                  # every relative path below is inside the film dir
+$LIB/.venv/bin/python /home/user/claude-workspace-backup/scripts/tools/popscan.py $F/out/video.mp4   # flags jumps >3.0 mean-abs-diff and >3.2x both neighbours; loop seam should be <= ~3x the median
 cd $LIB && sh core/render/mux.sh /home/user/<film>/out/video.mp4 /home/user/<film>/out/mix.wav /home/user/<film>/out/final.mp4 30 0   # −14 LUFS
-cd /home/user/.claude/skills/huashu-art-motion && uv run scripts/film_gate.py /home/user/<film>/out/final.mp4     # must say 门禁通过
+(cd /home/user/.claude/skills/huashu-art-motion && uv run scripts/film_gate.py $F/out/final.mp4)   # must print 结论：门禁通过 (needs enough fast-motion frames, no long empty frames, no blue-violet palette)
+cd $F/out
 D=/home/user/claude-workspace-backup/deliverables/<Name>_vN.mp4
 ffmpeg -y -i final.mp4 -c:v libx264 -preset slow -b:v 9M -maxrate 12M -bufsize 18M -pix_fmt yuv420p -pass 1 -passlogfile /tmp/p2 -an -f mp4 /dev/null
 ffmpeg -y -i final.mp4 -c:v libx264 -preset slow -b:v 9M -maxrate 12M -bufsize 18M -pix_fmt yuv420p -pass 2 -passlogfile /tmp/p2 -c:a aac -b:a 256k -movflags +faststart $D
 ```
 Final read-through: `ffmpeg -i $D -vf "fps=1/2.5,scale=180:320,tile=12x2" -frames:v 1 sheet.jpg`.
 
+Rap/song films have no `mix.py`: mux the video with the song itself (`mux.sh video.mp4 audio/song.wav final.mp4 30 0`).
+
 ## 9. Deliver & back up
 - `SendUserFile` the share mp4 (display "render") with a one-line caption; reply with: changes per remark, what was kept and why,
   checks run, weak spots.
 - Back up: `(cd /home/user/<film> && tar cf - --exclude=./out --exclude=node_modules --exclude='*.mp4' .) | (cd projects/<film> && tar xf -)`,
-  `git add projects/<film> deliverables/<file>`, commit with the attribution lines, `git push -u origin stage` (retry with backoff).
+  `git add projects/<film> deliverables/<file>`, commit with the attribution lines the session's system reminder specifies (currently `Co-Authored-By: Claude …` + `Claude-Session: <session url>`; never put a model name elsewhere), `git push -u origin stage` (retry with backoff).
   Large mp4s (>50 MB) trigger a GitHub warning but push fine.
 
 ## Iteration etiquette
