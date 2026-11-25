@@ -5,12 +5,17 @@ Never run these on the owner's local computer.
 
 ## 1. One command
 ```bash
-bash scripts/bootstrap.sh
+bash scripts/bootstrap.sh [--instruments] [--asr] [--no-extras]
+bash scripts/verify.sh --render
 ```
-It: (a) installs the skill to `~/.claude/skills/huashu-art-motion`, (b) clones Opuscar (pinned commit) to
-`~/lemomo-ai/lemo-opuscar`, (c) overlays `opuscar-overlay/films`, (d) copies `projects/*`, `third-party/*` to `~/`,
-(e) downloads a static ffmpeg >= 7 to `~/tools/ffmpeg`, (f) `npm ci` + Python venv for Opuscar, (g) puts
-`CLAUDE.md` at `~/CLAUDE.md`. Existing files are never overwritten (`cp -n`).
+Important: in the cloud image `HOME=/root` but the work lives in **`/home/user`** (`WORK`, overridable). The script:
+(a) installs the Huashu skill to `$HOME/.claude/skills` (loaded by Claude) and `/home/user/.claude/skills` (gate path),
+(b) clones the extra skill repos (claude-animation-skills, claude-drawing-skill, OpenVideoHarness) unless `--no-extras`,
+(c) writes `~/.claude/settings.json` (Opuscar plugin marketplace) only if none exists, (d) clones Opuscar (pinned) to
+`/home/user/lemomo-ai/lemo-opuscar` and overlays `opuscar-overlay/films`, (e) copies `projects/*` and `third-party/*` to `/home/user/<name>`,
+(f) downloads static ffmpeg 8.1 to `/home/user/tools/ffmpeg`, (g) `npm install` + Python venv + core deps for Opuscar,
+(h) copies helpers/tools to `/home/user/scripts`, (i) optional: `--instruments` (1.3 GB sample libs), `--asr` (Whisper-turbo for timing).
+Existing files are never overwritten (`cp -n`). See `memory/04_environment.md` for the full environment description.
 
 ## 2. Manual equivalents
 ```bash
@@ -26,7 +31,7 @@ mkdir -p ~/tools && cd ~/tools && curl -L -o ffmpeg.tar.xz \
   https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-linux64-gpl-8.1.tar.xz
 tar xf ffmpeg.tar.xz && mv ffmpeg-n8.1-*-gpl-8.1 ffmpeg && export PATH=~/tools/ffmpeg/bin:$PATH
 ```
-Rendering uses software WebGL: always prefix with `LEMO_ANGLE=swiftshader`.
+Rendering uses software WebGL: prefix WebGL pages with `LEMO_ANGLE=swiftshader` (canvas-2D films like Manabasa/Danga don't need it).
 
 ## 3. Optional heavy tiers (only if needed)
 - **ASR / beat alignment** (`scripts/helpers/asrwork/*.py`): `uv venv /tmp/claude-0/asr/venv && uv pip install --python
