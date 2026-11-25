@@ -42,7 +42,7 @@ export function sanctum(c, t, o = {}) {
 // —— 16–21.4: Lakshmi at the temple door at night; Balabhadra's face above it; the doors slam. 21.4–24.6: her curse — she lifts her hand,
 // her shadow rises huge on the temple wall, and the lamps along the wall go out one by one ——
 export function templeNight(c, t, o = {}) {
-  const { shut = 0, bala = 1, stern = 0, raise = 0, shadow = 0, out = 0, lakshmiA = 1, fire = 0 } = o;
+  const { shut = 0, bala = 1, stern = 0, raise = 0, shadow = 0, out = 0, lakshmiA = 1, fire = 0, lakX = 300, lakS = 1.42, doorA = 1, steps = 1 } = o;
   dark(c, t, { cx: 540, cy: 1000, warm: lerp(1, .5, out) });
   // the stone wall, its carved courses
   c.fillStyle = `rgba(255,190,120,${.05 * (1 - out * .7)})`; for (let k = 0; k < 18; k++) c.fillRect(0, 240 + k * 64, W, 3);
@@ -52,11 +52,11 @@ export function templeNight(c, t, o = {}) {
   if (shadow > 0) {   // her shadow, huge on the wall, from the lamps at her feet
     c.save(); c.globalAlpha *= shadow * .55; c.filter = 'blur(10px)'; c.translate(560, 1330); c.scale(2.6, 2.4); c.translate(-560, -1330);
     setLook({ saree: '#000', sareeD: '#000', border: '#000', crown: true, skin: '#000', skinD: '#000' }); motherStanding(c, 560, 1330, .9, { raise, rim: 0, shade: 0, t }); c.restore(); }
-  templeDoor(c, t, { shut, x: 780, y: 1330, s: .62 });
-  if (bala > 0) idol(c, t, 780, 600, .62, 'B', { a: bala, stern });
-  if (lakshmiA > 0) { setLook({ saree: '#b01e16', sareeD: '#7c1410', border: '#e8b850', crown: true }); motherStanding(c, 300, 1330, 1.42, { t, raise, a: lakshmiA, rimCol: '255,214,140', rimW: 6, glow: .6, glowCol: '255,190,100', shade: .45 });
-    if (fire > 0) glow(c, 330 + 80 * raise, 1330 - 700 * raise, 420 * fire, fire, '255,170,80'); }
-  for (let k = 0; k < 4; k++) foot(c, 420 + k * 70, 1310 - (k % 2) * 14, 0, .55, k % 2 === 0, 1, '255,214,130', .5);   // her golden steps, halted at the door
+  templeDoor(c, t, { shut, x: 780, y: 1330, s: .62, a: doorA });
+  if (bala > 0) idol(c, t, 780, 600, .62, 'B', { a: bala * doorA, stern });
+  if (lakshmiA > 0) { setLook({ saree: '#b01e16', sareeD: '#7c1410', border: '#e8b850', crown: true }); motherStanding(c, lakX, 1330, lakS, { t, raise, a: lakshmiA, rimCol: '255,214,140', rimW: 6, glow: .6, glowCol: '255,190,100', shade: .45 });
+    if (fire > 0) glow(c, lakX + 30 + 80 * raise, 1330 - 700 * raise, 420 * fire, fire, '255,170,80'); }
+  if (steps > 0) for (let k = 0; k < 4; k++) foot(c, 420 + k * 70, 1310 - (k % 2) * 14, 0, .55, k % 2 === 0, steps, '255,214,130', .5);   // her golden steps, halted at the door
 }
 // —— 32.6–37.6: inside the one lit house — Lakshmi, in a plain sari, at a clay hearth; a pot of rice steaming; its steam turns to gold, and her steps rise from it ——
 export function hearth(c, t, o = {}) {

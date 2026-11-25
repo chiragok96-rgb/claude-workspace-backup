@@ -33,7 +33,7 @@ function cloth() { if (CLOTH) return CLOTH; CLOTH = mk(W, H); const x = CLOTH.ge
   return CLOTH; }
 export const SP_RECT = [60, 250, 1020, 1350];   // the cloth, inside the theatre's dark frame
 export function shadowPlay(c, t, o = {}) {
-  const { press = 1, raise = 0, out = 0, a = 1, fire = 0 } = o; if (a <= 0) return; c.save(); c.globalAlpha *= a;
+  const { press = 1, raise = 0, out = 0, a = 1, fire = 0, pupX = 470, pupS = 1.55, frameA = 1 } = o; if (a <= 0) return; c.save(); c.globalAlpha *= a;
   const [x0, y0, x1, y1] = SP_RECT;
   c.fillStyle = '#120806'; c.fillRect(0, 0, W, H);
   c.save(); c.beginPath(); c.rect(x0, y0, x1 - x0, y1 - y0); c.clip();
@@ -47,18 +47,18 @@ export function shadowPlay(c, t, o = {}) {
   // Lakshmi, a carved puppet pressed against the cloth: her dyes glow where the light comes through; lace cut through her sari
   if (!PUP) PUP = mk(W, H); const p = PUP.getContext('2d'); p.setTransform(1, 0, 0, 1, 0, 0); p.clearRect(0, 0, W, H); p.globalCompositeOperation = 'source-over'; p.globalAlpha = 1; p.filter = 'none';
   setLook({ saree: '#c8281c', sareeD: '#8a1810', border: '#e8b040', crown: true, skin: '#e8a868', skinD: '#c07840' });
-  motherStanding(p, 470, 1330, 1.55, { t, raise, rim: 0, shade: 0, a: 1 });
+  motherStanding(p, pupX, 1330, pupS, { t, raise, rim: 0, shade: 0, a: 1 });
   p.globalCompositeOperation = 'destination-out'; p.lineWidth = 2.2; p.lineCap = 'round';   // carved through her sari: rows of fine crescents, a band of lotus holes at the hem
-  for (let r = 0; r < 30; r++) for (let q = 0; q < 16; q++) { const px = 300 + q * 20 + (r % 2) * 10, py = 760 + r * 17; p.beginPath(); p.arc(px, py, 7, .15 * Math.PI, .85 * Math.PI); p.stroke(); }
-  for (let q = 0; q < 12; q++) { const px = 330 + q * 26, py = 1290; p.beginPath(); p.arc(px, py, 5, 0, 7); p.fill(); }
-  p.globalCompositeOperation = 'source-atop'; p.fillStyle = 'rgba(40,14,6,.35)'; for (const [jx, jy] of [[474, 703], [520, 650]]) { p.beginPath(); p.arc(jx, jy, 7, 0, 7); p.fill(); }   // rivets at her joints
+  for (let r = 0; r < 30; r++) for (let q = 0; q < 16; q++) { const px = pupX - 170 + (q * 20 + (r % 2) * 10) * pupS / 1.55, py = 1330 - (570 - r * 17) * pupS / 1.55; p.beginPath(); p.arc(px, py, 7, .15 * Math.PI, .85 * Math.PI); p.stroke(); }
+  for (let q = 0; q < 12; q++) { const px = pupX - 140 + q * 26 * pupS / 1.55, py = 1290; p.beginPath(); p.arc(px, py, 5, 0, 7); p.fill(); }
+  p.globalCompositeOperation = 'source-atop'; p.fillStyle = 'rgba(40,14,6,.35)'; for (const [jx, jy] of [[pupX + 4, 1330 - 627 * pupS / 1.55], [pupX + 50, 1330 - 680 * pupS / 1.55]]) { p.beginPath(); p.arc(jx, jy, 7, 0, 7); p.fill(); }   // rivets at her joints
   const k = 1 + .7 * (1 - eo(press)), bl = 16 * (1 - eo(press));
   c.save(); c.globalCompositeOperation = 'multiply'; c.globalAlpha *= .25 + .75 * eo(press); c.translate(540, 1000); c.scale(k, k); c.translate(-540, -1000); c.filter = `blur(${bl + 1.6}px) brightness(0.25)`; c.drawImage(PUP, 0, 0); c.filter = bl > .4 ? `blur(${bl}px)` : 'none'; c.drawImage(PUP, 0, 0); c.restore();   // the hide's dark edge, then the dyed hide itself
-  c.strokeStyle = 'rgba(60,40,30,.5)'; c.lineWidth = 2.4; c.beginPath(); c.moveTo(470 + 60, 1330 - 560 - 380 * raise); c.lineTo(560, y1); c.moveTo(470, 1330 - 400); c.lineTo(430, y1); c.stroke();   // the rods
+  c.strokeStyle = 'rgba(60,40,30,.5)'; c.lineWidth = 2.4; c.beginPath(); c.moveTo(pupX + 60, 1330 - 560 - 380 * raise); c.lineTo(pupX + 90, y1); c.moveTo(pupX, 1330 - 400); c.lineTo(pupX - 40, y1); c.stroke();   // the rods
   if (fire > 0) { c.save(); c.globalCompositeOperation = 'lighter'; const fx = 470 + 112 * 1.55 * raise * .7, fy = 1330 - 640 * 1.55 * raise; const g = c.createRadialGradient(fx, fy, 0, fx, fy, 380); g.addColorStop(0, `rgba(255,200,110,${.5 * fire})`); g.addColorStop(1, 'rgba(255,140,60,0)'); c.fillStyle = g; c.fillRect(x0, y0, x1 - x0, y1 - y0); c.restore(); }
   c.restore();
   // the theatre's carved frame and the stage lip
-  c.strokeStyle = '#6a4a28'; c.lineWidth = 3; c.strokeRect(x0 - 8, y0 - 8, x1 - x0 + 16, y1 - y0 + 16); c.fillStyle = '#5a170d'; c.fillRect(0, y1 + 14, W, 10); c.fillRect(0, y0 - 26, W, 8);
+  c.globalAlpha *= frameA; c.strokeStyle = '#6a4a28'; c.lineWidth = 3; c.strokeRect(x0 - 8, y0 - 8, x1 - x0 + 16, y1 - y0 + 16); c.fillStyle = '#5a170d'; c.fillRect(0, y1 + 14, W, 10); c.fillRect(0, y0 - 26, W, 8);
   c.strokeStyle = 'rgba(138,100,48,.55)'; c.lineWidth = 2; for (let x = 20; x < W; x += 90) { c.beginPath(); c.arc(x + 45, y0 - 60, 20, Math.PI, 0); c.stroke(); c.beginPath(); c.arc(x + 45, y1 + 70, 20, 0, Math.PI); c.stroke(); }
   const sp = c.createLinearGradient(0, y1, 0, y1 + 160); sp.addColorStop(0, `rgba(255,170,90,${.25 * tot / 12})`); sp.addColorStop(1, 'rgba(255,170,90,0)'); c.fillStyle = sp; c.fillRect(0, y1, W, 160);
   c.restore();
