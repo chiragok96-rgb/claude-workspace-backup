@@ -9,3 +9,7 @@ look/kf/h_*
 look/kf/q_*
 look/kf/sheet.jpg
 paper/
+testcyc/
+audio/*.wav
+cycles/
+final/
