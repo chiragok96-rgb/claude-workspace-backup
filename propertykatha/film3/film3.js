@@ -189,7 +189,7 @@ function overlays(t){
   O.save();O.lineCap='round';O.strokeStyle=GOLD;O.shadowColor='rgba(255,200,110,.9)';O.shadowBlur=14;O.lineWidth=3.2;O.globalAlpha=fade;
   let acc=0,tip=null;const lim=d*tot;const sc=houseG.scale.y;
   for(let i=0;i<segs.length;i++){if(acc>=lim)break;const [a,b]=segs[i];const k=clamp((lim-acc)/L[i]);acc+=L[i];
-    const ya=t>1.74?a[1]*sc:a[1],yb=t>1.74?b[1]*sc:b[1];const pa=proj([a[0],ya,a[2]]),pb=proj([lerp(a[0],b[0],k),lerp(ya,yb,k),lerp(a[2],b[2],k)]);
+    const ya=a[1],yb=b[1];const pa=proj([a[0],ya,a[2]]),pb=proj([lerp(a[0],b[0],k),lerp(ya,yb,k),lerp(a[2],b[2],k)]);
     O.beginPath();O.moveTo(pa[0],pa[1]);O.lineTo(pb[0],pb[1]);O.stroke();tip=pb}
   if(tip&&d<.999){O.shadowBlur=30;O.fillStyle='#fff3d6';O.beginPath();O.arc(tip[0],tip[1],6,0,7);O.fill()}
   O.restore()}
