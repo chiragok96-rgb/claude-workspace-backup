@@ -13,3 +13,4 @@ testcyc/
 audio/*.wav
 cycles/
 final/
+refcheck/
