@@ -206,6 +206,7 @@ function overlays(t,S){
   // projected land labels
   if(t>14.6&&t<18.6){const a=env(t,14.9,18.5,.4,.5);const [x,y]=proj(-10,0,1.5);label("NEIGHBOUR'S LAND",x,y,a);const [x2,y2]=proj(0,0,-16);label('YOUR PLOT',x2,y2,a,'#f0d9a6')}
   // ---- words ----
+  if(P.get('nowords')==='1')return;
   const ein=(a,b,fi=.3,fo=.35)=>env(t,a,b,fi,fo);
   if(t<2.75){const a=1-ss(2.35,2.75,t);const v=2000000*(1-Math.pow(1-ss(.0,1.35,t),3));
     O.save();O.globalAlpha=a;O.textAlign='center';backing(410,760,a*1.25);O.shadowColor='rgba(20,10,4,.5)';O.shadowBlur=26;

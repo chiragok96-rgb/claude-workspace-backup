@@ -3,10 +3,10 @@ Look-dev scene (Blender 5 / Cycles).  Run:
   /home/user/bpyenv/bin/python land.py <shot> <out.png> [scale] [samples]
 shots: hook (low on the road, gate + board) | aerial (crane over the gate)
 """
-import sys, os, random, bpy, bmesh
+import sys, os, random, math, bpy, bmesh
 from math import radians as R, sin, cos, pi, atan2
 from mathutils import Vector, Matrix, Euler
-sys.path.insert(0, "/home/user/claude-workspace-backup/skills/code-motion/scripts")
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "skills", "code-motion", "scripts"))
 import bl_lib as B
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -327,13 +327,17 @@ for o, hx, sg in leaves:
 pillar(-2.3); pillar(2.3)
 wall(-2.62, -40); wall(2.62, 40)
 # chain + padlock across the meeting stiles (only when closed)
+LOCK = []; BOARD = []
 if 0 <= GATE_OPEN < 0.05:
+    _n0 = set(bpy.data.objects.keys())
     for i in range(9):
         a = i / 8
         x = -0.22 + 0.44 * a; z = 1.05 - 0.08 * sin(pi * a)
         torus(0.032, 0.007, (x, -0.04, z), rot=(R(90) * (i % 2), R(90) * ((i + 1) % 2), 0), seg=14, sseg=5, m=M_IRON)
     B.box((0.11, 0.035, 0.12), (0.02, -0.07, 0.86), m=M_BRASS)
     torus(0.04, 0.009, (0.02, -0.07, 0.93), rot=(R(90), 0, 0), seg=16, sseg=5, m=M_IRON)
+    LOCK = [bpy.data.objects[k] for k in set(bpy.data.objects.keys()) - _n0]
+    _n0 = set(bpy.data.objects.keys())
     # neighbour's board wired to the gate
     bw, bh = 1.7, 0.68
     bmb = bmesh.new(); bmb.loops.layers.uv.new(); bmesh.ops.create_grid(bmb, x_segments=1, y_segments=1, size=0.5, calc_uvs=True)
@@ -341,8 +345,10 @@ if 0 <= GATE_OPEN < 0.05:
     bd = B._fin(bmb, "board", (0, -0.075, 1.85), (R(90), 0, 0), m_image("board", os.path.join(HERE, "tex/board.png"), rough=0.55, metal=0.25))
     bd.rotation_euler = (R(88), R(1.5), 0)
     B.box((bw + 0.02, 0.012, bh + 0.02), (0, -0.066, 1.85), m=M_POST)
+    BOARD = [bpy.data.objects[k] for k in set(bpy.data.objects.keys()) - _n0]
 
 # the plot: brass-capped survey pegs with gold ribbon at y 40..58
+_p0 = set(bpy.data.objects.keys())
 M_GOLD = B.mat("goldr", (0.95, 0.68, 0.25), rough=0.35, metal=0.6)
 for (px, py) in ((-7, 40), (7, 40), (-7, 58), (7, 58)):
     B.box((0.08, 0.08, 0.55), (px, py, ground_z(px, py) + 0.27), m=M_POST)
@@ -350,52 +356,98 @@ for (px, py) in ((-7, 40), (7, 40), (-7, 58), (7, 58)):
 for (a, b) in (((-7, 40), (7, 40)), ((7, 40), (7, 58)), ((7, 58), (-7, 58)), ((-7, 58), (-7, 40))):
     mx, my = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2; L = ((b[0]-a[0])**2 + (b[1]-a[1])**2) ** .5
     o = B.box((L, 0.02, 0.008), (mx, my, 0.45), m=M_GOLD); o.rotation_euler = (0, 0, atan2(b[1]-a[1], b[0]-a[0]))
+PEGS = [bpy.data.objects[k] for k in set(bpy.data.objects.keys()) - _p0]
+_h0 = set(bpy.data.objects.keys())
 if os.environ.get("HOUSE") == "1":
-    # a calm modern Odisha home: white plaster volumes, teak slats, laterite plinth, warm interior glow
-    M_WALLW = B.mat("wallw", (0.86, 0.83, 0.77), rough=0.8); M_TEAK = B.mat("teak", (0.36, 0.17, 0.07), rough=0.55)
-    M_GLASS = B.mat("glow", (1.0, 0.72, 0.42), rough=0.3, emit=(1.0, 0.64, 0.32), es=1.1)
-    hx, hy = 0.0, 51.0
-    B.box((10.5, 7.5, 0.45), (hx, hy, 0.22), m=M_LAT)                       # plinth
-    B.box((6.2, 6.4, 3.0), (hx - 2.0, hy + 0.4, 1.95), m=M_WALLW)            # ground-floor block
-    B.box((3.4, 0.08, 2.3), (hx - 2.6, hy - 2.84, 1.7), m=M_GLASS)           # big glazing
-    for k in range(11):                                                      # teak screen
-        B.box((0.07, 0.07, 2.5), (hx + 1.6 + k * 0.26, hy - 2.7, 1.7), m=M_TEAK)
-    B.box((5.2, 6.0, 2.8), (hx + 1.6, hy + 0.8, 4.85), m=M_WALLW)            # upper block, cantilevered
-    B.box((3.8, 0.08, 1.6), (hx + 1.6, hy - 2.24, 4.9), m=M_GLASS)
-    B.box((11.2, 8.0, 0.22), (hx - 0.2, hy + 0.4, 3.5), m=M_WALLW)           # first-floor slab overhang
-    B.box((6.0, 6.8, 0.22), (hx + 1.6, hy + 0.8, 6.33), m=M_WALLW)           # roof slab
-    B.box((1.3, 0.1, 2.4), (hx + 0.6, hy - 2.84, 1.65), m=M_TEAK)            # door
-    for (lx, ly) in ((-4.5, hy - 4.6), (4.5, hy - 4.6)):                     # gate-post lamps
-        B.box((0.3, 0.3, 1.2), (lx, ly, 0.6), m=M_LAT); B.box((0.22, 0.22, 0.25), (lx, ly, 1.33), m=M_GLASS)
-    pl = bpy.data.lights.new("porch", type='POINT'); pl.energy = 300; pl.color = (1, 0.65, 0.35); pl.shadow_soft_size = 1.0
-    po = bpy.data.objects.new("porch", pl); B.link(po); po.location = (hx - 1.5, hy - 4.0, 2.6)
+    # A calm modern Odisha home on the plot: laterite plinth, white plaster volumes, a cantilevered upper floor
+    # with teak fins, warm-lit glazing with bronze mullions, low laterite compound wall, lawn and a paved drive.
+    M_WALLW = B.mat("wallw", (0.84, 0.81, 0.75), rough=0.82)
+    M_TEAK = B.mat("teak", (0.30, 0.14, 0.055), rough=0.5)
+    M_BRONZE = B.mat("bronze", (0.10, 0.075, 0.05), rough=0.35, metal=0.8)
+    M_PAVE = B.mat("pave", (0.55, 0.50, 0.44), rough=0.75)
+    M_LAWN = m_leaf("lawn", (0.13, 0.22, 0.05), 0.15)
+    M_WARM = B.mat("warmroom", (1.0, 0.75, 0.48), rough=0.9, emit=(1.0, 0.66, 0.36), es=2.2)
+    M_ROOM = B.mat("room", (0.22, 0.13, 0.07), rough=0.85, emit=(1.0, 0.58, 0.28), es=0.35)
+    M_LAMP = B.mat("lamp", (1.0, 0.8, 0.5), rough=0.5, emit=(1.0, 0.70, 0.40), es=14.0)
+    gm = bpy.data.materials.new("glass"); gm.use_nodes = True
+    _g = gm.node_tree.nodes["Principled BSDF"]; _g.inputs["Base Color"].default_value = (0.85, 0.88, 0.86, 1)
+    _g.inputs["Roughness"].default_value = 0.03; _g.inputs["Transmission Weight"].default_value = 1.0; _g.inputs["IOR"].default_value = 1.5
+    hy = 51.5
+    # compound wall along the front (gap for the drive) and the sides, with lamp pillars
+    for (x0, x1) in ((-7.0, -1.9), (1.9, 7.0)):
+        B.box((x1 - x0, 0.3, 0.9), ((x0 + x1) / 2, 40.2, 0.45), m=M_LAT); B.box((x1 - x0 + 0.06, 0.38, 0.06), ((x0 + x1) / 2, 40.2, 0.93), m=M_CAP)
+    for sx in (-1, 1):
+        B.box((0.3, 17.6, 0.9), (sx * 7.0, 49.0, 0.45), m=M_LAT); B.box((0.38, 17.6, 0.06), (sx * 7.0, 49.0, 0.93), m=M_CAP)
+        B.box((0.5, 0.5, 1.5), (sx * 1.9, 40.2, 0.75), m=M_LAT); B.box((0.36, 0.36, 0.28), (sx * 1.9, 40.2, 1.64), m=M_WARM)
+    B.box((13.6, 17.4, 0.06), (0, 49.0, 0.03), m=M_LAWN)                       # lawn
+    B.box((3.0, 8.6, 0.08), (0.6, 44.6, 0.05), m=M_PAVE)                        # drive
+    B.box((11.6, 7.6, 0.5), (0, hy, 0.25), m=M_LAT)                            # plinth
+    B.box((2.4, 0.9, 0.18), (0.6, hy - 4.15, 0.09), m=M_CAP)                    # step
+    # ground floor: solid left block with a tall teak pivot door, glass living room on the right
+    B.box((4.6, 6.8, 3.1), (-3.3, hy + 0.3, 2.05), m=M_WALLW)
+    B.box((1.15, 0.08, 2.5), (-1.55, hy - 3.07, 1.75), m=M_TEAK)
+    B.box((5.6, 6.0, 3.1), (2.6, hy + 0.9, 2.05), m=M_ROOM)                     # dim warm interior seen through glass
+    for (lx, lz) in ((1.0, 2.55), (2.6, 2.75), (4.2, 2.55)):                      # pendant lamps inside
+        B.sph(0.16, (lx, hy - 1.2, lz), m=M_LAMP); B.box((0.01, 0.01, 0.9), (lx, hy - 1.2, lz + 0.5), m=M_BRONZE)
+    il = bpy.data.lights.new('interior', type='AREA'); il.size = 4.5; il.energy = 260; il.color = (1, 0.62, 0.32)
+    io = bpy.data.objects.new('interior', il); B.link(io); io.location = (2.6, hy - 0.6, 3.4)
+    B.box((5.6, 0.04, 3.0), (2.6, hy - 2.25, 2.0), m=gm)                        # glazing
+    for k in range(6):                                                         # bronze mullions
+        B.box((0.06, 0.08, 3.05), (-0.2 + k * 1.12, hy - 2.2, 2.02), m=M_BRONZE)
+    B.box((5.7, 0.1, 0.08), (2.6, hy - 2.2, 3.55), m=M_BRONZE); B.box((5.7, 0.1, 0.08), (2.6, hy - 2.2, 0.53), m=M_BRONZE)
+    # first-floor slab and the cantilevered upper volume
+    B.box((11.8, 8.4, 0.28), (0.2, hy + 0.1, 3.74), m=M_WALLW)
+    B.box((8.2, 6.6, 2.9), (1.2, hy - 0.2, 5.33), m=M_WALLW)
+    B.box((6.6, 0.06, 1.7), (1.2, hy - 3.54, 5.25), m=M_ROOM)                   # long window strip (dim warm room)
+    for lx in (-1.2, 0.6, 2.4, 4.2):
+        B.sph(0.12, (lx, hy - 3.4, 5.85), m=M_LAMP)
+    for ux in (-5.2, -3.4, -1.0):                                                 # facade uplights
+        sp = bpy.data.lights.new('up', type='SPOT'); sp.energy = 90; sp.spot_size = math.radians(40); sp.color = (1, 0.66, 0.36)
+        so = bpy.data.objects.new('up', sp); B.link(so); so.location = (ux, hy - 3.35, 0.55); so.rotation_euler = (math.radians(-8), 0, 0)
+    for k in range(27):                                                        # teak fins over it
+        B.box((0.07, 0.24, 2.0), (-2.05 + k * 0.25, hy - 3.66, 5.25), m=M_TEAK)
+    B.box((9.0, 7.4, 0.24), (1.2, hy - 0.2, 6.9), m=M_WALLW)                    # roof slab with overhang
+    B.box((3.6, 3.6, 0.9), (-3.0, hy + 1.5, 7.45), m=M_WALLW)                   # stair head
+    # garden: low clipped shrubs along the plinth
+    _sh = tuft_mesh(77, n=30, h=0.6); _sh.materials[0] = M_LAWN
+    for k in range(18):
+        o = bpy.data.objects.new("shrub", _sh); B.link(o); o.location = (-5.4 + k * 0.62, hy - 4.1, 0.05)
+        o.scale = (1.4, 1.4, 1.0); o.rotation_euler = (0, 0, k * 1.7)
+    pl = bpy.data.lights.new("porch", type='POINT'); pl.energy = 220; pl.color = (1, 0.64, 0.34); pl.shadow_soft_size = 0.6
+    po = bpy.data.objects.new("porch", pl); B.link(po); po.location = (-1.0, hy - 3.6, 3.2)
+HOUSE_OBJS = [bpy.data.objects[k] for k in set(bpy.data.objects.keys()) - _h0]
 # palms: three variants, instanced along both sides of the road and in the fields
 pm = [palm_mesh(s, height=random.uniform(8, 11), lean=random.uniform(0.3, 1.2)) for s in (1, 2, 3)]
 spots = [(-5.5, 3.5), (6.2, 6.0), (-8.0, 14), (9.5, 18), (-4.8, 26), (5.6, 33), (-13, 8), (15, 12), (-18, 22),
-         (20, 30), (-7, 45), (8, 52), (-24, 40), (26, 46), (-3.6, -2.4), (11, -1.0), (-30, 70), (32, 64), (-12, 80), (14, 90)]
+         (20, 30), (-8.6, 44), (9.0, 53), (-24, 40), (26, 46), (-3.6, -2.4), (11, -1.0), (-30, 70), (32, 64), (-12, 80), (14, 90),
+         (-4.6, -9), (4.9, -15), (-5.0, -22), (4.7, -29), (-4.8, -36), (5.1, -43), (-5.2, -50), (4.8, -57),
+         (-10.5, -18), (12, -31), (-14, -44), (16, -12), (-20, -30), (22, -50)]
+PALMS = []
 for i, (x, y) in enumerate(spots):
-    o = bpy.data.objects.new("palm", pm[i % 3]); B.link(o)
+    o = bpy.data.objects.new("palm", pm[i % 3]); B.link(o); PALMS.append(o)
     o.location = (x, y, ground_z(x, y) - 0.05)
     o.rotation_euler = (0, 0, random.uniform(0, 2 * pi)); s = random.uniform(0.85, 1.15); o.scale = (s, s, s)
 
 # grass tufts along verges (dense near camera), sparse on the land
 tm = [tuft_mesh(s) for s in range(4)]
 par = bpy.data.objects.new("grass", None); B.link(par)
-cnt = 0
-for i in range(9000):
-    y = random.uniform(-9, 60); x = random.choice((-1, 1)) * random.uniform(2.0, 2.0 + 10 * random.random() ** 1.5)
+cnt = 0; TUFTS = []
+for i in range(15000):
+    y = random.uniform(-62, 60); x = random.choice((-1, 1)) * random.uniform(2.0, 2.0 + 10 * random.random() ** 1.5)
     if abs(y) < 0.35 and abs(x) > 2.5: continue
+    if abs(x) < 7.4 and 39.6 < y < 58.4: continue   # the cleared plot
+    if 1.9 < x < 3.4 and -5.25 < y < -3.0: continue   # clear sight-line from the low camera to the board
     o = bpy.data.objects.new("t", tm[i % 4]); B.link(o); o.parent = par
     o.location = (x, y, ground_z(x, y) - 0.02); o.rotation_euler = (0, 0, random.uniform(0, 6.28))
-    s = random.uniform(0.6, 1.5) * (0.8 if abs(x) < 2.6 else 1.0); o.scale = (s, s, s * random.uniform(0.8, 1.3)); cnt += 1
+    s = random.uniform(0.6, 1.5) * (0.8 if abs(x) < 2.6 else 1.0); o.scale = (s, s, s * random.uniform(0.8, 1.3)); cnt += 1; TUFTS.append(o)
 
 # paddy beyond the walls (fields of fine tufts on bunded beds)
 pdm = tuft_mesh(99, n=22, h=0.75); pdm.materials[0] = M_PADDY
-for i in range(5000):
-    x = random.choice((-1, 1)) * random.uniform(14, 70); y = random.uniform(8, 120)
+for i in range(7000):
+    x = random.choice((-1, 1)) * random.uniform(14, 70); y = random.uniform(-60, 120)
     if (x % 9) < 0.6 or (y % 11) < 0.6: continue  # bunds
     o = bpy.data.objects.new("p", pdm); B.link(o); o.parent = par
-    o.location = (x, y, ground_z(x, y) - 0.05); o.rotation_euler = (0, 0, random.uniform(0, 6.28))
+    o.location = (x, y, ground_z(x, y) - 0.05); o.rotation_euler = (0, 0, random.uniform(0, 6.28)); TUFTS.append(o)
 
 # distant tree line
 tr = [tree_blob_mesh(s) for s in range(3)]
@@ -430,7 +482,9 @@ if os.environ.get("HAZE", "1") == "1":
     vb.data.materials.append(vm)
 
 # ---------------------------------------------------------------- camera
-if shot == "hook":
+if shot == "anim":
+    pass
+elif shot == "hook":
     cam, tgt = B.camera((2.9, -5.6, 0.55), (-0.35, 0.0, 1.6), lens=38, fstop=2.8)
 elif shot == "aerial":
     cam, tgt = B.camera((-1.5, -10.0, 30.0), (0.5, 26.0, 0.0), lens=24, fstop=None)
@@ -444,5 +498,5 @@ elif shot == "house":
     cam, tgt = B.camera((1.2, 24.0, 1.7), (0.0, 50.0, 2.6), lens=30, fstop=None)
 SC.cycles.volume_step_rate = 4.0
 SC.cycles.volume_bounces = 0
-B.render(out, int(1080 * scale), int(1920 * scale), samples=spp, exposure=float(os.environ.get("EXPO", "-0.3")))
+if shot != "anim": B.render(out, int(1080 * scale), int(1920 * scale), samples=spp, exposure=float(os.environ.get("EXPO", "-0.3")))
 print("done", out)
