@@ -2,6 +2,8 @@
 // window.render(t) draws the frame at time t (no captions: those are composited later in Python).
 import * as THREE from 'three';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+import {buildWorld} from '../film/world.js';
+const HZ=-16;   // the house sits on the buyer plot of the v1 world; its front faces +z (the road)
 import {clamp,lerp,ss,sm,rng,cnv,tex,spaced} from './lib.js';
 
 const W=1080,H=1920,DUR=57.16;
@@ -12,18 +14,18 @@ const NAVY='#13243f',GOLD='#e2b866',IVORY='#f3ead8';
 async function fonts(){const L=[['700 60px NSO','ଘର'],['500 60px NSO','ଘର'],['600 60px CG','Home ₹'],['600 60px CGI','Loan'],['600 30px IT','EMI'],['500 30px IT','EMI'],['700 60px NSL','₹1']];
   await Promise.all(L.map(([f,s])=>document.fonts.load(f,s)));await document.fonts.ready}
 
-let R,scene,cam,gl,sunL,hemi,houseG,solids=[],edges=[],winMats=[],stack={},tubes=[],cards={},ring,beam,dust,stars,paperMat,logo;
-const KEYS=[ // t, camera pos, target, fov
- [0.0,[5.3,5.2,6.8],[0,2.6,0],40],[3.3,[6.6,3.6,9.2],[0,2.9,0],38],[8.9,[7.6,5.2,10.6],[0,2.8,0],42],
- [12.0,[8.2,4.4,12.2],[0,3.4,0],40],[17.2,[5.4,3.2,11.2],[0,4.4,0],40],[18.8,[9.5,4.6,10.5],[4.6,2.2,0],40],
- [29.7,[3.5,6.5,15.5],[2.4,2.0,0],40],[32.5,[0.5,12.5,12.8],[0,0,12.2],38],[35.4,[0.3,12.6,12.9],[0,0,12.3],38],
- [43.1,[0.0,12.8,13.0],[0,0,12.4],38],[47.8,[7.5,3.4,12.5],[0,2.6,0],40],[52.0,[3.6,3.0,9.6],[0,4.9,0],38],[57.2,[2.9,3.0,8.9],[0,5.6,0],38]];
+let R,scene,cam,gl,world,stage,sunL,hemi,houseG,solids=[],edges=[],winMats=[],stack={},tubes=[],cards={},ring,beam,dust,stars,paperMat,logo;
+const KEYS=[ // t, camera pos, target, fov  (house-relative; front = +z)
+ [0.0,[3.0,5.0,6.6],[0,2.6,0],40],[3.3,[1.8,3.6,9.0],[0,2.9,0],38],[8.9,[0.8,4.2,11.6],[0,2.4,1.8],42],
+ [12.0,[0.6,4.0,11.2],[0,3.4,0],40],[17.2,[0.6,3.4,10.6],[0,4.4,0],40],[18.8,[-1.2,4.0,12.0],[0,2.4,2.6],40],
+ [29.7,[0.0,5.6,13.2],[0,2.2,1.6],40],[32.5,[0.5,12.5,12.8],[0,0,12.2],38],[35.4,[0.3,12.6,12.9],[0,0,12.3],38],
+ [43.1,[0.0,12.8,13.0],[0,0,12.4],38],[47.8,[0.4,3.8,12.0],[0,2.6,0],40],[52.0,[0.2,4.0,9.6],[0,4.6,0],38],[57.2,[0.1,4.1,8.9],[0,5.1,0],38]];
 function camAt(t){let i=0;while(i<KEYS.length-2&&t>KEYS[i+1][0])i++;const a=KEYS[i],b=KEYS[i+1];
   const u=sm(0,1,(t-a[0])/(b[0]-a[0]));const v=(p,q)=>p.map((x,k)=>lerp(x,q[k],u));
   // gentle continuous drift so the camera is never static
   const d=[Math.sin(t*.37)*.25,Math.sin(t*.29+1)*.12,Math.cos(t*.31)*.2];
-  const tg=v(a[2],b[2]),ps=v(a[1],b[1]);const F=1.85;
-  return {pos:ps.map((x,k)=>tg[k]+(x-tg[k])*F+d[k]),tgt:tg,fov:lerp(a[3],b[3],u)}}
+  const tg=v(a[2],b[2]),ps=v(a[1],b[1]);const F=2.3;
+  const P=ps.map((x,k)=>tg[k]+(x-tg[k])*F+d[k]);P[2]+=HZ;return {pos:P,tgt:[tg[0],tg[1],tg[2]+HZ],fov:lerp(a[3],b[3],u)}}
 
 // ---------------------------------------------------------------- textures
 function blueprintTex(){const c=cnv(2048,2048),g=c.getContext('2d');g.fillStyle=NAVY;g.fillRect(0,0,2048,2048);
@@ -89,25 +91,28 @@ function buildHouse(){houseG=new THREE.Group();scene.add(houseG);
   const lawn=new THREE.Mesh(new THREE.BoxGeometry(12.5,.08,10),lawnM);lawn.position.set(0,.04,.9);lawn.receiveShadow=true;houseG.add(lawn);solids.push(lawn);
   const pathM=new THREE.MeshStandardMaterial({color:'#b9ab95',roughness:.9});const path=new THREE.Mesh(new THREE.BoxGeometry(1.5,.1,3.2),pathM);path.position.set(-1,.06,4.1);path.receiveShadow=true;houseG.add(path);solids.push(path);
   for(const [w,d,x,z] of [[12.5,.25,0,5.9],[.25,10,-6.25,.9],[.25,10,6.25,.9]]){if(z===5.9){box(5.2,.7,.25,-4.2,.35,z,lat);box(5.2,.7,.25,3.6,.35,z,lat)}else box(w,.7,d,x,.35,z,lat)}
-  const leaf=new THREE.MeshStandardMaterial({color:'#2f5a2a',roughness:.85}),trunk=new THREE.MeshStandardMaterial({color:'#4a3324',roughness:.9});
-  for(const [x,z,sc] of [[-4.8,-2.6,1.2],[5.0,-2.9,1.0],[4.9,3.9,.75]]){const tr=new THREE.Group();const tk=new THREE.Mesh(new THREE.CylinderGeometry(.12*sc,.18*sc,2*sc,10),trunk);tk.position.y=sc;tr.add(tk);
-    const r=rng(Math.round(x*10+z));for(let i=0;i<7;i++){const b=new THREE.Mesh(new THREE.IcosahedronGeometry((.7+r()*.5)*sc,1),leaf);b.position.set((r()-.5)*1.4*sc,(2.1+r()*1.1)*sc,(r()-.5)*1.4*sc);b.castShadow=true;tr.add(b)}
-    tk.castShadow=true;tr.position.set(x,0,z);houseG.add(tr);tr.traverse(o=>{if(o.isMesh)solids.push(o)})}
   for(const s of solids){s.material=s.material.clone();s.material.transparent=true}
   winMats.length=0;solids.forEach(s=>{if(s.material.emissive&&s.material.emissive.r>.5)winMats.push(s.material)})}
 
 // ---------------------------------------------------------------- init
 async function init(){await fonts();
   R=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});R.setSize(W,H);R.setPixelRatio(1);R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
-  R.outputColorSpace=THREE.SRGBColorSpace;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.05;gl=R.domElement;
-  scene=new THREE.Scene();scene.background=new THREE.Color(NAVY);scene.fog=new THREE.Fog(NAVY,22,60);
-  cam=new THREE.PerspectiveCamera(40,W/H,.1,200);
+  R.outputColorSpace=THREE.SRGBColorSpace;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.0;gl=R.domElement;
+  scene=new THREE.Scene();scene.fog=new THREE.Fog('#e6c48f',60,380);
+  cam=new THREE.PerspectiveCamera(40,W/H,.1,2000);
   const pmg=new THREE.PMREMGenerator(R);scene.environment=pmg.fromScene(new RoomEnvironment(),.04).texture;
-  hemi=new THREE.HemisphereLight('#9fb6e0','#1a2236',.55);scene.add(hemi);
-  sunL=new THREE.DirectionalLight('#ffd7a0',1.6);sunL.position.set(-8,10,6);sunL.castShadow=true;sunL.shadow.mapSize.set(2048,2048);
-  Object.assign(sunL.shadow.camera,{left:-14,right:14,top:14,bottom:-14,near:1,far:40});sunL.shadow.bias=-.0005;scene.add(sunL);
-  paperMat=new THREE.MeshStandardMaterial({map:blueprintTex(),roughness:.95});const ground=new THREE.Mesh(new THREE.PlaneGeometry(60,60),paperMat);ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
-  const pool=new THREE.SpotLight('#ffcf8a',60,40,.55,.8,1.4);pool.position.set(2,14,8);pool.target.position.set(0,0,1);scene.add(pool,pool.target);
+  world=buildWorld(scene);
+  for(const k of ['leafL','leafR','board','lock','chain','soldTag','sold','survey'])if(world[k])world[k].visible=false;
+  world.tall.traverse(o=>{if(o.isMesh&&o.material&&((o.material.color&&['ece4d2','a8382a','f3ead6'].includes(o.material.color.getHexString()))||o.material.vertexColors))o.visible=false});
+  world.palms.forEach(p=>p.g.visible=false);
+  sunL=new THREE.DirectionalLight('#ffcf94',3.3);sunL.castShadow=true;sunL.shadow.mapSize.set(2048,2048);
+  Object.assign(sunL.shadow.camera,{left:-30,right:30,top:30,bottom:-30,near:1,far:320});sunL.shadow.bias=-.0004;sunL.shadow.normalBias=.03;
+  scene.add(sunL,sunL.target);sunL.target.position.set(0,0,HZ);
+  const sd=new THREE.Vector3(Math.sin(-.37)*Math.cos(Math.asin(.16)),.16,-Math.cos(-.37)*Math.cos(Math.asin(.16))).normalize();
+  world.skyU.sunDir.value.copy(sd);sunL.position.copy(sd).multiplyScalar(140).add(sunL.target.position);
+  world.skyU.zen.value.set('#b4c2bf');world.skyU.hor.value.set('#f0c98f');world.skyU.glow.value.set('#ffb35e');
+  hemi=new THREE.HemisphereLight('#f6dcb4','#5d3a24',1.15);scene.add(hemi);
+  stage=new THREE.Group();stage.position.z=HZ;scene.add(stage);scene.add=(...o)=>{stage.add(...o);return scene};
   buildHouse();
   const glow=new THREE.PointLight('#ffb25e',0,9,1.6);glow.position.set(1.8,2,3.2);scene.add(glow);st.glow=glow;
   // the burden: loan file, EMI calendar, coin stacks
@@ -115,19 +120,23 @@ async function init(){await fonts();
   const pm=(t)=>[new THREE.MeshStandardMaterial({color:'#d9ceb6',roughness:.9}),new THREE.MeshStandardMaterial({color:'#d9ceb6',roughness:.9}),new THREE.MeshStandardMaterial({color:'#d9ceb6',roughness:.9}),new THREE.MeshStandardMaterial({color:'#d9ceb6',roughness:.9}),new THREE.MeshStandardMaterial({map:t,roughness:.8}),new THREE.MeshStandardMaterial({color:'#cfc3a8'})];
   stack.loan=new THREE.Mesh(new THREE.BoxGeometry(5.0,6.8,.35),pm(lf.t));stack.emi=new THREE.Mesh(new THREE.BoxGeometry(4.6,4.9,.3),pm(em.t));
   stack.coins=new THREE.Group();const cm=new THREE.MeshStandardMaterial({map:cn.t,metalness:.45,roughness:.35,color:'#ffe0a0',emissive:'#6a4410',emissiveIntensity:.7});
-  const cr=rng(8);for(let s=0;s<6;s++){const n=6+Math.floor(cr()*9),bx=-3.8+s*1.5+cr()*.3,bz=3.4+cr()*.8;for(let k=0;k<n;k++){const c=new THREE.Mesh(new THREE.CylinderGeometry(.45,.45,.12,40),cm);c.position.set(bx+(cr()-.5)*.05,.06+k*.125,bz);c.castShadow=true;c.userData={k,s,r:cr()};stack.coins.add(c)}}
+  const cr=rng(8);for(let s=0;s<6;s++){const n=6+Math.floor(cr()*9),bx=-3.6+s*1.45+cr()*.3,bz=6.2+cr()*.6;for(let k=0;k<n;k++){const c=new THREE.Mesh(new THREE.CylinderGeometry(.45,.45,.12,40),cm);c.position.set(bx+(cr()-.5)*.05,.06+k*.125,bz);c.castShadow=true;c.userData={k,s,r:cr()};stack.coins.add(c)}}
   for(const m of [stack.loan,stack.emi]){m.castShadow=m.receiveShadow=true}
   scene.add(stack.loan,stack.emi,stack.coins);
   // beam of light
   beam=new THREE.Mesh(new THREE.CylinderGeometry(1.2,4.2,16,48,1,true),new THREE.MeshBasicMaterial({color:'#ffe7b0',transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));beam.position.set(0,8,0);scene.add(beam);
   // three eligibility tubes
   const tl=[['ବାର୍ଷିକ Income','ANNUAL INCOME','₹9 L'],['ଘରର Value','HOUSE VALUE','₹35 L'],['Home Loan','LOAN AMOUNT','₹25 L']];
-  tl.forEach(([o,e,l],i)=>{const g=new THREE.Group();g.position.set(5.6+i*2.2,0,-.4+i*.8);
+  tl.forEach(([o,e,l],i)=>{const g=new THREE.Group();g.position.set(-3.0+i*3.0,0,4.4);
     const glass=new THREE.Mesh(new THREE.CylinderGeometry(.55,.55,4.2,48,1,true),new THREE.MeshStandardMaterial({color:'#bfd6ff',transparent:true,opacity:.18,roughness:.05,metalness:.2,side:THREE.DoubleSide}));glass.position.y=2.1;
     const fill=new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,1,48),new THREE.MeshStandardMaterial({color:'#e2b866',emissive:'#7a5214',emissiveIntensity:.6,metalness:.6,roughness:.25}));
     const base=new THREE.Mesh(new THREE.CylinderGeometry(.75,.8,.25,48),new THREE.MeshStandardMaterial({color:'#2a3654',metalness:.4,roughness:.5}));base.position.y=.12;
     const lab=labelTex(512,280,(gg,w,h)=>tubeLabel(gg,w,h,o,e,l));const plate=new THREE.Mesh(new THREE.PlaneGeometry(3.3,1.8),new THREE.MeshBasicMaterial({map:lab.t,transparent:true}));plate.position.set(0,5.5,0);
-    g.add(glass,fill,base);g.userData={fill,plate,glass};scene.add(g);tubes.push(g)});
+    const tickM=new THREE.MeshStandardMaterial({color:'#f3e6c8',emissive:'#5a4420',emissiveIntensity:.4});
+    for(let q=1;q<=8;q++){const tk=new THREE.Mesh(new THREE.TorusGeometry(.56,q%2?.008:.016,6,48),tickM);tk.rotation.x=Math.PI/2;tk.position.y=.25+q*.5;g.add(tk)}
+    const lim=new THREE.Mesh(new THREE.TorusGeometry(.6,.03,8,64),new THREE.MeshBasicMaterial({color:'#ffd27a'}));lim.rotation.x=Math.PI/2;lim.position.y=.25+.86*4.1;g.add(lim);
+    const lvl=new THREE.Mesh(new THREE.CylinderGeometry(.52,.52,.04,48),new THREE.MeshBasicMaterial({color:'#fff1c8',transparent:true,opacity:.9,blending:THREE.AdditiveBlending}));g.add(lvl);
+    g.add(glass,fill,base);g.userData={fill,plate,glass,lvl};scene.add(g);tubes.push(g)});
   ring=new THREE.Mesh(new THREE.RingGeometry(5.2,5.6,128),new THREE.MeshBasicMaterial({color:'#ffd27a',transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.y=.03;scene.add(ring);
   // cards on the paper
   cards.check=labelTex(1024,760,(g,w,h)=>checklist(g,w,h,0,0));cards.web=labelTex(900,620,(g,w,h)=>browserCard(g,w,h,0));cards.bank=labelTex(900,620,(g,w,h)=>bankCard(g,w,h,0));
@@ -143,33 +152,32 @@ async function init(){await fonts();
 const st={};
 
 // ---------------------------------------------------------------- per-frame state
-function proj(v){const p=new THREE.Vector3(...v).project(cam);return [(p.x+1)/2*W,(1-p.y)/2*H,p.z]}
-function update(t){const c=camAt(t);cam.position.set(...c.pos);cam.lookAt(...c.tgt);cam.fov=c.fov;cam.updateProjectionMatrix();
+function proj(v){const p=new THREE.Vector3(v[0],v[1],v[2]+HZ).project(cam);return [(p.x+1)/2*W,(1-p.y)/2*H,p.z]}
+function update(t){world.windUniform.value=t;world.skyU.uT.value=t;const c=camAt(t);cam.position.set(...c.pos);cam.lookAt(...c.tgt);cam.fov=c.fov;cam.updateProjectionMatrix();
   // house: blueprint -> solid
   const rise=sm(1.75,3.2,t),glow=ss(2.7,3.4,t);
   houseG.scale.y=Math.max(.001,rise);solids.forEach(s=>s.material.opacity=ss(1.75,2.4,t));houseG.visible=t>1.74;
   const lit=glow*(1-.55*ss(5.6,8.8,t)*(1-ss(10.4,12.2,t)))*(1+.4*ss(27.7,29.6,t));winMats.forEach(m=>m.emissiveIntensity=.75*lit);st.glow.intensity=6*lit;
   // mood: day-dusk to darker burden, light returns
   const dark=ss(5.6,8.8,t)*(1-ss(10.4,12.6,t));sunL.intensity=1.6*(1-.55*dark)*(1-.6*ss(43.6,46,t));hemi.intensity=.55*(1-.3*dark);
-  scene.background.set(NAVY);
   // burden objects drop on the words (Home Loan 6.35, EMI 7.45, coins 8.05)
   const drop=(t0,y1)=>{const k=clamp((t-t0)/.45);const b=k<1?(1-k*k)*7:0;const bo=k>=1?Math.exp(-(t-t0-.45)*8)*Math.abs(Math.sin((t-t0-.45)*22))*.18:0;return y1+b+bo};
   const lift=ss(10.4,11.8,t),gone=Math.max(.001,1-ss(11.2,11.85,t));
-  stack.loan.position.set(-3.4-lift*7,drop(6.35,3.4)+lift*1.2,3.3);stack.loan.rotation.set(-.06,.55,.1+lift*.6);stack.loan.scale.setScalar(gone);stack.loan.visible=t>6.0&&t<11.9;
-  stack.emi.position.set(3.6+lift*7,drop(7.45,2.45)+lift*1.2,3.6);stack.emi.rotation.set(-.08,-.5,-.08-lift*.5);stack.emi.scale.setScalar(gone);stack.emi.visible=t>7.1&&t<11.9;
+  stack.loan.position.set(-2.7-lift*7,drop(6.35,3.4)+lift*1.2,4.6);stack.loan.rotation.set(-.05,.22,.06+lift*.6);stack.loan.scale.setScalar(gone);stack.loan.visible=t>6.0&&t<11.9;
+  stack.emi.position.set(2.9+lift*7,drop(7.45,2.45)+lift*1.2,5.0);stack.emi.rotation.set(-.05,-.24,-.05-lift*.5);stack.emi.scale.setScalar(gone);stack.emi.visible=t>7.1&&t<11.9;
   stack.coins.children.forEach(cn=>{const {k,s,r}=cn.userData;const t0=8.05+s*.06+k*.012;const kk=clamp((t-t0)/.25);cn.visible=t>t0-.3;
     const fl=ss(10.5+r*.4,11.9,t);const gone=1-ss(11.2+r*.3,11.85,t);cn.position.y=.06+k*.125+(1-kk*kk)*4+fl*(1.2+r*1.4);cn.rotation.set(fl*r*3,fl*2,fl*r*2);cn.scale.setScalar(Math.max(.001,gone))});
   stack.coins.visible=t>7.6&&t<16;
   // beam
-  beam.material.opacity=.16*ss(9.4,10.4,t)*(1-ss(16.5,18.5,t));
+  beam.material.opacity=.03*ss(9.4,10.4,t)*(1-ss(16.5,18.5,t));
   // tubes: rise in 18.8-20, fill on each phrase
   const fills=[[19.6,21.9],[22.6,24.6],[25.1,27.2]];
-  tubes.forEach((g,i)=>{const a=ss(18.8+i*.25,19.8+i*.25,t)*(1-ss(43.6,45.2,t));g.visible=a>0.001;g.scale.setScalar(Math.max(.001,a));
-    const f=sm(fills[i][0],fills[i][1],t)*.86;const fm=g.userData.fill;fm.scale.y=Math.max(.001,f*4.1);fm.position.y=.25+f*4.1/2;
+  tubes.forEach((g,i)=>{const a=ss(18.8+i*.25,19.8+i*.25,t)*(1-ss(29.9,30.9,t));g.visible=a>0.001;g.scale.setScalar(Math.max(.001,a));
+    const f=sm(fills[i][0],fills[i][1],t)*.86;const fm=g.userData.fill;fm.scale.y=Math.max(.001,f*4.1);fm.position.y=.25+f*4.1/2;g.userData.lvl.position.y=.27+f*4.1;
   });
   ring.material.opacity=.85*ss(27.7,29.4,t)*(1-ss(30.5,32,t))+.35*ss(45.5,47.5,t);
   // cards
-  const cardIn=(m,t0,t1,x,z,ry)=>{const a=sm(t0,t0+.8,t)*(1-ss(t1,t1+.8,t));m.visible=a>0.001;m.material.opacity=a;m.position.set(x+(1-a)*-6,.02+(1-a)*1.5,z);m.rotation.z=ry*(1-.6*a)};
+  const cardIn=(m,t0,t1,x,z,ry)=>{const a=sm(t0,t0+.8,t)*(1-ss(t1,t1+.8,t));m.visible=a>0.001;m.material.opacity=a;m.position.set(x+(1-a)*-6,.5+(1-a)*1.5,z);m.rotation.z=ry*(1-.6*a)};
   cardIn(cards.check.m,30.1,35.1,0,12.3,.06);cardIn(cards.web.m,35.6,43.3,-2.25,12.0,.08);cardIn(cards.bank.m,36.4,43.3,2.4,12.8,-.07);
   redraw(cards.check,(g,w,h)=>checklist(g,w,h,ss(30.6,31.6,t),ss(33.2,34.4,t)),'c'+Math.round(ss(30.6,31.6,t)*30)+'_'+Math.round(ss(33.2,34.4,t)*30));
   redraw(cards.web,(g,w,h)=>browserCard(g,w,h,ss(40.9,42.4,t)),'w'+Math.round(ss(40.9,42.4,t)*3));
@@ -186,10 +194,11 @@ function overlays(t){
   const d=lerp(.38,1,sm(0,1.75,t)),fade=1-ss(2.2,3.3,t);if(fade<=0)return;
   const segs=edges.map(([a,b])=>[a.slice(),b.slice()]);let tot=0;const L=segs.map(([a,b])=>{const l=Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);tot+=l;return l});
   // the plan outline on the paper first, then walls
-  O.save();O.lineCap='round';O.strokeStyle=GOLD;O.shadowColor='rgba(255,200,110,.9)';O.shadowBlur=14;O.lineWidth=3.2;O.globalAlpha=fade;
+  O.save();O.lineCap='round';O.strokeStyle=GOLD;O.shadowColor='rgba(255,200,110,.9)';O.shadowBlur=14;O.lineWidth=4.2;O.globalAlpha=fade;
   let acc=0,tip=null;const lim=d*tot;const sc=houseG.scale.y;
   for(let i=0;i<segs.length;i++){if(acc>=lim)break;const [a,b]=segs[i];const k=clamp((lim-acc)/L[i]);acc+=L[i];
     const ya=a[1],yb=b[1];const pa=proj([a[0],ya,a[2]]),pb=proj([lerp(a[0],b[0],k),lerp(ya,yb,k),lerp(a[2],b[2],k)]);
+    O.save();O.shadowBlur=0;O.strokeStyle='rgba(40,18,4,.55)';O.lineWidth=8;O.beginPath();O.moveTo(pa[0],pa[1]);O.lineTo(pb[0],pb[1]);O.stroke();O.restore();
     O.beginPath();O.moveTo(pa[0],pa[1]);O.lineTo(pb[0],pb[1]);O.stroke();tip=pb}
   if(tip&&d<.999){O.shadowBlur=30;O.fillStyle='#fff3d6';O.beginPath();O.arc(tip[0],tip[1],6,0,7);O.fill()}
   O.restore()}
