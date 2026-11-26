@@ -14,7 +14,7 @@ async function fonts(){const L=[['700 60px NSO','ଘର'],['500 60px NSO','ଘ�
 
 let R,scene,cam,gl,sunL,hemi,houseG,solids=[],edges=[],winMats=[],stack={},tubes=[],cards={},ring,beam,dust,stars,paperMat,logo;
 const KEYS=[ // t, camera pos, target, fov
- [0.0,[4.4,3.9,5.6],[0,1.0,0],40],[3.3,[6.6,3.3,9.2],[0,2.0,0],38],[8.9,[7.6,5.2,10.6],[0,2.8,0],42],
+ [0.0,[5.3,5.2,6.8],[0,2.6,0],40],[3.3,[6.6,3.6,9.2],[0,2.9,0],38],[8.9,[7.6,5.2,10.6],[0,2.8,0],42],
  [12.0,[8.2,4.4,12.2],[0,3.4,0],40],[17.2,[5.4,3.2,11.2],[0,4.4,0],40],[18.8,[9.5,4.6,10.5],[4.6,2.2,0],40],
  [29.7,[3.5,6.5,15.5],[2.4,2.0,0],40],[32.5,[0.5,12.5,12.8],[0,0,12.2],38],[35.4,[0.3,12.6,12.9],[0,0,12.3],38],
  [43.1,[0.0,12.8,13.0],[0,0,12.4],38],[47.8,[7.5,3.4,12.5],[0,2.6,0],40],[52.0,[3.6,3.0,9.6],[0,4.9,0],38],[57.2,[2.9,3.0,8.9],[0,5.6,0],38]];
@@ -183,7 +183,7 @@ const _rd={};function redraw(o,fn,key){if(_rd[o.c.id||(o.c.id='x'+Math.random())
 
 // ---------------------------------------------------------------- 2D overlay: gold blueprint lines with a glowing pen tip
 function overlays(t){
-  const d=sm(0,1.95,t*1.0+.12),fade=1-ss(2.2,3.3,t);if(fade<=0)return;
+  const d=lerp(.38,1,sm(0,1.75,t)),fade=1-ss(2.2,3.3,t);if(fade<=0)return;
   const segs=edges.map(([a,b])=>[a.slice(),b.slice()]);let tot=0;const L=segs.map(([a,b])=>{const l=Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);tot+=l;return l});
   // the plan outline on the paper first, then walls
   O.save();O.lineCap='round';O.strokeStyle=GOLD;O.shadowColor='rgba(255,200,110,.9)';O.shadowBlur=14;O.lineWidth=3.2;O.globalAlpha=fade;

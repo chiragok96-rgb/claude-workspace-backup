@@ -12,8 +12,8 @@ CAPS = []
 def cap(t0, t1, y, mode="sweep", glint=False, din=0.45, dout=0.3, **kw):
     CAPS.append((t0, t1, Block(**kw), y, dict(mode=mode, glint=glint, din=din, dout=dout)))
 GREEN = (159, 208, 169)
-cap(0.15, 1.72, 420, hero="ନିଜର ଗୋଟିଏ ଘର", size=88, label="A HOME OF YOUR OWN", dout=.25)
-cap(1.80, 3.60, 420, hero="ସ୍ୱପ୍ନ କାହାର ବା ନଥାଏ?", size=82, accent="Everyone dreams of one.", accsize=52)
+cap(0.15, 1.72, 330, hero="ନିଜର ଗୋଟିଏ ଘର", size=88, label="A HOME OF YOUR OWN", dout=.25)
+cap(1.80, 3.60, 330, hero="ସ୍ୱପ୍ନ କାହାର ବା ନଥାଏ?", size=82, accent="Everyone dreams of one.", accsize=52)
 cap(3.85, 5.60, 400, hero="ଘର କିଣିବା କଥା ଆସିଲେ", size=74, label="WHEN IT COMES TO BUYING", dout=.2)
 cap(5.85, 7.38, 400, mode="hard", hero="Home Loan", size=100, latin=CG6I, lscale=1.0, color=IVORY, dout=.12)
 cap(7.40, 8.00, 400, mode="hard", hero="EMI", size=110, latin=CG6I, lscale=1.0, color=IVORY, dout=.1)
