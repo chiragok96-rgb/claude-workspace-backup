@@ -1,0 +1,223 @@
+<title>The Gate v2 Storyboard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter+Tight:wght@400;500;600&family=Noto+Serif+Oriya:wght@500;700&family=Noto+Serif:wght@500&display=swap">
+<style>
+/* Layout: one reading column; each beat = a 9:16 sketch beside its shot sheet, stacked on phones.
+   Single committed look taken from the film itself: lamp-lit teak brown, ivory paper, gold ink, laterite. */
+:root{
+  --ground:#16100b; --panel:#1f1711; --line:#3a2c20;
+  --ivory:#f0e7d4; --muted:#ab9d88; --gold:#cfa45a; --laterite:#bd5f3d; --ok:#86ad84; --warn:#d9573c;
+  --display:"Cormorant Garamond",Georgia,"Times New Roman",serif;
+  --body:"Inter Tight","Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --odia:"Noto Serif Oriya","Kalinga","Noto Sans Oriya",serif;
+  --num:"Noto Serif",Georgia,serif;
+  color-scheme:dark;
+}
+html{background:var(--ground)}
+body{background:var(--ground);color:var(--ivory);font:15.5px/1.62 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:44px 90px}
+.wrap{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:64px}
+h1,h2,h3{font-family:var(--display);font-weight:500;margin:0;line-height:1.08;text-wrap:balance}
+h1{font-size:clamp(42px,7.4vw,74px)}
+h2{font-size:clamp(30px,4.4vw,42px)}
+h3{font-size:24px}
+p{margin:0;max-width:68ch}
+.eyebrow{font:600 11.5px/1 var(--body);letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.lede{font-size:18px;color:var(--ivory);opacity:.9}
+.muted{color:var(--muted)}
+section{display:flex;flex-direction:column;gap:20px}
+.od{font-family:var(--odia)}
+.acc{font-family:var(--display);font-style:italic;color:var(--gold)}
+.num{font-family:var(--num);font-variant-numeric:lining-nums tabular-nums}
+.facts{display:flex;flex-wrap:wrap;gap:10px 26px;font-size:13.5px;color:var(--muted)}
+.facts b{color:var(--ivory);font-weight:500}
+hr{border:0;border-top:1px solid var(--line);margin:0}
+
+/* compare */
+.compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;max-width:640px}
+.compare figure{margin:0;display:flex;flex-direction:column;gap:8px}
+.compare img{width:100%;aspect-ratio:9/16;object-fit:cover;border-radius:6px;border:1px solid var(--line);display:block}
+.compare figcaption{font-size:13px;color:var(--muted)}
+.compare figcaption b{color:var(--ivory);font-weight:600}
+
+/* decision */
+.decide{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px 20px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card h3{font-size:22px}
+.card.pick{border-color:var(--gold)}
+.tag{align-self:flex-start;font:600 10.5px/1 var(--body);letter-spacing:.16em;text-transform:uppercase;padding:5px 8px;border-radius:99px;border:1px solid var(--gold);color:var(--gold)}
+
+/* table */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:11px 14px;border-bottom:1px solid var(--line)}
+th{font:600 11px/1.3 var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--gold);background:var(--panel)}
+tr:last-child td{border-bottom:0}
+td:first-child{color:var(--muted);white-space:nowrap}
+
+/* beats */
+.beats{display:flex;flex-direction:column;gap:30px}
+.beat{display:grid;grid-template-columns:168px minmax(0,1fr);gap:24px;align-items:start;padding-top:28px;border-top:1px solid var(--line)}
+.beat svg{width:168px;height:auto;aspect-ratio:9/16;border-radius:6px;border:1px solid var(--line);display:block;background:#0f0b08}
+.sheet{display:flex;flex-direction:column;gap:10px;min-width:0}
+.tc{font:500 13px/1 var(--num);color:var(--gold);letter-spacing:.04em}
+.vo{font-family:var(--odia);font-size:17px;color:var(--ivory);border-left:2px solid var(--gold);padding-left:12px}
+.vo small{display:block;font-family:var(--body);font-size:13px;color:var(--muted);margin-top:2px}
+dl{display:grid;grid-template-columns:96px minmax(0,1fr);gap:6px 14px;margin:0}
+dt{font:600 10.5px/1.9 var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+dd{margin:0}
+.ost{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;flex-direction:column;align-items:center;gap:2px;background:#120d09;border:1px solid var(--line);border-radius:6px;padding:7px 12px 6px}
+.chip .h{font-family:var(--odia);font-weight:700;font-size:17px;line-height:1.3}
+.chip .h.acc{font-family:var(--display);font-weight:500;font-size:20px}
+.chip .l{font:600 9.5px/1.2 var(--body);letter-spacing:.17em;text-transform:uppercase;color:var(--gold)}
+.chip.warn .h{color:#f0b49e}
+.hook{background:linear-gradient(180deg,rgba(207,164,90,.10),rgba(207,164,90,0));border:1px solid var(--gold);border-radius:10px;padding:22px 22px 26px}
+.hook .beat:first-of-type{border-top:0;padding-top:6px}
+
+/* type specimen */
+.spec{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:16px}
+.frame{position:relative;aspect-ratio:9/16;max-width:290px;width:100%;border-radius:8px;overflow:hidden;border:1px solid var(--line);
+  background:radial-gradient(120% 70% at 60% 30%,#6d4a2c 0%,#2d1d12 55%,#150e09 100%)}
+.frame .zone{position:absolute;left:0;right:0;background:repeating-linear-gradient(135deg,rgba(217,87,60,.16) 0 6px,transparent 6px 12px)}
+.frame .zone.t{top:0;height:13%}
+.frame .zone.b{bottom:0;height:23.4%}
+.frame .zlab{position:absolute;left:8px;font:600 8.5px/1 var(--body);letter-spacing:.15em;text-transform:uppercase;color:#e7a28b}
+.frame .cap{position:absolute;left:0;right:0;top:20%;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center}
+.frame .cap .h{font-family:var(--odia);font-weight:700;font-size:30px;color:var(--ivory);text-shadow:0 2px 14px rgba(0,0,0,.55)}
+.frame .cap .h em{font-family:var(--display);font-weight:500;font-style:italic;color:var(--gold);font-size:34px}
+.frame .cap .rule{width:34px;height:1px;background:var(--gold);opacity:.8}
+.frame .cap .l{font:600 9.5px/1 var(--body);letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;max-width:70ch}
+.ask{background:var(--panel);border:1px solid var(--gold);border-radius:10px;padding:22px 24px;display:flex;flex-direction:column;gap:12px}
+@media (max-width:640px){
+  .beat{grid-template-columns:1fr}
+  .beat svg{width:150px}
+  dl{grid-template-columns:1fr}
+  dt{line-height:1.2;margin-top:6px}
+}
+</style>
+
+<div class="wrap">
+
+<header style="display:flex;flex-direction:column;gap:18px">
+  <span class="eyebrow">PropertyKatha · Video 01 · Storyboard for approval</span>
+  <h1>The Gate <span class="acc">v2</span></h1>
+  <p class="lede">An Odisha property explainer told as a single unbroken camera move: from the laterite road to the locked gate, up into a records-office desk where the answer lies, then back out through the gate, now open. The house look stays; the craft goes up a level.</p>
+  <div class="facts">
+    <span><b class="num">55.6 s</b> voiceover</span><span><b>1080 × 1920</b> · 30 fps</span><span><b>One shot</b>, no cuts</span>
+    <span><b>Blender Cycles</b> path-traced 3D</span><span><b>Odia</b> key words + English labels</span>
+  </div>
+</header>
+
+<section>
+  <span class="eyebrow">Proof of the new look</span>
+  <h2>Same moment, new engine</h2>
+  <p class="muted">Left: v1 at 8.6 s (real-time WebGL). Right: a first look-development render of the same beat in Blender Cycles, with real light transport, translucent backlit palms, depth of field through foreground grass and a cinematic grade. It is a first pass at half resolution; the sky still blows out and the board needs more light, and both get fixed in production.</p>
+  <div class="compare">
+    <figure><img alt="v1 frame: flat black fence with a brown sign in hazy sepia light" src="data:image/jpeg;base64,{{V1}}"><figcaption><b>v1</b> · three.js, SwiftShader</figcaption></figure>
+    <figure><img alt="v2 look-dev: backlit iron gate with the Odia board, palms against a low sun, grass in the foreground" src="data:image/jpeg;base64,{{V2}}"><figcaption><b>v2 look-dev</b> · Cycles, first pass</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">The format decision</span>
+  <h2>One shot, but the medium changes inside it</h2>
+  <div class="decide">
+    <div class="card pick"><span class="tag">Recommended</span><h3>Continuous camera with a scale reveal</h3>
+      <p>The story is one physical journey (road, gate, records, road), so a single camera move fits it. With no cut there is no natural point to swipe away. The jump from land to paperwork happens through the camera itself: we rise above the gate and discover the land is an architect's scale model on a records-office desk. Variety without a single cut.</p></div>
+    <div class="card"><h3>Chapters with match-cuts</h3>
+      <p>Easier to render, but every cut is an exit point in the first 10 seconds, and it reads like a template explainer. Rejected.</p></div>
+    <div class="card"><h3>All 3D land, no documents</h3>
+      <p>Beautiful, but the advice (Bhulekh map, patta, sale deed, registered paper) is about paper. Viewers need to see the actual documents to remember what to check. Rejected.</p></div>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">What gets better than v1</span>
+  <div class="tbl"><table>
+    <thead><tr><th>Area</th><th>v1</th><th>v2</th></tr></thead>
+    <tbody>
+      <tr><td>3D</td><td>Real-time WebGL, low-poly palms that read as spiky balls, murky sepia haze</td><td>Path-traced Cycles: leaflet-level coconut palms with backlit translucency, laterite with pitted texture, iron with rust, long real shadows, lens depth of field</td></tr>
+      <tr><td>Hook</td><td>Small price over a static road</td><td>Fast low glide that brakes on "ହେଲେ", time-lapse, then a gate slamming shut in front of the lens; first gate frame lands at 6.4 s</td></tr>
+      <tr><td>Documents</td><td>Flat cards on a wall</td><td>Real objects on a teak desk under a brass lamp: map sheet, patta, deeds in red cotton tape, a glass magnifier that truly refracts, a registration seal that stamps</td></tr>
+      <tr><td>Text</td><td>An overlay on almost every phrase, some small and low-contrast</td><td>Most words written into the world (board, map, patta, deed). Overlays only for about 12 hero words, larger, with a soft light-sweep reveal</td></tr>
+      <tr><td>Music</td><td>Synthesised in code; you chose the no-music cut</td><td>Composed to picture and played on sampled instruments (felt piano, cello, strings, low pulse), hits on the clang and the seal, silence on "ସାବଧାନ୍", resolving to major as the gate opens</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <span class="eyebrow">Beat by beat · timings measured from your voiceover</span>
+  <h2>The first 10 seconds</h2>
+  <p class="muted">Rule for the hook: something moves fast at frame 1, the price lands by 2 s, the story turns at 2.7 s, and the gate slams at 6.4 s. The board frame at 8 s doubles as the cover image.</p>
+
+  <div class="hook beats">
+  {{HOOK}}
+  </div>
+</section>
+
+<section>
+  <h2>The rest of the take</h2>
+  <div class="beats">
+  {{REST}}
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">Subtitles</span>
+  <h2>Odia hero word, English label, nothing else</h2>
+  <p>Your instinct is right. Odia is the hero (it is who the page is for), and a small gold English line under each word keeps non-Odia viewers, NRIs and search with us. Only the 12 or so words that carry the advice get an overlay; the rest of the text lives inside the scene. One accent term per line is set in gold italic (<span class="acc">Right of Way</span>, <span class="acc">Bhulekh Map</span>). Figures use lining numerals, never old-style. Everything stays inside the safe zone, clear of Instagram's top bar and caption area.</p>
+  <div class="spec">
+    <div class="frame" aria-label="Specimen: subtitle placement inside the safe zone">
+      <div class="zone t"></div><span class="zlab" style="top:6px">Top 250 px · no text</span>
+      <div class="cap"><span class="h">ସରକାରୀ Road ନୁହେଁ</span><span class="rule"></span><span class="l">Not always a government road</span></div>
+      <div class="zone b"></div><span class="zlab" style="bottom:8px">Bottom 450 px · no text</span>
+    </div>
+    <div class="frame" aria-label="Specimen: accent term in gold italic">
+      <div class="zone t"></div><div class="zone b"></div>
+      <div class="cap"><span class="h"><em>Right of Way</em></span><span class="rule"></span><span class="l">Is there proof of passage?</span></div>
+    </div>
+    <div class="frame" aria-label="Specimen: warning word">
+      <div class="zone t"></div><div class="zone b"></div>
+      <div class="cap"><span class="h" style="color:#f2b7a1">ସାବଧାନ୍</span><span class="rule" style="background:var(--warn)"></span><span class="l" style="color:#e9a089">Caution</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">Music and sound</span>
+  <h2>A score cut to the picture</h2>
+  <ul>
+    <li><b>Mood:</b> a classic, investigative feel, closer to a premium documentary than to a trending sound. Felt piano motif in D minor, a cello drone and a soft ticking pulse around 92 BPM ("the clock before the advance").</li>
+    <li><b>Hits:</b> a deep braam and the metal clang at 6.4 s, a felt thump when the seal lands at 39.6 s. The music drops to a single held cello note under "ସାବଧାନ୍".</li>
+    <li><b>Resolve:</b> at 42.7 s the harmony turns to D major as the gate opens, with strings rising into the end card and a short two-note logo sting.</li>
+    <li><b>Sound design:</b> wind in the palms, birds, road dust, chain rattle, board creak; indoors a wall clock, a ceiling fan, paper slides, pen scratch, the stamp.</li>
+    <li><b>Mix:</b> voice first. Music ducks about 12 LU under the voice; the master is −14 LUFS with true peak at −1.5 dB. As before, I'll also deliver a voice-and-effects version without music.</li>
+  </ul>
+  <p class="muted">The score is played on sampled acoustic instruments (FluidSynth with the MuseScore General soundfont, confirmed installable here) instead of v1's synthesised tones, so the piano and strings sound real.</p>
+</section>
+
+<section>
+  <span class="eyebrow">Production</span>
+  <h2>How it gets made</h2>
+  <ul>
+    <li>Two Blender scenes share one camera path: the land (also used as the scale model) and the records desk. All Odia text on the board, map, patta and deeds is typeset with proper Odia shaping and printed onto the 3D objects as textures.</li>
+    <li>Before the full render: test stills at the middle of every phrase and at every transition, a pop scan between consecutive frames, and a check that every word stays inside the safe zone.</li>
+    <li>Render time: {{RENDER}}. I'll split it across 10–12 helper sessions as agreed, then join the chunks and check every seam for pops.</li>
+    <li>Delivered as before: full mix, a voice-and-effects version, voice only, and a cover image (the board frame).</li>
+  </ul>
+</section>
+
+<section class="ask">
+  <span class="eyebrow">Your call</span>
+  <h3>What I need from you</h3>
+  <ul>
+    <li><b>Approve or change</b> the beats above: say which beat and what to change.</li>
+    <li><b>Second reference video</b> (Plot_RightOfWay_v2.mp4): I could not open it. It is 64 MB, over the 10 MB limit of the Drive connector, and my direct download was stopped by a permission check. If you tell me to go ahead and download it, I will study its music and text overlays before scoring. The score plan above stands either way.</li>
+    <li><b>Names on the patta:</b> the caution case shows a made-up person's name (ଶ୍ରୀ ରମାକାନ୍ତ ଦାସ) and plot number 412. Tell me if you want different ones.</li>
+  </ul>
+</section>
+
+</div>
