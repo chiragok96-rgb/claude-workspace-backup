@@ -31,8 +31,8 @@ KEYS = [
  (57.4, (165, -235, 150),  (25, 0, 5),      30, 11),    # two walls
  (59.8, (205, -150, 62),   (128, 0, 8),     32, 11),
  (62.6, (150, -22, 13),    (240, 0, 8),     30, 8),     # out of Singhadwara onto Bada Danda
- (65.6, (178, -26, 9),     (222, 0, 9),     35, 8),     # three new raths
- (69.0, (205, -30, 7),     (235, 0, 9),     32, 8),     # the ropes, the pull
+ (65.6, (256, -22, 7.5),   (228, 0, 8.5),   32, 8),     # three new raths: Nandighosa from the front
+ (69.0, (246, -13, 4.5),   (231, 0, 7.5),   30, 7),     # the ropes, the pull: horses, the Lord under the hood
  (70.8, (200, -2, 10),     (150, 0, 8),     30, 8),
  (72.4, (114, 0, 3.2),     (98, 0, 5),      26, 8),     # back through the gate: the 22 steps
  (73.5, (102, -32, 34),    (10, 0, 60),     38, 8),     # rising beside the compound toward the spire

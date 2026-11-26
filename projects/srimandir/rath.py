@@ -1,6 +1,7 @@
 # The three raths on Bada Danda: wheels, the wooden body, the striped cloth canopy, the crown; ropes and the devotees pulling.
 import bpy, math
 from geo import *
+from people import _limb, _ball
 import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 RATHS = [  # name, x, wheels per side, height, canopy colours (main, accent)
@@ -10,15 +11,19 @@ RATHS = [  # name, x, wheels per side, height, canopy colours (main, accent)
 ]
 
 def stripe_mat(name, a, b):
+    """canopy cloth: the main colour, with narrow accent bands down the four corners (as on the real raths)"""
     m = bpy.data.materials.new(name); m.use_nodes = True; nt = m.node_tree; N = nt.nodes; L = nt.links; bs = N['Principled BSDF']
     tc = N.new('ShaderNodeTexCoord'); sep = N.new('ShaderNodeSeparateXYZ'); L.new(tc.outputs['Object'], sep.inputs[0])
     at = N.new('ShaderNodeMath'); at.operation = 'ARCTAN2'; L.new(sep.outputs['Y'], at.inputs[0]); L.new(sep.outputs['X'], at.inputs[1])
-    mu = N.new('ShaderNodeMath'); mu.operation = 'MULTIPLY'; mu.inputs[1].default_value = 8 / math.pi; L.new(at.outputs[0], mu.inputs[0])
-    fr = N.new('ShaderNodeMath'); fr.operation = 'PINGPONG'; fr.inputs[1].default_value = 1; L.new(mu.outputs[0], fr.inputs[0])
-    gt = N.new('ShaderNodeMath'); gt.operation = 'GREATER_THAN'; gt.inputs[1].default_value = .5; L.new(fr.outputs[0], gt.inputs[0])
+    mu = N.new('ShaderNodeMath'); mu.operation = 'MULTIPLY'; mu.inputs[1].default_value = 2 / math.pi; L.new(at.outputs[0], mu.inputs[0])
+    ad = N.new('ShaderNodeMath'); ad.operation = 'ADD'; ad.inputs[1].default_value = .5; L.new(mu.outputs[0], ad.inputs[0])
+    fr = N.new('ShaderNodeMath'); fr.operation = 'FRACT'; L.new(ad.outputs[0], fr.inputs[0])
+    d = N.new('ShaderNodeMath'); d.operation = 'SUBTRACT'; d.inputs[1].default_value = .5; L.new(fr.outputs[0], d.inputs[0])
+    ab = N.new('ShaderNodeMath'); ab.operation = 'ABSOLUTE'; L.new(d.outputs[0], ab.inputs[0])
+    gt = N.new('ShaderNodeMath'); gt.operation = 'GREATER_THAN'; gt.inputs[1].default_value = .36; L.new(ab.outputs[0], gt.inputs[0])   # near a corner → accent
     mx = N.new('ShaderNodeMix'); mx.data_type = 'RGBA'; mx.inputs['A'].default_value = (*a, 1); mx.inputs['B'].default_value = (*b, 1); L.new(gt.outputs[0], mx.inputs['Factor'])
-    L.new(mx.outputs['Result'], bs.inputs['Base Color']); bs.inputs['Roughness'].default_value = .78
-    try: bs.inputs['Sheen Weight'].default_value = .5
+    L.new(mx.outputs['Result'], bs.inputs['Base Color']); bs.inputs['Roughness'].default_value = .72
+    try: bs.inputs['Sheen Weight'].default_value = .6
     except Exception: pass
     return m
 
@@ -58,13 +63,13 @@ def rath(M, C, name, x0, nw, H, ca, cb, t0, horse_col=(.9, .88, .84)):
     a painted level of pillars and side-deity panels, and over it the great canopy: red and yellow cloth in vertical panels,
     flaring wide over the deck and rising in a temple-like curve to the gilt kalasha, the chakra and the flag; four rearing
     wooden horses, a charioteer and a ladder in front"""
-    out = []; R = 1.07; L_ = 11.0; Wd = 11.0
+    out = []; R = 1.07; L_ = 9.6; Wd = 9.6
     par = bpy.data.objects.new(name, None); C.objects.link(par); par.location = (x0, 0, 0)
     def add(nm, V, Fc, mat, t, smooth=False):
         ob = mesh_obj(f'{name}_{nm}', V, Fc, mat, C, smooth); ob.parent = par; out.append((ob, t)); return ob
     if f'horsewood_{name}' not in M: M[f'horsewood_{name}'] = mat_basic(f'horsewood_{name}', horse_col, .55)
     if 'panelpaint' not in M:
-        M['panelpaint'] = [mat_basic(f'panel{i}', c, .6) for i, c in enumerate(((.10, .32, .18), (.85, .52, .08), (.06, .16, .42), (.62, .1, .05), (.9, .86, .74)))]
+        M['panelpaint'] = [mat_basic(f'panel{i}', c, .6) for i, c in enumerate(((.42, .2, .08), (.85, .55, .1), (.55, .08, .05), (.32, .16, .07), (.8, .45, .1)))]
     wv, wf = wheel(R, .38, 16)
     for side in (-1, 1):
         for k in range(4):
@@ -82,7 +87,7 @@ def rath(M, C, name, x0, nw, H, ca, cb, t0, horse_col=(.9, .88, .84)):
         for k in range(n + 1):
             u = -L_ / 2 + .25 + k * (L_ - .5) / n
             x, y = [(u, -Wd / 2 + .25), (u, Wd / 2 - .25), (-L_ / 2 + .25, u), (L_ / 2 - .25, u)][side]
-            add(f'pil{side}{k}', *boxv(x - .16, y - .16, zd, x + .16, y + .16, zd + hp), M['rathpaint'], t0 + .75)
+            pv_, pf_ = lathe([(.2, 0), (.24, .15), (.15, .3), (.17, hp * .5), (.13, hp * .8), (.2, hp - .15), (.24, hp)], 12); add(f'pil{side}{k}', [(a_ + x, b_ + y, c_ + zd) for a_, b_, c_ in pv_], pf_, M['wood'], t0 + .75, True)
             if k < n and not (side == 3 and k in (2, 3)):
                 v = u + (L_ - .5) / n / 2; pw = .55
                 x, y = [(v, -Wd / 2 + .22), (v, Wd / 2 - .22), (-L_ / 2 + .22, v), (L_ / 2 - .22, v)][side]
@@ -92,25 +97,65 @@ def rath(M, C, name, x0, nw, H, ca, cb, t0, horse_col=(.9, .88, .84)):
     add('sanctum', *boxv(-2.2, -2.2, zd, 2.2, 2.2, zd + hp - .2), M['rathpaint'], t0 + .9)
     add('cornice', *merge([boxv(-L_ / 2 - .35, -Wd / 2 - .35, zd + hp, L_ / 2 + .35, Wd / 2 + .35, zd + hp + .25), boxv(-L_ / 2 - .2, -Wd / 2 - .2, zd + hp + .25, L_ / 2 + .2, Wd / 2 + .2, zd + hp + .4)]), M['kalasha'], t0 + 1.0)
     zc = zd + hp + .4
-    # the canopy: flares out over the deck, then rises in a rekha curve (16-sided, alternating red / yellow panels)
-    Hc = H - zc - .6; prof = [(7.4, -.25), (7.6, 0.0)]
-    for k in range(1, 19):
-        u = k / 18; r = 6.9 * (1 - .82 * u ** 1.25) if u < .95 else 6.9 * .18 * (1 - (u - .95) * 14); prof.append((max(.2, r), u * Hc))
-    cv, cf = lathe(prof, 16)
+    # the canopy: a tall bulbous rekha, swelling out over the deck, then tapering to the crown; red with accent corners
+    Hc = 8.4; Rm = 4.05; prof = [(3.7, -.3), (3.9, 0.0)]
+    KN = [(0, .88), (.1, .98), (.22, 1.0), (.4, .93), (.58, .78), (.74, .57), (.86, .37), (.95, .17), (1, .05)]   # tall, pointed: swells, then a long taper
+    for k in range(1, 25):
+        u = k / 24; j = max(i for i in range(len(KN) - 1) if KN[i][0] <= u); (u0, r0), (u1, r1) = KN[j], KN[j + 1]
+        r = Rm * (r0 + (r1 - r0) * ((u - u0) / (u1 - u0)) ** 1.0); prof.append((r, u * Hc))
+    cv, cf = lathe(prof, 32)
     add('canopy', [(a, b, c + zc) for a, b, c in cv], cf, M['stripe_' + name], t0 + 1.3)
-    for hb in (.0, .3, .62):
-        r = 6.9 * (1 - .82 * hb ** 1.25) + .05; bv, bf = lathe([(r, 0), (r, .16)], 16)
+    for hb in (.0, .45, .78):
+        k_ = min(range(len(prof)), key=lambda i: abs(prof[i][1] - hb * Hc)); r = prof[k_][0] + .05; bv, bf = lathe([(r, 0), (r, .14)], 32)
         add(f'band{hb}', [(a, b, c + zc + hb * Hc) for a, b, c in bv], bf, M['kalasha'], t0 + 1.4)
-    kv, kf = lathe([(.55, 0), (1.0, .45), (.9, 1.0), (.4, 1.3), (.55, 1.45), (.1, 1.75)], 32); add('kalasha', [(a, b, c + zc + Hc) for a, b, c in kv], kf, M['kalasha'], t0 + 1.7, True)
-    fv, ff = boxv(-.05, -.05, zc + Hc + 1.7, .05, .05, zc + Hc + 4.6); add('flagpole', fv, ff, M['wood'], t0 + 1.8)
-    # four rearing wooden horses, large, in front; the charioteer on a seat behind them; a ladder
-    hv, hf = horse(1.55)
-    for k, yy in enumerate((-3.9, -1.3, 1.3, 3.9)):
-        add(f'horse{k}', [(a + L_ / 2 + .6, b + yy, c + zb - .2) for a, b, c in hv], hf, M[f'horsewood_{name}'], t0 + 1.1 + .05 * k, True)
-    from people import figure_mesh
-    me = figure_mesh(f'{name}_sarathi', 'kurta', M, 1.75, 'namaste'); ob = bpy.data.objects.new(f'{name}_sarathi', me); C.objects.link(ob); ob.parent = par
-    ob.location = (L_ / 2 + .1, 0, zd); ob.rotation_euler = (0, 0, -math.pi / 2); out.append((ob, t0 + 1.2))
-    add('ladder', *merge([boxv(L_ / 2 + .25, -.8, zd - .3 - i * .3, L_ / 2 + .55 + i * .32, .8, zd - .2 - i * .3) for i in range(int(zd / .3))]), M['wood'], t0 + 1.0)
+    kv, kf = lathe([(.45, 0), (.85, .4), (.75, .9), (.35, 1.2), (.5, 1.35), (.1, 1.7)], 32); add('kalasha', [(a, b, c + zc + Hc) for a, b, c in kv], kf, M['kalasha'], t0 + 1.7, True)
+    fv, ff = boxv(-.05, -.05, zc + Hc + 1.6, .05, .05, zc + Hc + 4.6); add('flagpole', fv, ff, M['wood'], t0 + 1.8)
+    # the front hood: a pointed arch standing out over the deity, red with a gold rim
+    hood = []
+    for k in range(25):
+        u = k / 24; yy = (u - .5) * 4.2; zz = 3.6 * (1 - abs(2 * u - 1) ** 1.6)
+        hood.append([(Rm * .9, yy, zc - .6 + zz), (Rm * .9 + 1.0, yy * 1.05, zc - .6 + zz * 1.02)])
+    V = [p for pr in hood for p in pr]; Fc = [(2 * i, 2 * i + 1, 2 * i + 3, 2 * i + 2) for i in range(24)]
+    rim = merge([_limb(hood[i][1], hood[i + 1][1], .09, .09, 6) for i in range(24)])
+    hv_ = merge([(V, Fc)] + [(boxv(Rm * .9, -2.1, zc - .7, Rm * .9 + 1.0, 2.1, zc - .55))])
+    ob = add('hood', *hv_, M['stripe_' + name], t0 + 1.35); sd = ob.modifiers.new('s', 'SOLIDIFY'); sd.thickness = .12
+    add('hood_rim', *rim, M['kalasha'], t0 + 1.36, True)
+    # garlands: red and yellow festoons sagging from the canopy rim, with tassels
+    if 'festoonY' not in M: M['festoonY'] = mat_basic('festoonY', (.95, .7, .08), .6); M['festoonR'] = mat_basic('festoonR', (.75, .05, .04), .6)
+    for side in range(4):
+        for k in range(5):
+            pts = []
+            for j in range(9):
+                u = -1 + 2 * (k + j / 8) / 5; sag = .55 * math.sin(math.pi * j / 8)
+                q = (u * (L_ / 2 + .1), Wd / 2 + .15, zc - .05 - sag)
+                pts.append([(q[0], q[1], q[2]), (-q[0], -q[1], q[2]), (q[1], -q[0], q[2]), (-q[1], q[0], q[2])][side])
+            add(f'fest{side}{k}', *merge([_limb(pts[j], pts[j + 1], .08, .08, 6) for j in range(8)]), M['festoonY' if k % 2 else 'festoonR'], t0 + 1.45, True)
+            add(f'tassel{side}{k}', *_ball((pts[0][0], pts[0][1], pts[0][2] - .3), .14), M['festoonR' if k % 2 else 'festoonY'], t0 + 1.45, True)
+    # railing round the deck, and a wide stair rising to the front
+    rail = []
+    for side in range(4):
+        for k in range(15):
+            u = -1 + 2 * k / 14; q = (u * (L_ / 2 + .1), Wd / 2 + .1)
+            if side == 3 and abs(u) < .3: continue
+            x, y = [(q[0], q[1]), (q[0], -q[1]), (q[1], q[0]), (-q[1], q[0])][side]
+            rail.append(_limb((x, y, zd), (x, y, zd + .8), .06, .06, 6))
+    rail.append(boxv(-L_ / 2 - .2, -Wd / 2 - .2, zd + .8, L_ / 2 + .2, -Wd / 2, zd + .92)); rail.append(boxv(-L_ / 2 - .2, Wd / 2, zd + .8, L_ / 2 + .2, Wd / 2 + .2, zd + .92))
+    rail.append(boxv(-L_ / 2 - .2, -Wd / 2, zd + .8, -L_ / 2, Wd / 2, zd + .92))
+    add('railing', *merge(rail), M['rathpaint'], t0 + .95)
+    # Lord Jagannath on the deck, under the hood: the dark round face, the great round eyes, the gold crown and a garland
+    if 'jag_face' not in M:
+        M['jag_face'] = mat_basic('jag_face', (.02, .02, .025), .4); M['jag_eye'] = mat_basic('jag_eye', (.95, .94, .9), .4); M['jag_red'] = mat_basic('jag_red', (.7, .05, .04), .5)
+    fx = L_ / 2 - .7; fz = zd + 1.5
+    fc = {'nandighosa': (.02, .02, .025), 'taladhwaja': (.92, .9, .86), 'darpadalana': (.9, .66, .12)}[name]   # Jagannath dark, Balabhadra white, Subhadra yellow
+    if f'face_{name}' not in M: M[f'face_{name}'] = mat_basic(f'face_{name}', fc, .4)
+    add('deity_face', *_ball((fx, 0, fz), .62, 20), M[f'face_{name}'], t0 + 1.9, True)
+    for sy in (-1, 1):
+        add(f'deity_eye{sy}', *_ball((fx + .52, sy * .26, fz + .08), .2, 16), M['jag_eye'], t0 + 1.9, True)
+        add(f'deity_pupil{sy}', *_ball((fx + .69, sy * .26, fz + .08), .08, 12), M['jag_face'], t0 + 1.9, True)
+    add('deity_mouth', *_limb((fx + .55, -.22, fz - .3), (fx + .55, .22, fz - .3), .05, .05, 8), M['jag_red'], t0 + 1.9, True)
+    add('deity_body', *_limb((fx - .05, 0, zd), (fx - .05, 0, fz - .45), .55, .45, 16), M['jag_red'], t0 + 1.9, True)
+    cv_, cf_ = lathe([(.0, 0), (.55, .05), (.5, .35), (.3, .7), (.06, .95)], 16); add('deity_crown', [(a + fx, b, c + fz + .45) for a, b, c in cv_], cf_, M['kalasha'], t0 + 1.9, True)
+    add('deity_garland', *merge([_limb((fx + .45 * math.cos(a0), .62 * math.sin(a0), fz - .55 - .25 * math.cos(a0) ** 2), (fx + .45 * math.cos(a0 + .35), .62 * math.sin(a0 + .35), fz - .55 - .25 * math.cos(a0 + .35) ** 2), .07, .07, 6) for a0 in [i * .35 - 1.6 for i in range(10)]]), M['festoonY'], t0 + 1.9, True)
     return par, out, L_
 
 def ropes(M, C, name, x_front, length, ys=(-3.6, -1.2, 1.2, 3.6)):

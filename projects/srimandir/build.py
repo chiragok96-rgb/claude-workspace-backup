@@ -18,7 +18,7 @@ CW = coll('world'); CT = coll('temple'); CX = coll('extras')
 
 # ———————— land, sea, sky ————————
 WD.terrain(M, CW); WD.sea(M, CW)
-SUN_KEYS = [(0, 5.5, 100), (7, 10, 104), (20, 22, 112), (40, 36, 150), (52, 33, 205), (60, 27, 230), (72, 16, 245), (84.4, 8, 255)]   # golden morning → long afternoon shadows → evening glow
+SUN_KEYS = [(0, 6, 100), (7, 9, 104), (20, 15, 112), (40, 22, 150), (52, 20, 205), (60, 16, 230), (72, 11, 245), (84.4, 6.5, 255)]   # golden morning → long afternoon shadows → evening glow
 sky, sun = WD.sky_and_sun(sc, SUN_KEYS); WD.sky_clouds(sc, sky, dur=DUR)
 WD.palms(M, CW, WD.palm_spots()); WD.town(M, CW); WD.ship(M, CX, -66, -323, math.radians(-60))
 
