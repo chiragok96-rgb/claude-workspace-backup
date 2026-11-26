@@ -77,12 +77,12 @@ class Block:
     """A caption block: hero line (+ optional second line) + gold label, with soft shadow + backing glow.
     Stored as float RGBA arrays; anchor = (center x, hero baseline y)."""
     def __init__(self, hero=None, size=88, color=IVORY, latin=SER6, lscale=0.9, sub=None, subsize=54, subcolor=IVORY,
-                 label=None, labcol=LGOLD, labsize=25, accent=None, accsize=52, gap=18, dark=False, backing=1.0, hero_mask=None):
+                 label=None, labcol=LGOLD, labsize=25, accent=None, accsize=52, acccol=GOLD, gap=18, dark=False, backing=1.0, hero_mask=None):
         parts = []
         if hero_mask is not None: parts.append(("hero", hero_mask[0], hero_mask[1], color))
         elif hero: m, by = line_mask(hero, size, latin=latin, lscale=lscale); parts.append(("hero", m, by, color))
         if sub: m, by = line_mask(sub, subsize, latin=SER6); parts.append(("sub", m, by, subcolor))
-        if accent: m, by = line_mask(accent, accsize, latin=CG6I, lscale=1.0); parts.append(("acc", m, by, GOLD))
+        if accent: m, by = line_mask(accent, accsize, latin=CG6I, lscale=1.0); parts.append(("acc", m, by, acccol))
         if label: m, by = label_mask(label, labsize); parts.append(("lab", m, by, labcol))
         # tight-crop vertically each part, stack
         ims = []
@@ -184,7 +184,7 @@ cap(45.96, 48.30, 410, glint=True, hero="ରାସ୍ତାର ଅଧିକା�
 cap(48.40, 50.50, 400, hero="ଘରେ କେହି ଜମି କିଣିବାକୁ ଭାବୁଛନ୍ତି?", size=64, label="SOMEONE AT HOME PLANNING TO BUY LAND?")
 cap(50.60, 55.10, 1350, hero="ତାଙ୍କୁ ପଠାନ୍ତୁ", size=74, label="SEND THIS TO THEM", dout=0.4)
 MOUTH = Block(hero="ମୁହଁ କଥାରେ ନୁହେଁ", size=80, label="NOT BY WORD OF MOUTH")
-BOARD_EN = Block(accent="“This road is my land.”", accsize=58, backing=0.8)
+BOARD_EN = Block(accent="“This road is my land.”", accsize=64, acccol=IVORY, backing=1.8)
 
 # price + day counters (rebuilt per frame: the digits change)
 _RS = font(SER6, 140); _RO = font(OD7, 150)
@@ -197,26 +197,26 @@ def days_block(n, show_label):
 # ============================================================== end card
 def end_card(frame, a):
     if a <= 0: return
-    y0 = 300 + (1 - a) * 14
+    y0 = 262 + (1 - a) * 12
     # soft cream glow
     yy, xx = np.mgrid[0:700, 0:W].astype(np.float32)
-    r = np.sqrt(((xx - W / 2) / 470) ** 2 + ((yy - 330) / 360) ** 2); gl = np.clip(1 - r, 0, 1) ** 1.3 * 0.86 * a
-    sl = frame[int(y0) - 30:int(y0) + 670]; n = sl.shape[0]
+    r = np.sqrt(((xx - W / 2) / 520) ** 2 + ((yy - 330) / 320) ** 2); gl = np.clip(1 - r, 0, 1) ** 0.9 * 0.9 * a
+    sl = frame[int(y0) - 110:int(y0) + 590]; n = sl.shape[0]
     sl[...] = sl * (1 - gl[:n, :, None]) + np.array([248, 238, 218], np.float32) * gl[:n, :, None]
-    lg = Image.open(LOGO).convert("RGBA").resize((250, 250), Image.LANCZOS); la = np.asarray(lg).astype(np.float32)
-    lx, ly = W // 2 - 125, int(y0) + 10; F = frame[ly:ly + 250, lx:lx + 250]; al = la[..., 3:4] / 255 * a
+    lg = Image.open(LOGO).convert("RGBA").resize((200, 200), Image.LANCZOS); la = np.asarray(lg).astype(np.float32)
+    lx, ly = W // 2 - 100, int(y0) + 6; F = frame[ly:ly + 200, lx:lx + 200]; al = la[..., 3:4] / 255 * a
     F[...] = F * (1 - al) + la[..., :3] * al
-    ring = Image.new("L", (262, 262), 0); ImageDraw.Draw(ring).ellipse((2, 2, 259, 259), outline=255, width=3)
-    ra = np.asarray(ring).astype(np.float32)[..., None] / 255 * a * 0.9; F2 = frame[ly - 6:ly + 256, lx - 6:lx + 256]
+    ring = Image.new("L", (212, 212), 0); ImageDraw.Draw(ring).ellipse((2, 2, 209, 209), outline=255, width=3)
+    ra = np.asarray(ring).astype(np.float32)[..., None] / 255 * a * 0.9; F2 = frame[ly - 6:ly + 206, lx - 6:lx + 206]
     F2[...] = F2 * (1 - ra) + np.array([231, 196, 126], np.float32) * ra
-    for blk, by in ((CARD_NAME, int(y0) + 360), (CARD_SUB, int(y0) + 410)):
+    for blk, by in ((CARD_NAME, int(y0) + 290), (CARD_SUB, int(y0) + 326)):
         blit(frame, blk, W / 2, by, alpha=a)
-    pw, ph, py = 236, 66, int(y0) + 452
+    pw, ph, py = 220, 60, int(y0) + 352
     pill = Image.new("L", (pw, ph), 0); ImageDraw.Draw(pill).rounded_rectangle((0, 0, pw - 1, ph - 1), radius=33, fill=255)
     pa = np.asarray(pill).astype(np.float32)[..., None] / 255 * a; F3 = frame[py:py + ph, W // 2 - pw // 2:W // 2 + pw // 2]
     F3[...] = F3 * (1 - pa) + np.array([59, 36, 22], np.float32) * pa
     blit(frame, CARD_FOLLOW, W / 2, py + ph / 2, alpha=a)
-CARD_NAME = Block(hero="PropertyKatha", size=92, latin=CG6, lscale=1.0, color=(59, 36, 22), dark=True, backing=0)
+CARD_NAME = Block(hero="PropertyKatha", size=80, latin=CG6, lscale=1.0, color=(59, 36, 22), dark=True, backing=0)
 CARD_SUB = Block(label="ODISHA PROPERTY, EXPLAINED", labcol=(122, 82, 38), labsize=23, dark=True, backing=0)
 CARD_FOLLOW = Block(label="FOLLOW", labcol=(240, 217, 160), labsize=26, dark=True, backing=0)
 
