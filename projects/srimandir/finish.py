@@ -7,15 +7,15 @@ F0 = int(sys.argv[3]) if len(sys.argv) > 3 else 0; F1 = int(sys.argv[4]) if len(
 FD = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fonts')
 def od(sz, w=600): return ImageFont.truetype(os.path.join(FD, f'NotoSansOriya-{min((400, 500, 600, 700), key=lambda k: abs(k - w))}.ttf'), sz, layout_engine=ImageFont.Layout.RAQM)   # Noto Sans Oriya 2.x: correct conjuncts (ନ୍ଦ, ନ୍ତ, ଷ୍ଟ...)
 def cg(sz, w=600): f = ImageFont.truetype(os.path.join(FD, 'CormorantGaramond-Italic.ttf'), sz); f.set_variation_by_axes([w]); return f
-CAPS = [  # start, end, text (*gold*), place
-    (20.55, 22.2, '“*White Pagoda*”', 'top'),
-    (46.0, 48.9, 'ନିଆଁ ତଳେ, ସିଝେ *ଉପର ହାଣ୍ଡି*', 'top'),
-    (49.4, 53.2, '*୧୮* ଥର ଆକ୍ରମଣ', 'top'),
-    (69.4, 71.0, '*ରଥଯାତ୍ରା*', 'top'),
-    (75.4, 79.6, 'ପ୍ରତିଦିନ *ବାନା* ବଦଳ', 'bottom'),
-    (80.2, 81.55, '*ଜୟ ଜଗନ୍ନାଥ*', 'bottom'),
+CAPS = [  # start, end, Odia (*gold*), concise English line, place
+    (20.55, 22.2, '*ଧଳା ଦେଉଳ*', 'sailors called it the White Pagoda', 'top'),
+    (46.0, 48.9, 'ନିଆଁ ତଳେ, ସିଝେ *ଉପର ହାଣ୍ଡି*', 'fire below, yet the topmost pot cooks first', 'top'),
+    (49.4, 53.2, '*୧୮* ଥର ଆକ୍ରମଣ', 'attacked eighteen times, still standing', 'top'),
+    (69.4, 71.0, '*ରଥଯାତ୍ରା*', 'the Lord comes out to his people', 'top'),
+    (75.4, 79.6, 'ପ୍ରତିଦିନ *ବାନା* ବଦଳ', 'every evening, climbed by hand, the flag is changed', 'bottom'),
+    (80.2, 81.55, '*ଜୟ ଜଗନ୍ନାଥ*', 'glory to the Lord of the universe', 'top'),
 ]
-Y = {'top': 352, 'bottom': 1420}
+Y = {'top': 352, 'bottom': 1388}
 import numpy as np
 # premium labels: the named part is traced in a glowing gold line (from the render's object-index mask) and a name tag hangs above it
 LABELS = [  # start, end, mask indices, Odia name, English, extras
@@ -65,7 +65,7 @@ def tag(im, x, y_top, odia, eng, a, rise):
     d0 = ImageDraw.Draw(im); w1 = d0.textlength(odia, font=f1); w2 = d0.textlength(e, font=f2); W_ = max(w1, w2) + 64; H_ = 118
     x = int(min(1080 - W_ / 2 - 24, max(W_ / 2 + 24, x))); ty = int(min(1330, max(300, y_top - 190))) - int(rise * 14)
     for (px, py, pw) in _placed:
-        if abs(px - x) < (pw + W_) / 2 + 10 and abs(py - ty) < H_ + 14: ty = py + H_ + 22
+        if abs(px - x) < (pw + W_) / 2 + 10 and abs(py - ty) < H_ + 56: ty = py + H_ + 56
     _placed.append((x, ty, W_))
     A = int(255 * a); x0, x1, y0, y1 = x - W_ / 2, x + W_ / 2, ty, ty + H_
     plate = Image.new('RGBA', im.size, (0, 0, 0, 0)); dp = ImageDraw.Draw(plate)
@@ -118,8 +118,13 @@ def parts_of(s):
         if cur: out.append((cur, j % 2 == 1, lat))
     return out
 def draw_line(im, text, cx, base, a, sz=60):
-    ps = parts_of(text); fonts = [cg(int(sz * 1.15)) if lat else od(sz) for _, _, lat in ps]
-    d0 = ImageDraw.Draw(im); widths = [d0.textlength(p, font=f) for (p, _, _), f in zip(ps, fonts)]; W_ = sum(widths); x0 = cx - W_ / 2
+    ps = parts_of(text); d0 = ImageDraw.Draw(im)
+    while True:   # shrink to fit 920 px so nothing is ever cut at the frame edge
+        fonts = [cg(int(sz * 1.15)) if lat else od(sz) for _, _, lat in ps]
+        widths = [d0.textlength(p, font=f) for (p, _, _), f in zip(ps, fonts)]; W_ = sum(widths)
+        if W_ <= 920 or sz <= 24: break
+        sz -= 2
+    x0 = cx - W_ / 2
     # what is behind the line decides the ink: bright → dark ink with a light halo; otherwise cream with a dark shadow
     box = (int(max(0, x0 - 20)), int(base - sz * 1.1), int(min(im.width, x0 + W_ + 20)), int(base + sz * .35))
     reg = im.crop(box).convert('L').resize((32, 8)); lum = sum(reg.getdata()) / (32 * 8) / 255
@@ -170,9 +175,11 @@ for fn in files:
     if k > 0:
         m = mask(fi, HALO[2])
         if m is not None and m.sum() > 10: halo(im, m, k)
-    for a_, b_, txt, pl in CAPS:
-        k = ss((t - a_ + .05) / .35) * (1 - ss((t - b_ + .3) / .32))
-        if k > 0: draw_line(im, txt, 540, Y[pl] + (1 - ss((t - a_) / .5)) * 10, k)
+    for a_, b_, txt, en, pl in CAPS:
+        k = ss((t - a_ + .05) / .35) * (1 - ss((t - b_ + .3) / .32)); k2 = ss((t - a_ - .25) / .4) * (1 - ss((t - b_ + .3) / .32))
+        dy = (1 - ss((t - a_) / .5)) * 10
+        if k > 0: draw_line(im, txt, 540, Y[pl] + dy, k)
+        if k2 > 0: draw_line(im, en, 540, Y[pl] + 62 + dy, k2, sz=34)
     end_title(im, t)
     im.convert('RGB').save(dst, quality=95)
 print('finished')
