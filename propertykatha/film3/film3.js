@@ -1,6 +1,7 @@
 // "The Dream Home" (PMAY-U 2.0) — PropertyKatha video 2. One continuous camera, three.js + canvas.
 // window.render(t) draws the frame at time t (no captions: those are composited later in Python).
 import * as THREE from 'three';
+import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {clamp,lerp,ss,sm,rng,cnv,tex,spaced} from './lib.js';
 
 const W=1080,H=1920,DUR=57.16;
@@ -16,7 +17,7 @@ const KEYS=[ // t, camera pos, target, fov
  [0.0,[4.4,3.9,5.6],[0,1.0,0],40],[3.3,[6.6,3.3,9.2],[0,2.0,0],38],[8.9,[7.6,5.2,10.6],[0,2.8,0],42],
  [12.0,[8.2,4.4,12.2],[0,3.4,0],40],[17.2,[5.4,3.2,11.2],[0,4.4,0],40],[18.8,[9.5,4.6,10.5],[4.6,2.2,0],40],
  [29.7,[3.5,6.5,15.5],[2.4,2.0,0],40],[32.5,[0.5,12.5,12.8],[0,0,12.2],38],[35.4,[0.3,12.6,12.9],[0,0,12.3],38],
- [43.1,[0.0,12.8,13.0],[0,0,12.4],38],[47.8,[7.5,3.4,12.5],[0,2.6,0],40],[52.0,[3.6,3.0,9.4],[0,4.2,0],38],[57.2,[2.9,3.1,8.6],[0,4.5,0],38]];
+ [43.1,[0.0,12.8,13.0],[0,0,12.4],38],[47.8,[7.5,3.4,12.5],[0,2.6,0],40],[52.0,[3.6,3.0,9.6],[0,4.9,0],38],[57.2,[2.9,3.0,8.9],[0,5.6,0],38]];
 function camAt(t){let i=0;while(i<KEYS.length-2&&t>KEYS[i+1][0])i++;const a=KEYS[i],b=KEYS[i+1];
   const u=sm(0,1,(t-a[0])/(b[0]-a[0]));const v=(p,q)=>p.map((x,k)=>lerp(x,q[k],u));
   // gentle continuous drift so the camera is never static
@@ -67,8 +68,10 @@ function bankCard(g,w,h,p){g.fillStyle='#1f3b34';g.fillRect(0,0,w,h);g.strokeSty
 function box(w,h,d,x,y,z,mat){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;houseG.add(m);solids.push(m);
   const e=new THREE.EdgesGeometry(m.geometry);const p=e.attributes.position.array;for(let i=0;i<p.length;i+=6)edges.push([[p[i]+x,p[i+1]+y,p[i+2]+z],[p[i+3]+x,p[i+4]+y,p[i+5]+z]]);return m}
 function buildHouse(){houseG=new THREE.Group();scene.add(houseG);
-  const wall=new THREE.MeshStandardMaterial({color:'#ece5d8',roughness:.85}),teak=new THREE.MeshStandardMaterial({color:'#6b3a1c',roughness:.55}),
-    lat=new THREE.MeshStandardMaterial({color:'#9a4a2c',roughness:.9}),roof=new THREE.MeshStandardMaterial({color:'#d9d1c3',roughness:.8});
+  const noiseTex=(base,amp,seed,rep)=>{const c=cnv(512,512),g=c.getContext('2d');g.fillStyle=base;g.fillRect(0,0,512,512);const r=rng(seed);
+    for(let i=0;i<26000;i++){const v=r();g.fillStyle=`rgba(${v>.5?255:0},${v>.5?255:0},${v>.5?255:0},${r()*amp})`;const z=1+r()*3;g.fillRect(r()*512,r()*512,z,z)}return tex(c,rep,rep)};
+  const wall=new THREE.MeshStandardMaterial({color:'#efe8db',map:noiseTex('#ffffff',.06,21,2),roughness:.88,envMapIntensity:.35}),teak=new THREE.MeshStandardMaterial({color:'#6b3a1c',roughness:.55}),
+    lat=new THREE.MeshStandardMaterial({color:'#a34f2e',map:noiseTex('#ffffff',.22,22,3),roughness:.95,envMapIntensity:.2}),roof=new THREE.MeshStandardMaterial({color:'#d9d1c3',roughness:.8});
   const win=()=>{const m=new THREE.MeshStandardMaterial({color:'#2a2018',emissive:new THREE.Color('#ff9a40'),emissiveIntensity:0,roughness:.4});winMats.push(m);return m};
   box(7.6,.35,5.6,0,.175,0,lat);                         // plinth
   box(3.4,2.8,4.6,-1.9,1.75,0,wall);                      // ground left
@@ -81,6 +84,15 @@ function buildHouse(){houseG=new THREE.Group();scene.add(houseG);
   for(let i=0;i<13;i++)box(.07,1.6,.12,-1.2+i*.3,4.7,2.16,teak); // teak fins
   box(5.8,.2,4.8,.6,5.97,-.2,roof);                       // roof slab
   box(.9,1.3,.1,-2.6,1.8,2.32,win());                     // small window left
+  // the plot: lawn, compound wall, path, trees (rise with the house)
+  const lawnM=new THREE.MeshStandardMaterial({color:'#3f6b34',map:noiseTex('#ffffff',.25,23,6),roughness:1});
+  const lawn=new THREE.Mesh(new THREE.BoxGeometry(12.5,.08,10),lawnM);lawn.position.set(0,.04,.9);lawn.receiveShadow=true;houseG.add(lawn);solids.push(lawn);
+  const pathM=new THREE.MeshStandardMaterial({color:'#b9ab95',roughness:.9});const path=new THREE.Mesh(new THREE.BoxGeometry(1.5,.1,3.2),pathM);path.position.set(-1,.06,4.1);path.receiveShadow=true;houseG.add(path);solids.push(path);
+  for(const [w,d,x,z] of [[12.5,.25,0,5.9],[.25,10,-6.25,.9],[.25,10,6.25,.9]]){if(z===5.9){box(5.2,.7,.25,-4.2,.35,z,lat);box(5.2,.7,.25,3.6,.35,z,lat)}else box(w,.7,d,x,.35,z,lat)}
+  const leaf=new THREE.MeshStandardMaterial({color:'#2f5a2a',roughness:.85}),trunk=new THREE.MeshStandardMaterial({color:'#4a3324',roughness:.9});
+  for(const [x,z,sc] of [[-4.8,-2.6,1.2],[5.0,-2.9,1.0],[4.9,3.9,.75]]){const tr=new THREE.Group();const tk=new THREE.Mesh(new THREE.CylinderGeometry(.12*sc,.18*sc,2*sc,10),trunk);tk.position.y=sc;tr.add(tk);
+    const r=rng(Math.round(x*10+z));for(let i=0;i<7;i++){const b=new THREE.Mesh(new THREE.IcosahedronGeometry((.7+r()*.5)*sc,1),leaf);b.position.set((r()-.5)*1.4*sc,(2.1+r()*1.1)*sc,(r()-.5)*1.4*sc);b.castShadow=true;tr.add(b)}
+    tk.castShadow=true;tr.position.set(x,0,z);houseG.add(tr);tr.traverse(o=>{if(o.isMesh)solids.push(o)})}
   for(const s of solids){s.material=s.material.clone();s.material.transparent=true}
   winMats.length=0;solids.forEach(s=>{if(s.material.emissive&&s.material.emissive.r>.5)winMats.push(s.material)})}
 
@@ -90,6 +102,7 @@ async function init(){await fonts();
   R.outputColorSpace=THREE.SRGBColorSpace;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.05;gl=R.domElement;
   scene=new THREE.Scene();scene.background=new THREE.Color(NAVY);scene.fog=new THREE.Fog(NAVY,22,60);
   cam=new THREE.PerspectiveCamera(40,W/H,.1,200);
+  const pmg=new THREE.PMREMGenerator(R);scene.environment=pmg.fromScene(new RoomEnvironment(),.04).texture;
   hemi=new THREE.HemisphereLight('#9fb6e0','#1a2236',.55);scene.add(hemi);
   sunL=new THREE.DirectionalLight('#ffd7a0',1.6);sunL.position.set(-8,10,6);sunL.castShadow=true;sunL.shadow.mapSize.set(2048,2048);
   Object.assign(sunL.shadow.camera,{left:-14,right:14,top:14,bottom:-14,near:1,far:40});sunL.shadow.bias=-.0005;scene.add(sunL);
@@ -123,6 +136,8 @@ async function init(){await fonts();
   // gold dust and stars
   const N=1400,pos=new Float32Array(N*3),r=rng(12);for(let i=0;i<N;i++){pos[i*3]=(r()-.5)*24;pos[i*3+1]=r()*2;pos[i*3+2]=(r()-.5)*16+3}
   dust=new THREE.Points(new THREE.BufferGeometry().setAttribute('position',new THREE.BufferAttribute(pos,3)),new THREE.PointsMaterial({color:'#ffd88a',size:.09,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));dust.userData.base=pos.slice();scene.add(dust);
+  scene.traverse(o=>{if(o.isMesh||o.isPoints){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{if(m&&'envMapIntensity' in m)m.envMapIntensity=Math.min(m.envMapIntensity,.3)})}});
+  cm.envMapIntensity=1.1;tubes.forEach(g=>{g.userData.fill.material.envMapIntensity=1.1;g.userData.glass.material.envMapIntensity=1.2});
   logo=await new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.src='logo.png'});
   window.READY=true}
 const st={};
@@ -139,11 +154,11 @@ function update(t){const c=camAt(t);cam.position.set(...c.pos);cam.lookAt(...c.t
   scene.background.set(NAVY);
   // burden objects drop on the words (Home Loan 6.35, EMI 7.45, coins 8.05)
   const drop=(t0,y1)=>{const k=clamp((t-t0)/.45);const b=k<1?(1-k*k)*7:0;const bo=k>=1?Math.exp(-(t-t0-.45)*8)*Math.abs(Math.sin((t-t0-.45)*22))*.18:0;return y1+b+bo};
-  const lift=ss(10.6,13.5,t);
-  stack.loan.position.set(-3.4,drop(6.35,3.4)+lift*9,3.3);stack.loan.rotation.set(-.06,.55,.1+lift*.6);stack.loan.visible=t>6.0&&lift<.999;
-  stack.emi.position.set(3.6,drop(7.45,2.45)+lift*10,3.6);stack.emi.rotation.set(-.08,-.5,-.08-lift*.5);stack.emi.visible=t>7.1&&lift<.999;
+  const lift=ss(10.4,11.8,t),gone=Math.max(.001,1-ss(11.2,11.85,t));
+  stack.loan.position.set(-3.4-lift*7,drop(6.35,3.4)+lift*1.2,3.3);stack.loan.rotation.set(-.06,.55,.1+lift*.6);stack.loan.scale.setScalar(gone);stack.loan.visible=t>6.0&&t<11.9;
+  stack.emi.position.set(3.6+lift*7,drop(7.45,2.45)+lift*1.2,3.6);stack.emi.rotation.set(-.08,-.5,-.08-lift*.5);stack.emi.scale.setScalar(gone);stack.emi.visible=t>7.1&&t<11.9;
   stack.coins.children.forEach(cn=>{const {k,s,r}=cn.userData;const t0=8.05+s*.06+k*.012;const kk=clamp((t-t0)/.25);cn.visible=t>t0-.3;
-    const fl=ss(11.0+r*1.4,14.5+r,t);cn.position.y=.06+k*.125+(1-kk*kk)*4+fl*(7+r*5);cn.rotation.set(fl*r*3,fl*2,fl*r*2);cn.material.opacity=1});
+    const fl=ss(10.5+r*.4,11.9,t);const gone=1-ss(11.2+r*.3,11.85,t);cn.position.y=.06+k*.125+(1-kk*kk)*4+fl*(1.2+r*1.4);cn.rotation.set(fl*r*3,fl*2,fl*r*2);cn.scale.setScalar(Math.max(.001,gone))});
   stack.coins.visible=t>7.6&&t<16;
   // beam
   beam.material.opacity=.16*ss(9.4,10.4,t)*(1-ss(16.5,18.5,t));

@@ -54,10 +54,20 @@ def captions(fr, t):
     if 52.0 <= t < 53.7: C.send_icon(fr, ss(52.0, 52.3, t) * (1 - ss(53.4, 53.7, t)), 540, 300)
     C.end_card(fr, ss(53.75, 54.3, t) * (1 - ss(56.7, 57.1, t)))
 
+def one(args):
+    base, outd, name, stills = args
+    t = int(name[2:7]) / (100 if stills else FPS); o = os.path.join(outd, name[:-4] + ".jpg")
+    if os.path.exists(o): return
+    fr = C.grade(Image.open(os.path.join(base, name)), int(t * 30)).astype(np.float32).copy()
+    captions(fr, t)
+    if not stills and t * FPS >= 1707:                      # loop: dissolve the last frames into frame 0
+        f0 = C.grade(Image.open(os.path.join(base, "f_00000.png")), 0).astype(np.float32).copy(); captions(f0, 0.0)
+        k = ss(1706.5, 1714.5, t * FPS); fr = fr * (1 - k) + f0 * k
+    Image.fromarray(np.clip(fr, 0, 255).astype(np.uint8)).save(o, quality=96, subsampling=0)
+
 if __name__ == "__main__":
-    base, outd, spec = sys.argv[1:4]; stills = "--stills" in sys.argv; os.makedirs(outd, exist_ok=True)
-    for name in sorted(os.listdir(base)):
-        if not name.endswith(".png"): continue
-        t = int(name[2:7]) / (100 if stills else FPS)
-        fr = np.asarray(Image.open(os.path.join(base, name)).convert("RGB")).astype(np.float32).copy()
-        captions(fr, t); Image.fromarray(np.clip(fr, 0, 255).astype(np.uint8)).save(os.path.join(outd, name[:-4] + ".jpg"), quality=95)
+    from multiprocessing import Pool
+    base, outd = sys.argv[1:3]; stills = "--stills" in sys.argv; os.makedirs(outd, exist_ok=True)
+    names = [n for n in sorted(os.listdir(base)) if n.endswith(".png")]
+    with Pool(4) as p: p.map(one, [(base, outd, n, stills) for n in names], chunksize=8)
+    print("composited", len(names))

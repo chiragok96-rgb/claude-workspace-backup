@@ -1,1 +1,5 @@
 node_modules
+frames/
+final/
+audio/*.wav
+v.mp4
