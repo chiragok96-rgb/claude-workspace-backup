@@ -21,6 +21,7 @@ for s in $(seq $F0 60 $F1); do e=$((s + 59)); [ $e -gt $F1 ] && e=$F1
   ffmpeg -loglevel error -y -start_number $s -i $W/frames/f_%05d.png -frames:v $((e - s + 1)) -c:v libx264rgb -qp 0 -preset slow $OUT/seg_$(printf %05d $s).mkv
 done
 cp $W/check/f_*.png $OUT/
+[ -d $W/frames/idx ] && tar -cf $OUT/idx.tar -C $W/frames idx   # per-frame label masks (object index)
 cd $REPO; git add render-out/$FILM/part$PART
 git -c user.name="render helper" -c user.email="render-helper@users.noreply.github.com" commit -q -m "render $FILM part $PART: frames $F0-$F1 (temporary)"
 for i in 1 2 3 4; do git push -q origin HEAD:refs/heads/$BR && break; sleep $((i * 5)); done
