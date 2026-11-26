@@ -12,7 +12,6 @@ CAPS = [  # start, end, text (*gold*), place
     (46.0, 48.9, 'ନିଆଁ ତଳେ, ସିଝେ *ଉପର ହାଣ୍ଡି*', 'top'),
     (49.4, 53.2, '*୧୮* ଥର ଆକ୍ରମଣ', 'top'),
     (69.4, 71.0, '*ରଥଯାତ୍ରା*', 'top'),
-    (71.1, 72.6, '*ବାଇଶି* ପାହାଚ', 'top'),
     (75.4, 79.6, 'ପ୍ରତିଦିନ *ବାନା* ବଦଳ', 'bottom'),
     (80.2, 81.55, '*ଜୟ ଜଗନ୍ନାଥ*', 'bottom'),
 ]
@@ -25,8 +24,9 @@ LABELS = [  # start, end, mask indices, Odia name, English, extras
     (35.2, 36.65, (3,), 'ନାଟମଣ୍ଡପ', 'NATAMANDAPA', ''),
     (36.55, 37.9, (4,), 'ଭୋଗମଣ୍ଡପ', 'BHOGAMANDAPA', ''),
     (40.7, 42.6, (5,), 'ରୋଷଘର', 'ROSAGHARA', ''),
-    (56.6, 58.3, (7,), 'କୂର୍ମବେଢ଼ା', 'KURMA BEDHA', ''),
-    (58.2, 59.9, (6,), 'ମେଘନାଦ ପାଚେରି', 'MEGHANADA PACHERI', ''),
+    (56.6, 59.9, (7,), 'କୂର୍ମବେଢ଼ା', 'KURMA BEDHA · INNER WALL', ''),
+    (57.3, 59.9, (6,), 'ମେଘନାଦ ପାଚେରି', 'MEGHANADA PACHERI · OUTER WALL', ''),
+    (71.0, 72.9, (10,), 'ବାଇଶି ପାହାଚ', 'BAISI PAHACHA · 22 STEPS', ''),
     (66.0, 69.2, (9,), 'ନନ୍ଦିଘୋଷ', 'NANDIGHOSA', ''),
     (72.8, 75.0, (8,), 'ନୀଳଚକ୍ର', 'NILACHAKRA · ASHTADHATU', ''),
 ]
@@ -57,21 +57,37 @@ def outline(im, m, a, fill=.10, width=4, glow=9):
     g = edge.filter(ImageFilter.GaussianBlur(glow)); g = Image.fromarray(np.clip(np.asarray(g, np.float32) * 2.2, 0, 255).astype(np.uint8))
     for lay, k in ((g, .85 * a), (edge, a), (M_, fill * a)):
         col = Image.new('RGBA', im.size, (*GOLD, 0)); col.putalpha(lay.point(lambda v, k=k: int(v * k))); im.alpha_composite(col)
+_placed = []
 def tag(im, x, y_top, odia, eng, a, rise):
-    """a name tag: Odia in gold, English in spaced capitals between hairlines, a leader line down to a diamond on the part"""
-    ty = int(min(1440, max(330, y_top - 120))) - int(rise * 14); x = int(min(900, max(180, x)))
-    layer = Image.new('RGBA', im.size, (0, 0, 0, 0)); sh = Image.new('RGBA', im.size, (0, 0, 0, 0)); dl, ds = ImageDraw.Draw(layer), ImageDraw.Draw(sh)
-    f1 = od(58, 600); f2 = cgr(25); e = '  '.join(eng); e = ' '.join(eng)
-    A = int(255 * a)
-    dl.text((x, ty), odia, font=f1, fill=(*GOLD, A), anchor='ms'); ds.text((x, ty + 2), odia, font=f1, fill=(6, 4, 2, int(210 * a)), anchor='ms')
-    ew = dl.textlength(e, font=f2); dl.text((x, ty + 40), e, font=f2, fill=(248, 240, 226, A), anchor='ms'); ds.text((x, ty + 42), e, font=f2, fill=(6, 4, 2, int(210 * a)), anchor='ms')
+    """a premium name tag: a dark glass plate with a fine gold rule, the Odia name in gold foil, the English in spaced capitals,
+    a leader line down to a gold diamond on the part. Tags never overlap (a later one moves down)."""
+    f1 = od(56, 700); f2 = cgr(23); e = ' '.join(eng)
+    d0 = ImageDraw.Draw(im); w1 = d0.textlength(odia, font=f1); w2 = d0.textlength(e, font=f2); W_ = max(w1, w2) + 64; H_ = 118
+    x = int(min(1080 - W_ / 2 - 24, max(W_ / 2 + 24, x))); ty = int(min(1330, max(300, y_top - 190))) - int(rise * 14)
+    for (px, py, pw) in _placed:
+        if abs(px - x) < (pw + W_) / 2 + 10 and abs(py - ty) < H_ + 14: ty = py + H_ + 22
+    _placed.append((x, ty, W_))
+    A = int(255 * a); x0, x1, y0, y1 = x - W_ / 2, x + W_ / 2, ty, ty + H_
+    plate = Image.new('RGBA', im.size, (0, 0, 0, 0)); dp = ImageDraw.Draw(plate)
+    dp.rounded_rectangle((x0, y0, x1, y1), 22, fill=(14, 10, 7, int(150 * a)))
+    blur = plate.filter(ImageFilter.GaussianBlur(14)); im.alpha_composite(blur); im.alpha_composite(plate)
+    dl = ImageDraw.Draw(im)
+    dl.rounded_rectangle((x0, y0, x1, y1), 22, outline=(*GOLD, int(210 * a)), width=2)
+    dl.rounded_rectangle((x0 + 6, y0 + 6, x1 - 6, y1 - 6), 17, outline=(*GOLD, int(70 * a)), width=1)
+    # gold foil Odia
+    m = Image.new('L', im.size, 0); ImageDraw.Draw(m).text((x, y0 + 64), odia, font=f1, fill=A, anchor='ms')
+    grad = Image.new('RGBA', im.size, (0, 0, 0, 0)); gd = ImageDraw.Draw(grad)
+    for yy in range(int(y0 + 10), int(y0 + 76)):
+        u = (yy - y0 - 14) / 56; c = (252, 236, 186) if u < .4 else ((232, 186, 98) if u < .7 else (184, 130, 48)); gd.line((x0, yy, x1, yy), fill=(*c, 255))
+    gold = Image.new('RGBA', im.size, (0, 0, 0, 0)); gold.paste(grad, (0, 0), m); im.alpha_composite(gold)
+    dl.text((x, y0 + 100), e, font=f2, fill=(246, 238, 224, A), anchor='ms')
     for sx in (-1, 1):
-        x0 = x + sx * (ew / 2 + 14); dl.line((x0, ty + 31, x0 + sx * 46 * a, ty + 31), fill=(*GOLD, int(220 * a)), width=2)
-    ay = int(max(ty + 60, y_top)); 
-    if ay > ty + 64:
-        dl.line((x, ty + 54, x, ty + 54 + (ay - ty - 60) * a), fill=(*GOLD, int(230 * a)), width=2)
-        dl.regular_polygon((x, ty + 54 + (ay - ty - 60) * a, 7), 4, fill=(*GOLD, A))
-    sh = sh.filter(ImageFilter.GaussianBlur(8)); im.alpha_composite(sh); im.alpha_composite(sh); im.alpha_composite(layer)
+        xa = x + sx * (w2 / 2 + 12); dl.line((xa, y0 + 92, xa + sx * 22, y0 + 92), fill=(*GOLD, int(200 * a)), width=1)
+    ay = int(y_top)
+    if ay > y1 + 14:
+        yb = y1 + (ay - y1 - 8) * a
+        dl.line((x, y1, x, yb), fill=(*GOLD, int(230 * a)), width=2); dl.regular_polygon((x, yb, 7), 4, fill=(*GOLD, A))
+
 def height_line(im, an, a):
     """the measured height beside the tower: a fine gold rule with end ticks, '୨୧୪ ଫୁଟ' at its middle"""
     xc, top, bot, right = an; x = int(min(1020, right + 40)); top = int(max(270, top)); bot = int(min(1460, bot))
@@ -86,7 +102,7 @@ def height_line(im, an, a):
     sh = sh.filter(ImageFilter.GaussianBlur(7)); im.alpha_composite(sh); im.alpha_composite(layer)
 def halo(im, m, a):
     M_ = Image.fromarray((m * 255).astype(np.uint8)).resize(im.size, Image.BILINEAR).filter(ImageFilter.MaxFilter(5))
-    for r, k in ((70, .22), (26, .16)):
+    for r, k in ((80, .12), (30, .06)):
         g = M_.filter(ImageFilter.GaussianBlur(r)); col = Image.new('RGBA', im.size, (255, 214, 140, 0)); col.putalpha(g.point(lambda v, k=k: int(min(255, v * 2.4) * k * a))); im.alpha_composite(col)
 
 def ss(x): x = max(0., min(1., x)); return x * x * (3 - 2 * x)
@@ -140,6 +156,7 @@ for fn in files:
     if os.path.exists(dst): continue
     t = fi / FPS
     im = Image.open(os.path.join(IN, fn)).convert('RGB').resize((1080, 1920), Image.LANCZOS).filter(ImageFilter.UnsharpMask(1.2, 40, 2)).convert('RGBA')
+    _placed.clear()
     for t0_, t1_, ids, odn, eng, ex in LABELS:
         k = ss((t - t0_) / .45) * (1 - ss((t - t1_ + .35) / .35))
         if k <= 0: continue

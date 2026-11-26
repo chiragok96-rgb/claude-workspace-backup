@@ -13,7 +13,7 @@ M = MATS.make()
 M['dust'] = mat_basic('dust', (.38, .3, .2), 1.0); M['rathpaint'] = mat_basic('rathpaint', (.42, .10, .05), .6); M['rope'] = mat_stone('rope', (.52, .42, .28), var=.1, rough=.95, scale=20, bump=.6, dirt=0); M['flag_white'] = mat_basic('cloth_white', (.88, .86, .8), .8)
 for nm, x, nw, Hh, ca, cb in RT.RATHS: M['stripe_' + nm] = RT.stripe_mat('stripe_' + nm, ca, cb)
 PP.people_mats(M); FIGS = PP.figure_collection(M)
-FIG_NAM = PP.figure_collection(M, 'figs_namaste', 'namaste'); FIG_PULL = PP.figure_collection(M, 'figs_pull', 'pull', ('dhoti', 'dhoti', 'kurta', 'dhoti', 'dhoti')); FIG_WALK = PP.figure_collection(M, 'figs_walk', 'walk')
+FIG_NAM = PP.figure_collection(M, 'figs_namaste', 'namaste'); FIG_PULL = PP.figure_collection(M, 'figs_pull', 'pull', ('dhoti', 'dhoti', 'kurta', 'dhoti', 'dhoti')); FIG_WALK = PP.figure_collection(M, 'figs_walk', 'walk'); FIG_BHOGA = PP.figure_collection(M, 'figs_bhoga', 'bhoga', ('dhoti', 'kurta', 'dhoti', 'dhoti', 'kurta'))
 CW = coll('world'); CT = coll('temple'); CX = coll('extras')
 
 # ———————— land, sea, sky ————————
@@ -48,7 +48,7 @@ for k in range(6):
                 if int(round(kp.co[0])) == F(t_fall): kp.interpolation = 'QUAD'; kp.easing = 'EASE_IN'
         hide(ob, t_in - .25, 13.95); GHOST.append((ob.name, t_fall))
 ch, st, pole, z_pole = TP.nilachakra(M, CT, 0, 0, v_top); BUILD += [(st, 14.85), (ch, 15.05), (pole, 15.25)]
-BUILD += [(TP.flag(M, CT, 'flag_big', .08, 0, z_pole + 7.2, 7.5, 2.8, 'flag'), 15.45), (TP.flag(M, CT, 'flag_small', .08, 0, z_pole + 4.4, 4.5, 1.6, 'flag2'), 15.6)]
+BUILD += [(TP.flag(M, CT, 'flag_big', .08, 0, z_pole + 7.2, 7.5, 2.8, 'flagcloth'), 15.45), (TP.flag(M, CT, 'flag_small', .08, 0, z_pole + 4.4, 4.5, 1.6, 'flag2'), 15.6)]
 j_out, j_top = TP.pidha_deul(M, CT, 'jaga', 27, 0, 10.5, 12, (5, 4, 3), 1.05, TP.TER, 26.6, 29.6); BUILD += j_out
 n_out, n_top = TP.natamandapa(M, CT, 51.5, 0, 9.5, 9.0, 11, TP.TER, 33.0, 35.6); BUILD += n_out
 b_out, b_top = TP.pidha_deul(M, CT, 'bhoga', 71, 0, 7.6, 8, (4, 3, 2), .95, TP.TER, 34.9, 37.4); BUILD += b_out
@@ -75,7 +75,7 @@ BUILD += ros
 # walls: Kurmabedha (inner) and Meghanada pacheri (outer), with their gates
 BUILD += TP.wall_ring(M, CT, 'kurma', -38, -45, 92, 45, TP.TER, 5.0, 1.6, 54.2, 57.2, gates=[('E', 0, 6), ('W', 0, 5), ('N', 25, 5), ('S', 25, 5)], mat='laterite')
 BUILD += TP.wall_ring(M, CT, 'megha', -75, -98, 128, 98, 0, 6.0, 2.4, 57.0, 59.6, gates=[('E', 0, 8), ('W', 0, 6), ('N', 20, 6), ('S', 20, 6)], mat='laterite', merlons=True)   # Meghanada pacheri: 6.1 m
-BUILD += TP.gate_tower(M, CT, 'singhadwara', 128, 0, 8, True, 0, 58.6, 59.9, 'laterite')
+BUILD += TP.gate_tower(M, CT, 'singhadwara', 128, 0, 8, True, 0, 58.6, 59.9, 'sandstone')
 for nm, (x, y, ax) in (('gateW', (-75, 0, True)), ('gateN', (20, 98, False)), ('gateS', (20, -98, False))): BUILD += TP.gate_tower(M, CT, nm, x, y, 6, ax, 0, 58.8, 59.9, 'laterite')
 BUILD += TP.gate_tower(M, CT, 'innerE', 92, 0, 6, True, TP.TER, 56.4, 57.4, 'laterite')
 BUILD += TP.steps22(M, CT, 92 + 3.5, 92 + 3.5 + 13.2, 0, 8, TP.TER, 71.1, 72.2)
@@ -85,6 +85,14 @@ CP = coll('people')
 door = PP.scatter((15.8, -6.5, 22.5, 6.5), 70, 1, lambda x, y: TP.TER, minsep=.62); dc = PP.crowd('devotees_door', door, FIG_NAM, CP, face=math.pi / 2, spread=.45); hide(dc, 21.4, 26.5)
 dc.keyframe_insert('location', frame=F(25.6)); dc.location.x += 3.0; dc.keyframe_insert('location', frame=F(26.5))   # they turn back out before the hall rises
 spect = PP.scatter((140, 17, 480, 34), 1500, 2, minsep=.75) + PP.scatter((140, -34, 480, -17), 1500, 3, minsep=.75); sc_ = PP.crowd('spectators', spect, FIG_NAM, CP); hide(sc_, 60.0)
+# ———————— nacha and bhoga at the Natamandapa: Odissi dancers on the terrace, servitors carrying pots of mahaprasad ————————
+PP.dancers(M, CP, [(46.0 + i * 1.6, -12.4 - (i % 2) * 1.5, TP.TER, (i % 3 - 1) * .45 + math.pi * .15) for i in range(8)], 32.8, 38.6)
+bh = [(60.5 + k * 1.15 + random.Random(k).uniform(-.2, .2), -14.0 - (k % 2) * .9, TP.TER) for k in range(12)]
+bc = PP.crowd('bhoga_carriers', bh, FIG_BHOGA, CP, bob=.04, face=-math.pi / 2, spread=.12); hide(bc, 32.8, 40.2)
+bc.keyframe_insert('location', frame=F(33.0)); bc.location.x += 4.5; bc.keyframe_insert('location', frame=F(40.0))
+# ———————— thousands of devotees in the outer compound by the Rosaghara ————————
+ros_c = PP.scatter((58, -60, 126, -48), 520, 41, minsep=.7) + PP.scatter((114, -95, 126, -62), 120, 43, minsep=.7); rc = PP.crowd('rosei_crowd', ros_c, FIG_NAM, CP); hide(rc, 38.8, 45.5)
+ros_c2 = PP.scatter((58, -60, 126, -48), 380, 42, minsep=.7); rc2 = PP.crowd('rosei_crowd2', ros_c2, FIG_WALK, CP); hide(rc2, 38.8, 45.5)
 # ———————— the raths, their ropes and the pullers; they roll east together ————————
 CR = coll('raths'); RX = {'taladhwaja': 385, 'darpadalana': 300, 'nandighosa': 215}
 for i, (nm, x, nw, Hh, ca, cb) in enumerate(RT.RATHS):
@@ -98,19 +106,23 @@ for i, (nm, x, nw, Hh, ca, cb) in enumerate(RT.RATHS):
 PP.army(M, CX)
 z_rel = lambda z: z - TP.TER
 def east_x(z):
-    zr = z - TP.TER; u = (zr - TP.H_BADA) / (TP.H_GANDI - TP.H_BADA); w = TP.gandi_w(zr, 11.5); return w * (1 + .10 * (1 - .45 * u)) + .45
-path = [(75.0 + i * .2, east_x(48 + i * .45) + .0, .3, 48 + i * .45, math.pi / 2) for i in range(16)]
-wt = v_wt; path += [(78.3, wt * .8 + .5, .3, TP.TER + 52.6, math.pi / 2), (78.8, wt * 1.3 + .4, .3, TP.TER + 55.6, math.pi / 2), (79.3, wt * .9, .3, TP.TER + 59.3, math.pi / 2)]
-PP.climber(M, CX, path, 74.9, 79.4)
-fb = bpy.data.objects['flag_big']; fb.hide_render = True; fb.keyframe_insert('hide_render', frame=F(79.35))
-nf = TP.flag(M, CT, 'flag_new', .08, 0, z_pole + 7.2, 7.5, 2.8, 'flag'); nf.location.z = -6.0; nf.keyframe_insert('location', frame=F(79.35)); nf.location.z = 0; nf.keyframe_insert('location', frame=F(80.5)); hide(nf, 79.35)
+    zr = z - TP.TER; u = (zr - TP.H_BADA) / (TP.H_GANDI - TP.H_BADA); w = TP.gandi_w(zr, 11.5); return w * (1 + .17 * (1 - .45 * u)) + .42
+wt = v_wt; T_ = TP.TER
+path = [(74.9 + i * .3, east_x(T_ + 44 + i * 1.6), .3, T_ + 44 + i * 1.6, math.pi / 2) for i in range(6)]          # up the gandi
+path += [(77.2, wt * .78 + .45, .3, T_ + 52.4, math.pi / 2), (77.8, wt * .75 + .35, .3, T_ + 54.4, math.pi / 2),           # the beki
+         (78.3, wt * 1.25 + .4, .3, T_ + 56.0, math.pi / 2), (78.7, wt * .52 + .35, .3, T_ + 58.0, math.pi / 2),          # over the amalaka, the khapuri
+         (79.0, 1.6, .3, T_ + 60.5, math.pi / 2), (79.25, .2, -.5, z_pole - 2.2, 0.), (82.0, .2, -.5, z_pole - 2.2, 0.)]     # past the kalasha to the wheel
+PP.climber(M, CX, path, 74.9, 82.0, 79.3)
+fb = bpy.data.objects['flag_big']   # the old flag comes down the pole into his hands...
+fb.keyframe_insert('location', frame=F(79.35)); fb.location.z = -6.6; fb.keyframe_insert('location', frame=F(79.95)); fb.hide_render = True; fb.keyframe_insert('hide_render', frame=F(80.0))
+nf = TP.flag(M, CT, 'flag_new', .08, 0, z_pole + 7.2, 7.5, 2.8, 'flagcloth'); nf.location.z = -6.6; nf.keyframe_insert('location', frame=F(80.0)); nf.location.z = 0; nf.keyframe_insert('location', frame=F(80.9)); hide(nf, 80.0)   # ...and the new one rises
 # ———————— the site at dawn: dressed stones waiting on the sand ————————
 rnd2 = random.Random(8)
 for k in range(34):
     cx_, cy_ = ((26, -57) if k < 20 else (-22, -53)); x = cx_ + rnd2.uniform(-6, 6); y = cy_ + rnd2.uniform(-3.5, 3.5); z = (k % 3) * .62
     V, Fc = boxv(-.75, -.45, 0, .75, .45, .6); ob = mesh_obj(f'pile{k}', [(a + x, b + y, c + z) for a, b, c in V], Fc, M['stone'], CX); bevel(ob, .04); ob.rotation_euler = (0, 0, rnd2.uniform(-.15, .15)); hide(ob, -1, 24.5)
 # ———————— the hook: teams haul dressed stones on wooden sledges up from the beach; masons wait at the site ————————
-TEAMS = [(8, -150), (24, -141), (41, -132), (-9, -136)]   # on the camera's path over the beach: the hook
+TEAMS = [(22, -192), (37, -184), (52, -177), (8, -186)]   # on the camera's path over the beach: the hook
 for i, (x, y) in enumerate(TEAMS):
     tm = bpy.data.objects.new(f'team{i}', None); CP.objects.link(tm)
     V, Fc = boxv(-.75, -1.3, 0, .75, 1.3, .28); sl = mesh_obj(f'sledge{i}', V, Fc, M['wood'], CP); bevel(sl, .03); sl.parent = tm
@@ -140,7 +152,13 @@ if STATIC:
 else:
     for ob, t in BUILD:
         d_ = .32 if ob.name.startswith(('v_', 'jaga', 'bhoga', 'nata')) else .45
-        appear(ob, t, d_, 2.0 if ob.name.startswith('v_') else 1.4)
+        if ob.name.count('_') >= 2 and ob.name.startswith('v_') or ob.name.startswith(('wheel', 'step', 'ros_wall')) or ob.parent is not None:
+            appear(ob, t, d_, 2.0 if ob.name.startswith('v_') else 1.4)          # stone upon stone, close up
+        else:   # each part slides in from a side and locks into place: the temple assembles itself
+            rr = random.Random(ob.name); ax = rr.random() < .5; sgn = 1 if rr.random() < .5 else -1; mag = rr.uniform(3.5, 6.5)
+            loc = ob.location.copy(); off = (sgn * mag if ax else 0, 0 if ax else sgn * mag, rr.uniform(1.0, 2.5))
+            ob.location = (loc.x + off[0], loc.y + off[1], loc.z + off[2]); ob.keyframe_insert('location', frame=F(t - d_ * 1.3) - 1)
+            ob.location = loc; ob.keyframe_insert('location', frame=F(t)); hide(ob, t - d_ * 1.3)
         # a stone glows warm gold while it is laid, then settles to its own colour
         ob.color = (0, 1, 1, 1); ob.keyframe_insert('color', frame=F(t - d_) - 1); ob.keyframe_insert('color', frame=F(t))
         ob.color = (1, 1, 1, 1); ob.keyframe_insert('color', frame=F(t + .75))
@@ -158,7 +176,7 @@ for k_, (dx, dy) in enumerate(((-9, -6), (9, -5), (0, -10), (-6, 8), (7, 7))):
     ob.keyframe_insert('location', frame=F(12.95)); ob.location.z -= 9; ob.location.x += dx * .5; ob.keyframe_insert('location', frame=F(14.4)); hide(ob, 12.95, 14.5)
 
 # ———————— label masks: pass index per named part ————————
-IDX = [(('v_',), 1), (('jaga',), 2), (('nata',), 3), (('bhoga',), 4), (('ros_', 'chulha', 'handi'), 5), (('megha', 'singhadwara', 'gateW', 'gateN', 'gateS'), 6), (('kurma', 'innerE'), 7), (('nilachakra', 'chakra_staff', 'flag_pole', 'flag_big', 'flag_small', 'flag_new'), 8), (('nandighosa_',), 9)]
+IDX = [(('v_',), 1), (('jaga',), 2), (('nata',), 3), (('bhoga',), 4), (('ros_', 'chulha', 'handi'), 5), (('megha', 'singhadwara', 'gateW', 'gateN', 'gateS'), 6), (('kurma', 'innerE'), 7), (('nilachakra', 'chakra_staff', 'flag_pole', 'flag_big', 'flag_small', 'flag_new'), 8), (('nandighosa_',), 9), (('step',), 10)]
 for ob in bpy.data.objects:
     for pre, k_ in IDX:
         if ob.name.startswith(pre) and 'rope' not in ob.name: ob.pass_index = k_

@@ -54,51 +54,63 @@ def horse(R_=1.0):
     V, Fc = merge(P); return [(x * R_, y * R_, z * R_) for x, y, z in V], Fc
 
 def rath(M, C, name, x0, nw, H, ca, cb, t0, horse_col=(.9, .88, .84)):
-    """a Rath Yatra chariot: four axles of big wheels under a square body (~10.5 m), carved painted tiers, a pillared sanctum,
-    a tall rekha-curved cloth canopy in alternating panels, gold bands, kalasha and flag; four wooden horses and a charioteer in front"""
-    out = []; R = 1.07; L_ = 10.5; Wd = 10.5
+    """a Rath Yatra chariot (after Nandighosa: ~13.7 m tall, 16 wheels of 7 ft): heavy wheels under a square wooden platform,
+    a painted level of pillars and side-deity panels, and over it the great canopy: red and yellow cloth in vertical panels,
+    flaring wide over the deck and rising in a temple-like curve to the gilt kalasha, the chakra and the flag; four rearing
+    wooden horses, a charioteer and a ladder in front"""
+    out = []; R = 1.07; L_ = 11.0; Wd = 11.0
     par = bpy.data.objects.new(name, None); C.objects.link(par); par.location = (x0, 0, 0)
     def add(nm, V, Fc, mat, t, smooth=False):
         ob = mesh_obj(f'{name}_{nm}', V, Fc, mat, C, smooth); ob.parent = par; out.append((ob, t)); return ob
     if f'horsewood_{name}' not in M: M[f'horsewood_{name}'] = mat_basic(f'horsewood_{name}', horse_col, .55)
-    wv, wf = wheel(R, .36, 16)
+    if 'panelpaint' not in M:
+        M['panelpaint'] = [mat_basic(f'panel{i}', c, .6) for i, c in enumerate(((.10, .32, .18), (.85, .52, .08), (.06, .16, .42), (.62, .1, .05), (.9, .86, .74)))]
+    wv, wf = wheel(R, .38, 16)
     for side in (-1, 1):
         for k in range(4):
-            x = -L_ / 2 + 1.3 + k * (L_ - 2.6) / 3
-            for yy in (Wd / 2 + .25, Wd / 2 - 1.15):
+            x = -L_ / 2 + 1.25 + k * (L_ - 2.5) / 3
+            for yy in (Wd / 2 - .1, Wd / 2 - 1.5):
                 add(f'wheel{side}{k}{yy:.0f}', [(a + x, b + side * yy, c + R) for a, b, c in wv], wf, M['wood'], t0 + .05 * k, True)
-    zb = 2 * R + .08
-    add('chassis', *boxv(-L_ / 2, -Wd / 2 + .6, zb, L_ / 2, Wd / 2 - .6, zb + .7), M['wood'], t0 + .5)
-    for k, (f, hh) in enumerate(((1.0, .35), (.97, .3), (1.02, .25))):      # carved, painted tiers
-        z = zb + .7 + sum(h_ for _, h_ in ((1.0, .35), (.97, .3), (1.02, .25))[:k])
-        add(f'tier{k}', *boxv(-L_ / 2 * f, -Wd / 2 * f, z, L_ / 2 * f, Wd / 2 * f, z + hh - .01), M['rathpaint'] if k != 1 else M['kalasha'], t0 + .6 + .05 * k)
-    zd = zb + 1.6
-    for k in range(4):      # pillars at the corners and along the sides, painted
-        for s in (-1, 1):
-            for x in (-L_ / 2 + .5 + k * (L_ - 1) / 3,):
-                add(f'post{k}{s}', *boxv(x - .14, s * (Wd / 2 - .5) - .14, zd, x + .14, s * (Wd / 2 - .5) + .14, zd + 2.4), M['rathpaint'], t0 + .8 + .02 * k)
-    add('sanctum', *merge([boxv(-2.6, -2.6, zd, 2.6, -2.2, zd + 2.35), boxv(-2.6, 2.2, zd, 2.6, 2.6, zd + 2.35), boxv(-2.6, -2.6, zd, -2.2, 2.6, zd + 2.35), boxv(1.6, -2.6, zd + 1.85, 2.6, 2.6, zd + 2.35)]), M['rathpaint'], t0 + 1.0)
-    add('sanctum_trim', *merge([boxv(2.55, -2.6, zd, 2.7, -1.3, zd + 2.35), boxv(2.55, 1.3, zd, 2.7, 2.6, zd + 2.35), boxv(2.55, -1.3, zd + 1.75, 2.7, 1.3, zd + 1.95)]), M['kalasha'], t0 + 1.05)
-    zc = zd + 2.4
-    add('cornice', *merge([boxv(-L_ / 2 - .2, -Wd / 2 - .2, zc, L_ / 2 + .2, Wd / 2 + .2, zc + .3), boxv(-L_ / 2 + .2, -Wd / 2 + .2, zc + .3, L_ / 2 - .2, Wd / 2 - .2, zc + .55)]), M['kalasha'], t0 + 1.15)
-    zc += .55
-    # the canopy: a tall rekha curve (straight, then rounding in), octagonal, alternating cloth panels
-    Hc = H - zc - .8; prof = []
-    for k in range(17):
-        u = k / 16; r = 3.5 * (1 - .8 * u ** 1.35) if u < .94 else 3.5 * .2 * (1 - (u - .94) * 12); prof.append((max(.25, r), u * Hc))
+    zb = 2 * R + .05
+    add('chassis', *boxv(-L_ / 2, -Wd / 2 + .55, zb, L_ / 2, Wd / 2 - .55, zb + .65), M['wood'], t0 + .45)
+    add('deck', *boxv(-L_ / 2 - .25, -Wd / 2 - .25, zb + .65, L_ / 2 + .25, Wd / 2 + .25, zb + .95), M['rathpaint'], t0 + .55)
+    add('deck_trim', *boxv(-L_ / 2 - .3, -Wd / 2 - .3, zb + .95, L_ / 2 + .3, Wd / 2 + .3, zb + 1.07), M['kalasha'], t0 + .6)
+    zd = zb + 1.07; hp = 2.3
+    # the painted level: carved pillars all round, and between them coloured panels of the side deities
+    n = 6
+    for side in range(4):
+        for k in range(n + 1):
+            u = -L_ / 2 + .25 + k * (L_ - .5) / n
+            x, y = [(u, -Wd / 2 + .25), (u, Wd / 2 - .25), (-L_ / 2 + .25, u), (L_ / 2 - .25, u)][side]
+            add(f'pil{side}{k}', *boxv(x - .16, y - .16, zd, x + .16, y + .16, zd + hp), M['rathpaint'], t0 + .75)
+            if k < n and not (side == 3 and k in (2, 3)):
+                v = u + (L_ - .5) / n / 2; pw = .55
+                x, y = [(v, -Wd / 2 + .22), (v, Wd / 2 - .22), (-L_ / 2 + .22, v), (L_ / 2 - .22, v)][side]
+                ax = side < 2
+                bx = boxv(x - pw, y - .06, zd + .5, x + pw, y + .06, zd + 1.9) if ax else boxv(x - .06, y - pw, zd + .5, x + .06, y + pw, zd + 1.9)
+                add(f'panel{side}{k}', *bx, M['panelpaint'][(side * 3 + k) % 5], t0 + .8)
+    add('sanctum', *boxv(-2.2, -2.2, zd, 2.2, 2.2, zd + hp - .2), M['rathpaint'], t0 + .9)
+    add('cornice', *merge([boxv(-L_ / 2 - .35, -Wd / 2 - .35, zd + hp, L_ / 2 + .35, Wd / 2 + .35, zd + hp + .25), boxv(-L_ / 2 - .2, -Wd / 2 - .2, zd + hp + .25, L_ / 2 + .2, Wd / 2 + .2, zd + hp + .4)]), M['kalasha'], t0 + 1.0)
+    zc = zd + hp + .4
+    # the canopy: flares out over the deck, then rises in a rekha curve (16-sided, alternating red / yellow panels)
+    Hc = H - zc - .6; prof = [(7.4, -.25), (7.6, 0.0)]
+    for k in range(1, 19):
+        u = k / 18; r = 6.9 * (1 - .82 * u ** 1.25) if u < .95 else 6.9 * .18 * (1 - (u - .95) * 14); prof.append((max(.2, r), u * Hc))
     cv, cf = lathe(prof, 16)
-    rot = 0.0; cv = [(a * math.cos(rot) - b * math.sin(rot), a * math.sin(rot) + b * math.cos(rot), c) for a, b, c in cv]
-    add('canopy', [(a, b, c + zc) for a, b, c in cv], cf, M['stripe_' + name], t0 + 1.4)
-    for hb in (.0, .5, .9):
-        r = 3.5 * (1 - .8 * hb ** 1.35) + .04; bv, bf = lathe([(r, 0), (r, .12)], 16); bv = [(a * math.cos(rot) - b * math.sin(rot), a * math.sin(rot) + b * math.cos(rot), c) for a, b, c in bv]
-        add(f'band{hb}', [(a, b, c + zc + hb * Hc) for a, b, c in bv], bf, M['kalasha'], t0 + 1.5)
-    kv, kf = lathe([(.5, 0), (.9, .4), (.8, .9), (.35, 1.2), (.5, 1.35), (.1, 1.6)], 32); add('kalasha', [(a, b, c + zc + Hc) for a, b, c in kv], kf, M['kalasha'], t0 + 1.8, True)
-    fv, ff = boxv(-.04, -.04, zc + Hc + 1.6, .04, .04, zc + Hc + 4.4); add('flagpole', fv, ff, M['wood'], t0 + 1.9)
-    # four wooden horses leaping forward from the front, side by side
-    hv, hf = horse(1.05)
-    for k, yy in enumerate((-3.0, -1.0, 1.0, 3.0)):
-        add(f'horse{k}', [(a + L_ / 2 + .3, b + yy, c + zb + .1) for a, b, c in hv], hf, M[f'horsewood_{name}'], t0 + 1.2 + .05 * k, True)
-    add('ladder', *merge([boxv(L_ / 2, -.7, zb + .1 - i * .3, L_ / 2 + .35 + i * .35, .7, zb + .2 - i * .3) for i in range(7)]), M['wood'], t0 + 1.0)
+    add('canopy', [(a, b, c + zc) for a, b, c in cv], cf, M['stripe_' + name], t0 + 1.3)
+    for hb in (.0, .3, .62):
+        r = 6.9 * (1 - .82 * hb ** 1.25) + .05; bv, bf = lathe([(r, 0), (r, .16)], 16)
+        add(f'band{hb}', [(a, b, c + zc + hb * Hc) for a, b, c in bv], bf, M['kalasha'], t0 + 1.4)
+    kv, kf = lathe([(.55, 0), (1.0, .45), (.9, 1.0), (.4, 1.3), (.55, 1.45), (.1, 1.75)], 32); add('kalasha', [(a, b, c + zc + Hc) for a, b, c in kv], kf, M['kalasha'], t0 + 1.7, True)
+    fv, ff = boxv(-.05, -.05, zc + Hc + 1.7, .05, .05, zc + Hc + 4.6); add('flagpole', fv, ff, M['wood'], t0 + 1.8)
+    # four rearing wooden horses, large, in front; the charioteer on a seat behind them; a ladder
+    hv, hf = horse(1.55)
+    for k, yy in enumerate((-3.9, -1.3, 1.3, 3.9)):
+        add(f'horse{k}', [(a + L_ / 2 + .6, b + yy, c + zb - .2) for a, b, c in hv], hf, M[f'horsewood_{name}'], t0 + 1.1 + .05 * k, True)
+    from people import figure_mesh
+    me = figure_mesh(f'{name}_sarathi', 'kurta', M, 1.75, 'namaste'); ob = bpy.data.objects.new(f'{name}_sarathi', me); C.objects.link(ob); ob.parent = par
+    ob.location = (L_ / 2 + .1, 0, zd); ob.rotation_euler = (0, 0, -math.pi / 2); out.append((ob, t0 + 1.2))
+    add('ladder', *merge([boxv(L_ / 2 + .25, -.8, zd - .3 - i * .3, L_ / 2 + .55 + i * .32, .8, zd - .2 - i * .3) for i in range(int(zd / .3))]), M['wood'], t0 + 1.0)
     return par, out, L_
 
 def ropes(M, C, name, x_front, length, ys=(-3.6, -1.2, 1.2, 3.6)):

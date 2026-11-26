@@ -7,6 +7,7 @@ REPO=/home/user/claude-workspace-backup; T=/home/user/render-in/$FILM/part$PART;
 cd $REPO; for i in 1 2 3 4; do git fetch -q origin $BR && break; sleep $((i * 4)); done
 git archive FETCH_HEAD render-out/$FILM/part$PART | tar -x -C $T
 D=$T/render-out/$FILM/part$PART
+[ -f $D/idx.tar ] && mkdir -p $FINAL && tar -xf $D/idx.tar -C $FINAL
 for m in $D/seg_*.mkv; do s=$(basename $m .mkv); s=$((10#${s#seg_}))
   ffmpeg -loglevel error -y -i $m -start_number $s -pix_fmt rgb24 $T/f_%05d.png; done
 python3 - "$D" "$FINAL" "$T" <<'PY'

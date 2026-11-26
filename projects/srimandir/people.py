@@ -29,6 +29,7 @@ POSES = {
     'namaste': dict(arm=(((.21, .14, 1.13), (.03, .24, 1.27)), None), leg=(((.09, .0, .47), (.09, .0, .07)), ((-.09, .0, .47), (-.09, .0, .07)))),
     'pull':    dict(arm=(((.25, -.07, 1.13), (.17, -.22, .93)), None), leg=(((.1, .2, .47), (.1, .3, .07)), ((-.1, -.16, .45), (-.1, -.36, .1)))),
     'walk':    dict(arm=(((.22, .1, 1.12), (.22, .2, .88)), ((-.22, -.1, 1.12), (-.22, -.2, .88))), leg=(((.09, .14, .47), (.09, .22, .07)), ((-.09, -.12, .47), (-.09, -.24, .1)))),
+    'bhoga':   dict(arm=(((.25, .03, 1.55), (.1, .02, 1.8)), None), leg=(((.09, .14, .47), (.09, .22, .07)), ((-.09, -.12, .47), (-.09, -.24, .1)))),
     'dance':   dict(arm=(((.36, .02, 1.58), (.13, .04, 1.86)), ((-.45, .02, 1.38), (-.72, .04, 1.43))), leg=(((.24, .05, .5), (.2, .0, .07)), ((-.24, .05, .5), (-.2, .0, .07)))),
 }
 
@@ -62,10 +63,13 @@ def figure_mesh(name, kind, mats, h=1.68, pose='stand'):
         dz = .1 if kind == 'kurta' else .44
         cloth.append(_cyl(.2 * s, .16 * s, dz * s, .98 * s, 14, sy=.75))                            # dhoti (to the shin for labourers)
         if kind == 'dhoti': cloth.append(_limb(S((.17, .0, 1.38)), S((-.15, .02, 1.0)), .05 * s, .06 * s, 8))   # uttariya over the shoulder
-    me = bpy.data.meshes.new(name); V, Fc = merge(cloth + skin + hairl); me.from_pydata(V, [], Fc); me.validate()
-    me.materials.append(mats['garment']); me.materials.append(mats['skin']); me.materials.append(mats['hair'])
-    nc = len(merge(cloth)[1]); ns = len(merge(skin)[1])
-    for i, p in enumerate(me.polygons): p.material_index = 0 if i < nc else (1 if i < nc + ns else 2); p.use_smooth = True
+    pot = []
+    if pose == 'bhoga':   # an earthen pot of mahaprasad carried on the head, a cloth over its mouth
+        pv, pf = lathe([(.02, 0), (.13, .03), (.19, .12), (.17, .22), (.1, .28), (.12, .3)], 14); pot.append(([S((x, y, z + 1.72)) for x, y, z in pv], pf))
+    me = bpy.data.meshes.new(name); V, Fc = merge(cloth + skin + hairl + pot); me.from_pydata(V, [], Fc); me.validate()
+    me.materials.append(mats['garment']); me.materials.append(mats['skin']); me.materials.append(mats['hair']); me.materials.append(mats['clay'])
+    nc = len(merge(cloth)[1]); ns = len(merge(skin)[1]); nh = len(merge(hairl)[1])
+    for i, p in enumerate(me.polygons): p.material_index = 0 if i < nc else (1 if i < nc + ns else (2 if i < nc + ns + nh else 3)); p.use_smooth = True
     return me
 
 def people_mats(M):
@@ -111,6 +115,18 @@ def crowd(name, pts, figs, C, bob=.04, face=None, spread=.5, lean=0.):
     mod = ob.modifiers.new('crowd', 'NODES'); mod.node_group = ng
     return ob
 
+def dancers(M, C, spots, t0, t1, seed=7):
+    """Odissi dancers on the terrace: each turns and sways in the tribhangi, a slow beat (individual objects, animated)"""
+    rnd = random.Random(seed); out = []
+    for i, (x, y, z, face) in enumerate(spots):
+        me = figure_mesh(f'dancer{i}', 'sari', M, 1.62, 'dance'); ob = bpy.data.objects.new(f'dancer{i}', me); C.objects.link(ob)
+        ph = rnd.uniform(0, 6.28); t = t0 - .2
+        while t < t1 + .3:
+            ob.location = (x, y, z + .03 * math.sin(t * 5.2 + ph)); ob.rotation_euler = (0, .1 * math.sin(t * 2.6 + ph), face + .45 * math.sin(t * 2.6 + ph))
+            ob.keyframe_insert('location', frame=F(t)); ob.keyframe_insert('rotation_euler', frame=F(t)); t += .2
+        hide(ob, t0, t1); out.append(ob)
+    return out
+
 def scatter(rect, n, seed, zf=lambda x, y: 0., minsep=.55):
     rnd = random.Random(seed); x0, y0, x1, y1 = rect; pts = []
     for _ in range(n * 3):
@@ -119,34 +135,47 @@ def scatter(rect, n, seed, zf=lambda x, y: 0., minsep=.55):
         if all((x - a) ** 2 + (y - b) ** 2 > minsep ** 2 for a, b, _ in pts[-40:]): pts.append((x, y, zf(x, y)))
     return pts
 
-# ———————— the sevayat: a man in a white dhoti who climbs the spire every day ————————
-def climber(M, C, path, t0, t1):
-    """path: [(t, x, y, z)] — the climber's hips; limbs alternate as he climbs"""
-    s = 1.0; parts = {}
-    def part(nm, V, Fc, mat, parent=None, loc=(0, 0, 0)):
-        ob = mesh_obj(nm, V, Fc, M[mat], C, smooth=True); ob.location = loc
-        if parent: ob.parent = parent
-        return ob
+# ———————— the sevayat: a Chunara servitor in a white dhoti and red gamucha who climbs the spire every evening ————————
+def climber(M, C, path, t0, t1, t_top):
+    """path: [(t, x, y, z, rot)] for the hips. Jointed limbs (shoulder→elbow, hip→knee) in a climbing rhythm; from t_top he stands
+    at the pole and both arms reach up to change the flag"""
+    if 'gamucha' not in M: M['gamucha'] = mat_basic('gamucha', (.62, .06, .04), .7)
     root = bpy.data.objects.new('sevayat', None); C.objects.link(root)
-    tor = [(-.02, .165, .11), (.12, .14, .1), (.28, .165, .11), (.4, .195, .115), (.5, .175, .1)]
-    body = part('sev_body', *merge([_cyl(ra, rb, za, zb, 14, sy=ya / ra) for (za, ra, ya), (zb, rb, yb) in zip(tor, tor[1:])] + [_ball((.19, 0, .48), .058), _ball((-.19, 0, .48), .058), _limb((0, 0, .48), (0, 0, .6), .05, .045)]), 'skin', root)
-    hr = lathe([(0, -.02), (.097, .03), (.09, .1), (0, .125)], 12); part('sev_hair', *merge([([(x, y - .012, z + .69) for x, y, z in hr[0]], hr[1]), _ball((0, -.1, .79), .05)]), 'hair', root)
-    part('sev_dhoti', *merge([_cyl(.21, .17, -.42, .07, 14, sy=.75), _limb((.17, 0, .47), (-.15, .02, .1), .05, .06)]), 'flag_white', root)
-    hd = lathe([(0, -.11), (.075, -.09), (.098, -.02), (.09, .06), (.05, .1), (0, .115)], 12); part('sev_head', [(x, y, z + .72) for x, y, z in hd[0]], hd[1], 'skin', root)
-    limbs = []
-    for nm, x, z0, ln, rr in (('armL', .2, .5, -.62, .042), ('armR', -.2, .5, -.62, .042), ('legL', .08, -.05, -.85, .06), ('legR', -.08, -.05, -.85, .06)):
-        piv = bpy.data.objects.new('sev_' + nm, None); C.objects.link(piv); piv.parent = root; piv.location = (x, 0, z0)
-        V, Fc = merge([_cyl(rr, rr * .75, ln, 0, 8), _ball((0, .03 if 'leg' in nm else 0, ln - .03), rr * 1.05)]); part('sev_' + nm + '_m', V, Fc, 'skin', piv); limbs.append(piv)
+    def part(nm, V, Fc, mat, parent):
+        ob = mesh_obj(nm, V, Fc, M[mat], C, smooth=True); ob.parent = parent; return ob
+    tor = [(-.02, .165, .11), (.12, .14, .1), (.28, .17, .115), (.4, .2, .12), (.5, .18, .1)]
+    part('sev_body', *merge([_cyl(ra, rb, za, zb, 14, sy=ya / ra) for (za, ra, ya), (zb, rb, yb) in zip(tor, tor[1:])] + [_ball((.2, 0, .47), .062), _ball((-.2, 0, .47), .062), _limb((0, 0, .47), (0, 0, .6), .052, .047)]), 'skin', root)
+    hd = lathe([(0, -.11), (.074, -.095), (.097, -.03), (.094, .05), (.062, .1), (0, .12)], 16); part('sev_head', [(x, y, z + .7) for x, y, z in hd[0]], hd[1], 'skin', root)
+    part('sev_nose', *_limb((0, .085, .7), (0, .11, .69), .02, .012, 6), 'skin', root)
+    hr = lathe([(0, -.02), (.099, .03), (.092, .1), (0, .127)], 14); part('sev_hair', *merge([([(x, y - .014, z + .71) for x, y, z in hr[0]], hr[1]), _ball((0, -.1, .8), .052)]), 'hair', root)
+    part('sev_dhoti', *merge([_cyl(.21, .17, -.4, .06, 16, sy=.75)]), 'flag_white', root)
+    part('sev_gamucha', *merge([_cyl(.2, .2, .03, .11, 16, sy=.76), _limb((.05, -.12, .09), (.1, -.2, -.25), .05, .07, 8)]), 'gamucha', root)
+    joints = {}
+    def chain(nm, at, l1, r1, l2, r2, end):
+        p1 = bpy.data.objects.new('sev_' + nm, None); C.objects.link(p1); p1.parent = root; p1.location = at
+        part('sev_' + nm + '_a', *merge([_limb((0, 0, 0), (0, 0, -l1), r1, r1 * .8), _ball((0, 0, -l1), r1 * .82)]), 'skin', p1)
+        p2 = bpy.data.objects.new('sev_' + nm + '2', None); C.objects.link(p2); p2.parent = p1; p2.location = (0, 0, -l1)
+        part('sev_' + nm + '_b', *merge([_limb((0, 0, 0), (0, 0, -l2), r2, r2 * .75), end]), 'skin', p2)
+        joints[nm] = (p1, p2)
+    for sx, nm in ((1, 'armL'), (-1, 'armR')): chain(nm, (sx * .2, 0, .47), .3, .046, .27, .036, _ball((0, .01, -.3), .045))
+    for sx, nm in ((1, 'legL'), (-1, 'legR')): chain(nm, (sx * .09, 0, -.02), .44, .072, .42, .05, _limb((0, -.03, -.44), (0, .14, -.45), .036, .03))
     for t, x, y, z, rot in path:
-        root.location = (x, y, z); root.rotation_euler = (0, 0, rot); root.keyframe_insert('location', frame=F(t)); root.keyframe_insert('rotation_euler', frame=F(t))
-    # climbing cycle: arms reach up alternately, legs push
+        root.location = (x, y, z); root.rotation_euler = (.22 if t < t_top else 0, 0, rot); root.keyframe_insert('location', frame=F(t)); root.keyframe_insert('rotation_euler', frame=F(t))
+    R_ = math.radians
     t = t0; k = 0
     while t <= t1:
-        for i, piv in enumerate(limbs):
-            ph = (k + (i % 2)) % 2; up = i < 2
-            piv.rotation_euler = ((math.radians(160 if ph else 120) if up else math.radians(-35 if ph else 10)), 0, 0); piv.keyframe_insert('rotation_euler', frame=F(t))
-        t += .55; k += 1
-    hide(root, t0 - .1)
+        ph = k % 2
+        for nm, up in (('armL', ph), ('armR', 1 - ph)):
+            p1, p2 = joints[nm]
+            if t >= t_top: a1, a2 = R_(172), R_(8)           # both hands up to the flag
+            else: a1, a2 = (R_(168), R_(15)) if up else (R_(110), R_(70))
+            p1.rotation_euler = (a1, 0, 0); p2.rotation_euler = (a2, 0, 0); p1.keyframe_insert('rotation_euler', frame=F(t)); p2.keyframe_insert('rotation_euler', frame=F(t))
+        for nm, up in (('legL', 1 - ph), ('legR', ph)):
+            p1, p2 = joints[nm]
+            if t >= t_top: a1, a2 = R_(4), R_(-6)
+            else: a1, a2 = (R_(75), R_(-105)) if up else (R_(12), R_(-18))
+            p1.rotation_euler = (a1, 0, 0); p2.rotation_euler = (a2, 0, 0); p1.keyframe_insert('rotation_euler', frame=F(t)); p2.keyframe_insert('rotation_euler', frame=F(t))
+        t += .45; k += 1
     for o in [root] + list(root.children_recursive): hide(o, t0 - .1)
     return root
 

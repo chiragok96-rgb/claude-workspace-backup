@@ -45,8 +45,25 @@ def arrival_glow(m):
     nt = m.node_tree; N = nt.nodes; L = nt.links; b = N['Principled BSDF']
     oi = N.new('ShaderNodeObjectInfo'); sp = N.new('ShaderNodeSeparateColor'); L.new(oi.outputs['Color'], sp.inputs[0])
     inv = N.new('ShaderNodeMath'); inv.operation = 'SUBTRACT'; inv.inputs[0].default_value = 1; L.new(sp.outputs[0], inv.inputs[1])
-    k = N.new('ShaderNodeMath'); k.operation = 'MULTIPLY'; k.inputs[1].default_value = 2.6; L.new(inv.outputs[0], k.inputs[0])
+    k = N.new('ShaderNodeMath'); k.operation = 'MULTIPLY'; k.inputs[1].default_value = 1.5; L.new(inv.outputs[0], k.inputs[0])
     b.inputs['Emission Color'].default_value = (1.0, .66, .26, 1); L.new(k.outputs[0], b.inputs['Emission Strength'])
+
+def flag_mat():
+    """the Patitapabana bana: red-orange cloth with the crescent and sun near the hoist (a texture drawn here, mapped by the flag's UVs)"""
+    import os
+    p = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'flag_tex.png')
+    if False:
+        W, H = 1024, 512; im = Image.new('RGB', (W, H), (214, 58, 16)); d = ImageDraw.Draw(im)
+        d.rectangle((0, 0, W, 26), fill=(240, 186, 40)); d.rectangle((0, H - 26, W, H), fill=(240, 186, 40))
+        cx, cy, r = 250, 250, 120
+        d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=(246, 238, 220)); d.ellipse((cx - r + 46, cy - r - 18, cx + r + 46, cy + r - 18), fill=(214, 58, 16))   # crescent
+        d.ellipse((cx + 20, cy - 10, cx + 84, cy + 54), fill=(246, 210, 90))                                                                       # the sun inside it
+        im.save(p)
+    mt = bpy.data.materials.new('patitapabana'); mt.use_nodes = True; nt = mt.node_tree; N = nt.nodes; L = nt.links; b = N['Principled BSDF']
+    tx = N.new('ShaderNodeTexImage'); tx.image = bpy.data.images.load(p); tx.image.pack(); L.new(tx.outputs['Color'], b.inputs['Base Color']); b.inputs['Roughness'].default_value = .7
+    try: b.inputs['Sheen Weight'].default_value = .5
+    except Exception: pass
+    return mt
 
 def make():
     M = {}
@@ -69,6 +86,8 @@ def make():
     M['sail'] = cloth('sail', (.86, .81, .70), .3)
     M['clay'] = mat_stone('clay', (.55, .27, .14), var=.12, rough=.8, scale=6, bump=.4, dirt=.1)
     M['ghost'] = mat_basic('ghost', (.9, .88, .84), .6)
-    for k in ('stone', 'laterite', 'plaster_dark', 'clay', 'ochre'): arrival_glow(M[k])
+    M['sandstone'] = mat_stone('sandstone', (.44, .29, .19), var=.12, rough=.88, scale=1.6, bump=.45, dirt=.3, joints=(99., 1.45))   # the halls' bases and the side shrines: weathered brown stone
+    M['flagcloth'] = flag_mat()
+    for k in ('stone', 'laterite', 'plaster_dark', 'clay', 'ochre', 'sandstone'): arrival_glow(M[k])
     M['farland'] = mat_stone('farland', (.30, .32, .17), var=.25, rough=.95, scale=.004, bump=0, dirt=0)
     return M

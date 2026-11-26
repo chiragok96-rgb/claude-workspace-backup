@@ -156,6 +156,10 @@ def flag(mats, C, name, x, y, z, L=7.0, Hh=2.6, mat='flag', segs=(28, 8)):
     for i in range(nu):
         for j in range(nv): Fc.append((i * (nv + 1) + j, (i + 1) * (nv + 1) + j, (i + 1) * (nv + 1) + j + 1, i * (nv + 1) + j + 1))
     ob = mesh_obj(name, V, Fc, mats[mat], C, smooth=True)
+    uv = ob.data.uv_layers.new(name='UVMap')
+    for poly in ob.data.polygons:
+        for li in poly.loop_indices:
+            vi = ob.data.loops[li].vertex_index; i, j = divmod(vi, nv + 1); uv.data[li].uv = (i / nu, 1 - j / nv)
     sd = ob.modifiers.new('solid', 'SOLIDIFY'); sd.thickness = .02
     w = ob.modifiers.new('wave', 'WAVE'); w.use_normal = False; w.use_y = False; w.use_x = True; w.height = .55; w.width = 2.6; w.narrowness = 1.0; w.speed = .22
     w.start_position_x = x; w.start_position_y = y; w.falloff_radius = 0
@@ -186,7 +190,7 @@ def pidha_deul(mats, C, name, cx, cy, w0, h_bada, pots=(5, 4, 3), pidha_h=1.05, 
     N = len(pieces)
     for i, (kind, w, za, zb, k) in enumerate(pieces):
         t = t0 + (t1 - t0 - .9) * (i / N) ** 1.1
-        course(f'{name}_{kind}{i}', plan(w, k), za, zb - .01, t, bev=.06 if kind.startswith('pidha') else .04, mat=mats['ochre'] if kind == 'kanthi' else stone)
+        course(f'{name}_{kind}{i}', plan(w, k), za, zb - .01, t, bev=.06 if kind.startswith('pidha') else .04, mat=mats['ochre'] if kind == 'kanthi' else (mats['sandstone'] if kind in ('pitha', 'bada') else stone))
     # crown: the ghanta (bell), amalaka, khapuri, kalasha
     wt = w
     gh = lathe([(wt * 1.0, 0), (wt * .95, .6), (wt * .8, 1.6), (wt * .55, 2.4), (wt * .35, 2.8)], 64, rib_amalaka(32, .05))
@@ -201,7 +205,7 @@ def natamandapa(mats, C, cx, cy, wx, wy, h, z0=TER, t0=0., t1=1.):
     """a flat-roofed hall with a moulded base, pilastered walls, a parapet cornice"""
     stone = mats['stone']; out = []; z = z0; i = 0
     def slab(nm, hx, hy, za, zb, t, bev=.04):
-        V, Fc = boxv(cx - hx, cy - hy, za, cx + hx, cy + hy, zb); ob = mesh_obj(nm, V, Fc, stone, C); bevel(ob, bev, 2); out.append((ob, t)); return ob
+        V, Fc = boxv(cx - hx, cy - hy, za, cx + hx, cy + hy, zb); ob = mesh_obj(nm, V, Fc, stone if 'cornice' in nm else mats['sandstone'], C); bevel(ob, bev, 2); out.append((ob, t)); return ob
     pieces = [(1.07, 1.0), (1.03, .6), (1.05, .5)]
     zz = z
     for f, hh in pieces: slab(f'nata_base{i}', wx * f, wy * f, zz, zz + hh - .01, t0 + i * .12); zz += hh; i += 1
@@ -213,7 +217,7 @@ def natamandapa(mats, C, cx, cy, wx, wy, h, z0=TER, t0=0., t1=1.):
     for s in (-1, 1):
         for k in range(9):
             x = cx - wx + (k + .5) * 2 * wx / 9; V, Fc = boxv(x - .35, cy + s * wy - .25, z0 + 2.1, x + .35, cy + s * wy + .25, zz - 1.4)
-            ob = mesh_obj(f'nata_pil{s}{k}', V, Fc, stone, C); bevel(ob, .03); out.append((ob, t0 + .6 + k * .07))
+            ob = mesh_obj(f'nata_pil{s}{k}', V, Fc, mats['ochre'], C); bevel(ob, .03); out.append((ob, t0 + .6 + k * .07))
     return out, zz
 
 def wall_ring(mats, C, name, x0, y0, x1, y1, z0, h, th, t0, t1, gates=(), mat='laterite', course_h=.6, merlons=False):
@@ -241,7 +245,7 @@ def wall_ring(mats, C, name, x0, y0, x1, y1, z0, h, th, t0, t1, gates=(), mat='l
                     while m + 1.2 < a:
                         segs.append(boxv(m, ay0 + .2, za + .35, m + 1.2, ay1 - .2, za + 1.25) if ax == 0 else boxv(ax0 + .2, m, za + .35, ax1 - .2, m + 1.2, za + 1.25)); m += 2.6
             p = b
-    V, Fc = merge(segs); ob = mesh_obj(f'{name}_coping', V, Fc, mats['stone'], C); bevel(ob, .05); out.append((ob, t1 + .1))   # white-washed coping
+    V, Fc = merge(segs); ob = mesh_obj(f'{name}_coping', V, Fc, mats[mat], C); bevel(ob, .05); out.append((ob, t1 + .1))
     return out
 
 def gate_tower(mats, C, name, cx, cy, w, along_x=True, z0=0., t0=0., t1=1., mat='stone'):
@@ -287,4 +291,4 @@ def shrine(mats, C, name, cx, cy, s, z0=TER, kind='rekha'):
         w = s * 1.08
         for k in range(5): parts.append(prism(plan(w, .3), z, z + .4 * s)); z += .45 * s; w -= s * .12
         parts.append(lathe([(w, 0), (w * .8, .4 * s), (w * .4, .7 * s)], 24)); parts[-1] = ([(x, y, zz + z) for x, y, zz in parts[-1][0]], parts[-1][1])
-    V, Fc = merge(parts); ob = mesh_obj(name, [(x + cx, y + cy, z) for x, y, z in V], Fc, mats['stone'], C); bevel(ob, .03); return ob
+    V, Fc = merge(parts); ob = mesh_obj(name, [(x + cx, y + cy, z) for x, y, z in V], Fc, mats['sandstone'], C); bevel(ob, .03); return ob
