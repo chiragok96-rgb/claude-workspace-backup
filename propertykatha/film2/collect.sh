@@ -13,7 +13,7 @@ for mkv in "$W"/chunk_*.mkv; do
   ffmpeg -loglevel error -i "$mkv" -pix_fmt rgb24 "$T/u_%05d.png"
   i=1
   while read -r f; do
-    if [ "$f" = "f_01560.png" ] && [ "$N" != "11" ]; then mv "$T/$(printf u_%05d.png $i)" "$CHK/f_01560.png"
+    if [ "$f" = "f_01560.png" ] && [ "$N" != "34" ]; then mv "$T/$(printf u_%05d.png $i)" "$CHK/f_01560.png"
     else mv "$T/$(printf u_%05d.png $i)" "$CY/$f"; fi
     i=$((i + 1))
   done < "$lst"
