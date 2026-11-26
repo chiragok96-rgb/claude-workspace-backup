@@ -48,9 +48,14 @@ function cam3(t) {
 const scr = (x, y, z) => { const p = new THREE.Vector3(x, y, z).project(cam); return [(p.x + 1) / 2 * W, (1 - p.y) / 2 * H, p.z]; };
 // ———————————————— the 2D camera over the light table (s = px per scene unit; matches the 3D top-down at D = 3.6) ————————————————
 const S36 = 960 / (3.6 * Math.tan(13 * DEG));
-const K2 = [[18.2, 1.52, 0, S36], [19.0, 1.62, -.33, 1500], [20.0, 1.33, -.31, 2300], [20.6, 1.37, -.17, 3500], [21.2, 1.39, -.15, 3300], [22.3, 1.77, -.12, 2300],
-  [22.95, 1.765, -.245, 2900], [28.6, 1.775, -.205, 2950], [29.5, 1.84, .16, 2900], [31.9, 1.845, .17, 3050], [32.9, 1.36, .40, 2550], [37.6, 1.37, .42, 2700],
-  [38.6, 1.55, .41, 2450], [39.5, 1.60, .41, 2600], [40.3, 1.62, .39, 3300], [41.3, 1.60, .40, 2600], [42.55, 1.52, 0, S36]];
+const C1X = docXf(DOCS.c1), C2X = docXf(DOCS.c2), DDX = docXf(DOCS.deed);
+const LT = (X, u, v) => X.toT(u, v), CAMY = 830;                        // the loupe sits at screen y≈830, clear of the caption line
+const atK = (tk, X, u, v, s) => { const [x, z] = LT(X, u, v); return [tk, x, z + (H / 2 - CAMY) / s, s]; };
+const K2 = [[18.2, 1.52, 0, S36], [19.0, 1.62, -.33, 1500], [20.0, 1.33, -.31, 2300], [20.6, 1.37, -.17, 3500], [21.2, 1.39, -.15, 3300], [22.05, 1.77, -.12, 2300],
+  atK(22.65, C1X, 505, 955, 2900), atK(24.3, C1X, 505, 955, 2900), atK(24.95, C1X, 330, 612, 2900), atK(28.2, C1X, 330, 612, 2900),
+  atK(29.3, C2X, 530, 1010, 3050), atK(32.1, C2X, 530, 1010, 3050), [33.0, 1.36, .40, 2550], [34.0, 1.355, .395, 2600],
+  atK(34.65, DDX, 205, 866, 2700), atK(35.5, DDX, 205, 866, 2700), atK(36.35, DDX, 715, 860, 2700), atK(37.6, DDX, 715, 860, 2700),
+  [38.6, 1.55, .41, 2450], [39.0, 1.60, .50, 2450], [39.55, 1.60, .50, 2450], [40.3, 1.62, .39, 3300], [41.3, 1.60, .40, 2600], [42.55, 1.52, 0, S36]];
 const cam2 = t => ({ cx: herm(K2, t, 1), cz: herm(K2, t, 2), s: herm(K2, t, 3) });
 const T2S = (c, x, z) => [W / 2 + (x - c.cx) * c.s, H / 2 + (z - c.cz) * c.s];
 
@@ -78,70 +83,66 @@ function richLine(c, parts, x, y, sz, col, gold, align = 'center') {   // parts:
   parts.forEach(([s, k], j) => { c.font = font(k); c.fillStyle = k[0] === 'g' ? gold : col; c.fillText(s, xx, y); xx += ws[j]; });
 }
 function parseLine(s) { const out = []; s.split('*').forEach((p, j) => { if (!p) return; const latin = /^[\x00-\x7F₹≠→—–’“”·]+$/.test(p.replace(/\s/g, '')); out.push([p, j % 2 ? (latin ? 'gi' : 'g') : (latin ? 'l' : 'o')]); }); return out; }
-// captions: one Odia key phrase (one gold accent) + a quiet English line; only the words that matter
+// captions: only the key words — one short line, one gold accent; no band behind it: the ink adapts to what is behind the line
 const CAPS = [
-  [5.95, 7.35, 'Gate *ଲାଗିଗଲା*', 'A GATE WENT UP ON THE WAY IN'],
-  [9.2, 10.85, '“ଏ ରାସ୍ତା *ମୋ* ଜମି”', '“THIS ROAD IS MY LAND”'],
-  [11.0, 12.55, 'ସେ *ଭୁଲ୍* କହୁନଥିଲେ', 'AND HE WASN’T WRONG'],
-  [12.75, 16.7, 'ଦିଶୁଥିବା Road ≠ *ସରକାରୀ* Road', 'THE ROAD YOU SEE ISN’T ALWAYS A PUBLIC ROAD'],
-  [17.75, 19.45, '*Advance* ପୂର୍ବରୁ', 'BEFORE YOU PAY ANY ADVANCE'],
-  [19.6, 22.95, 'ରାସ୍ତାର Plot No. → *ପଟ୍ଟା*', 'FIND THE ROAD’S PLOT NO. ON BHULEKH · READ ITS PATTA'],
-  [23.1, 28.55, 'ଓଡ଼ିଶା ସରକାର · କିସମ ରାସ୍ତା = *ବଢ଼ିଆ*', 'GOVERNMENT LAND OR “ROAD” KISAM — YOU’RE SAFE'],
-  [28.8, 31.95, 'ବ୍ୟକ୍ତିଙ୍କ ନାମ? *ସାବଧାନ୍*', 'A PERSON’S NAME ON IT? BEWARE'],
-  [32.3, 37.65, 'Sale Deed ରେ *Right of Way*?', 'DO THE DEED AND OLD PAPERS PROVE A RIGHT OF WAY?'],
-  [37.85, 42.45, '*Registered* କାଗଜ — ମୁହଁ କଥା ନୁହେଁ', 'IF NOT, GET THE WAY REGISTERED — NOT A SPOKEN PROMISE'],
-  [42.75, 48.1, 'Gate ପରେ ନୁହେଁ — Advance *ପୂର୍ବରୁ*', 'SECURE THE ROAD BEFORE THE ADVANCE, NOT AFTER THE GATE'],
-  [48.4, 51.45, 'ଘରେ କେହି ଜମି କିଣୁଛନ୍ତି? *ପଠାନ୍ତୁ*', 'SOMEONE AT HOME BUYING LAND? SEND THIS TO THEM'],
+  [5.95, 7.35, 'Gate *ଲାଗିଗଲା*'],
+  [9.2, 10.85, '“ଏ ରାସ୍ତା *ମୋ* ଜମି”'],
+  [12.8, 16.6, 'ଦିଶୁଥିବା Road ≠ *ସରକାରୀ* Road'],
+  [17.75, 19.45, '*Advance* ପୂର୍ବରୁ'],
+  [19.7, 22.25, 'Bhulekh → Plot No. → *ପଟ୍ଟା*'],
+  [32.3, 34.45, 'Sale Deed ରେ *Right of Way* ଅଛି?'],
+  [37.95, 40.05, '*Registered* କାଗଜରେ ବାଟ'],
+  [42.75, 48.1, 'Gate ପରେ ନୁହେଁ, Advance *ପୂର୍ବରୁ*'],
+  [48.5, 51.45, 'ଜମି କିଣୁଥିବା ଜଣଙ୍କୁ *ପଠାନ୍ତୁ*'],
 ];
-function captions(c, t, inkMode) {
+const CAP_Y = 1418;
+function captions(c, t) {
   if (Q.get('cap') === '0') return;
-  for (const [a, b, od, en] of CAPS) { const k = ss(seg(t, a - .05, a + .3)) * (1 - ss(seg(t, b - .28, b + .02))); if (k <= 0) continue;
-    const dy = (1 - eo(seg(t, a - .05, a + .5))) * 10, ink = inkMode(t);
+  for (const [a, b, od] of CAPS) { const k = ss(seg(t, a - .05, a + .3)) * (1 - ss(seg(t, b - .28, b + .02))); if (k <= 0) continue;
+    const parts = parseLine(od), sz = 56, dy = (1 - eo(seg(t, a - .05, a + .5))) * 10;
+    // what is behind the line: bright paper / white model → ink; the dark room or the projected map → cream
+    let wsum = 0; c.font = `600 ${sz}px "OdiaSerif"`; parts.forEach(([s0]) => wsum += c.measureText(s0).width);
+    const x0 = Math.max(0, Math.round(540 - wsum / 2 - 20)), wd = Math.min(W - x0, Math.round(wsum + 40)), px = c.getImageData(x0, CAP_Y - 62, wd, 80).data;
+    let L = 0, n = 0; for (let i = 0; i < px.length; i += 16) { L += .2126 * px[i] + .7152 * px[i + 1] + .0722 * px[i + 2]; n++; } L = L / n / 255;
+    const ink = ss((L - .42) / .2), mix = (A, B) => `rgb(${A.map((v, i) => Math.round(lerp(v, B[i], ink))).join(',')})`;
+    const col = mix([247, 239, 226], [30, 23, 17]), gold = mix([238, 192, 106], [140, 92, 18]);
     c.save(); c.globalAlpha = k; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
-    const col = ink ? '#211a13' : '#f6eee1', gold = ink ? '#9c6a16' : '#eec06a';
-    c.shadowColor = ink ? 'rgba(255,250,240,.95)' : 'rgba(10,6,3,.85)'; c.shadowBlur = ink ? 16 : 12; c.shadowOffsetY = ink ? 0 : 1.5;
-    const parts = parseLine(od), sz = od.length > 30 ? 46 : 54;
-    richLine(c, parts, 540, 1392 + dy, sz, col, gold); c.shadowBlur = 0; richLine(c, parts, 540, 1392 + dy, sz, col, gold);
-    c.font = '600 21px "InterT"'; c.letterSpacing = '3.2px'; c.textAlign = 'center'; c.fillStyle = ink ? 'rgba(60,46,30,.85)' : 'rgba(226,206,168,.86)';
-    c.shadowColor = ink ? 'rgba(255,250,240,.9)' : 'rgba(10,6,3,.8)'; c.shadowBlur = 8; c.fillText(en, 540, 1450 + dy); c.letterSpacing = '0px'; c.restore(); }
+    c.shadowColor = ink > .5 ? 'rgba(255,251,244,.95)' : 'rgba(6,4,2,.9)';
+    c.shadowBlur = 22; richLine(c, parts, 540, CAP_Y + dy, sz, col, gold); c.shadowBlur = 7; richLine(c, parts, 540, CAP_Y + dy, sz, col, gold);
+    c.shadowBlur = 0; richLine(c, parts, 540, CAP_Y + dy, sz, col, gold); c.restore(); }
 }
-function capBand(c, t, a) {   // a soft dark gradient under the captions in the model scenes (no box)
-  if (a <= 0) return; const g = c.createLinearGradient(0, 1180, 0, 1600); g.addColorStop(0, 'rgba(8,6,4,0)'); g.addColorStop(.45, `rgba(8,6,4,${.55 * a})`); g.addColorStop(.75, `rgba(8,6,4,${.55 * a})`); g.addColorStop(1, 'rgba(8,6,4,0)');
-  c.fillStyle = g; c.fillRect(0, 1180, W, 420);
-}
-// a readout in the left third: index · layer, a big figure, an Odia line
-function readout(c, a, idx, figure, od, en) {
+// a readout in the left third: a gold hairline, a big figure, an Odia line
+function readout(c, a, figure, od) {
   if (a <= 0) return; c.save(); c.globalAlpha = a; c.textBaseline = 'alphabetic'; c.textAlign = 'left';
-  { const g = c.createRadialGradient(300, 480, 40, 300, 480, 420); g.addColorStop(0, 'rgba(10,7,4,.62)'); g.addColorStop(1, 'rgba(10,7,4,0)'); c.fillStyle = g; c.fillRect(0, 160, 760, 640); }
+  { const g = c.createRadialGradient(290, 470, 30, 290, 470, 360); g.addColorStop(0, 'rgba(10,7,4,.5)'); g.addColorStop(1, 'rgba(10,7,4,0)'); c.fillStyle = g; c.fillRect(0, 200, 700, 560); }
   c.shadowColor = 'rgba(8,5,3,.75)'; c.shadowBlur = 14;
-  c.font = '600 20px "InterT"'; c.letterSpacing = '4px'; c.fillStyle = '#e9bd6a'; c.fillText(idx, 84, 372); c.letterSpacing = '0px';
-  c.fillStyle = 'rgba(233,189,106,.7)'; c.fillRect(84, 386, 54 * a, 2);
-  c.font = '200 118px "InterT"'; c.fillStyle = '#f7efe2'; c.fillText(figure, 76, 506);
-  c.font = '600 36px "OdiaSerif"'; c.fillStyle = '#f2e6d2'; c.fillText(od, 84, 566);
-  if (en) { c.font = '600 18px "InterT"'; c.letterSpacing = '3px'; c.fillStyle = 'rgba(226,206,168,.8)'; c.fillText(en, 84, 602); c.letterSpacing = '0px'; }
+  c.fillStyle = 'rgba(233,189,106,.85)'; c.fillRect(84, 386, 64 * a, 2);
+  const [num, suf] = String(figure).split('|'); c.font = '200 118px "InterT"'; c.fillStyle = '#f7efe2'; c.fillText(num, 76, 506);
+  if (suf) { const w = c.measureText(num).width; c.font = '500 52px "OdiaSerif"'; c.fillText(suf, 76 + w + 16, 500); }
+  c.font = '600 38px "OdiaSerif"'; c.fillStyle = '#f2e6d2'; c.fillText(od, 84, 568);
   c.restore();
 }
 const inr = n => { const s = String(Math.round(n)); if (s.length <= 3) return s; const l3 = s.slice(-3), r = s.slice(0, -3); return r.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + ',' + l3; };
 // a pin: a hairline from a world point up to a tag on a dark plate
-function pin(c, a, p, title, sub, col = '#e9bd6a', up = 190, side = 1) {
+function pin(c, a, p, title, col = '#e9bd6a', up = 190, side = 1) {
   if (a <= 0 || p[2] > 1) return; const [x, y] = p, ty = y - up * ss(a), tx = x + side * 30;
   c.save(); c.globalAlpha = a; c.strokeStyle = col; c.lineWidth = 1.6; c.beginPath(); c.moveTo(x, y); c.lineTo(x, ty); c.lineTo(tx, ty); c.stroke();
   c.fillStyle = col; c.beginPath(); c.arc(x, y, 4.5, 0, 7); c.fill();
-  c.font = '600 30px "OdiaSerif"'; const w1 = c.measureText(title).width; c.font = '600 16px "InterT"'; c.letterSpacing = '3px'; const w2 = c.measureText(sub).width; c.letterSpacing = '0px';
-  const bw = Math.max(w1, w2) + 36, bx = side > 0 ? tx : tx - bw; c.fillStyle = 'rgba(14,11,8,.72)'; c.fillRect(bx, ty - 52, bw, 88); c.fillStyle = col; c.fillRect(side > 0 ? bx : bx + bw - 3, ty - 52, 3, 88);
-  c.textAlign = 'left'; c.fillStyle = '#f6eee1'; c.font = '600 30px "OdiaSerif"'; c.fillText(title, bx + 18, ty - 8);
-  c.font = '600 16px "InterT"'; c.letterSpacing = '3px'; c.fillStyle = 'rgba(226,206,168,.9)'; c.fillText(sub, bx + 18, ty + 22); c.letterSpacing = '0px'; c.restore();
+  c.font = '600 32px "OdiaSerif"'; const bw = c.measureText(title).width + 40, bx = side > 0 ? tx : tx - bw;
+  c.fillStyle = 'rgba(14,11,8,.74)'; c.fillRect(bx, ty - 34, bw, 64); c.fillStyle = col; c.fillRect(side > 0 ? bx : bx + bw - 3, ty - 34, 3, 64);
+  c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillStyle = '#f6eee1'; c.fillText(title, bx + 20, ty + 1); c.restore();
 }
 
 // ———————————————— the 2D table scene: papers, marks, the loupe, the weight, the seal press, smoke ————————————————
-const LENS_MAG = 1.9;
-function lensPath(t) {   // where the loupe sits (table coords), its radius (px) and presence
-  const C1 = docXf(DOCS.c1), C2 = docXf(DOCS.c2), DD = docXf(DOCS.deed);
-  const P = [[22.2, C1.toT(520, 960)], [24.2, C1.toT(520, 960)], [24.85, C1.toT(470, 625)], [27.8, C1.toT(480, 625)], [29.4, C2.toT(600, 965)], [32.2, C2.toT(605, 965)],
-    [33.3, DD.toT(380, 760)], [34.8, DD.toT(420, 790)], [35.45, DD.toT(400, 870)], [36.35, DD.toT(700, 860)], [37.8, DD.toT(710, 860)]];
-  const K = P.map(([tt, [x, z]]) => [tt, x, z]);
-  const p = [herm(K, t, 1), herm(K, t, 2)], on = ss(seg(t, 22.1, 22.55)) * (1 - ss(seg(t, 37.15, 37.7)));
-  return { x: p[0], z: p[1], on, lift: 1 + .35 * (1 - ss(seg(t, 22.1, 22.55))) + .1 * Math.sin(seg(t, 27.8, 29.4) * Math.PI) + .1 * Math.sin(seg(t, 32.2, 33.3) * Math.PI) + .35 * ss(seg(t, 37.15, 37.7)) };
+const LK = [   // [t, doc, u, v, page radius, magnification]
+  [22.45, C1X, DOCS.c1, 505, 955, 255, 1.45], [24.3, C1X, DOCS.c1, 505, 955, 255, 1.45], [24.95, C1X, DOCS.c1, 330, 612, 325, 1.3], [28.2, C1X, DOCS.c1, 330, 612, 325, 1.3],
+  [29.3, C2X, DOCS.c2, 530, 1010, 280, 1.4], [32.1, C2X, DOCS.c2, 530, 1010, 280, 1.4],
+  [34.6, DDX, DOCS.deed, 205, 866, 185, 1.5], [35.5, DDX, DOCS.deed, 205, 866, 185, 1.5], [36.35, DDX, DOCS.deed, 715, 860, 185, 1.5], [37.6, DDX, DOCS.deed, 715, 860, 185, 1.5]
+].map(([tk, X, d, u, v, pr, m]) => { const [x, z] = X.toT(u, v); return [tk, x, z, pr * d.w / 1000, m]; });
+function lensPath(t) {   // where the loupe sits (table coords), its radius (table units), magnification and presence
+  const on = t < 33.3 ? ss(seg(t, 22.3, 22.7)) * (1 - ss(seg(t, 32.0, 32.45))) : ss(seg(t, 34.4, 34.8)) * (1 - ss(seg(t, 37.25, 37.7)));
+  const lift = 1 + (t < 33.3 ? .3 * (1 - ss(seg(t, 22.3, 22.7))) + .3 * ss(seg(t, 32.0, 32.45)) + .08 * Math.sin(seg(t, 28.2, 29.3) * Math.PI) : .3 * (1 - ss(seg(t, 34.4, 34.8))) + .3 * ss(seg(t, 37.25, 37.7)));
+  return { x: herm(LK, t, 1), z: herm(LK, t, 2), tr: herm(LK, t, 3), mag: herm(LK, t, 4), on, lift };
 }
 function ring(c, x, y, r, prog, col, w = 3) { if (prog <= 0) return; c.save(); c.strokeStyle = col; c.lineWidth = w; c.lineCap = 'round'; c.beginPath(); c.arc(x, y, r, -Math.PI / 2 - .3, -Math.PI / 2 - .3 + Math.PI * 2.1 * prog); c.stroke(); c.restore(); }
 function inDoc(c, d, o, fn) { const X = docXf(d, o); c.save(); X.apply(c); fn(X); c.restore(); }
@@ -152,12 +153,14 @@ function marksT(c, t) {   // marks in page space of each paper (drawn with the p
   if (t > 20.1 && t < 23) inDoc(c, DOCS.map, null, () => { c.globalAlpha *= 1 - ss(seg(t, 22.2, 22.8)); const [lx, ly] = mapUV(4.5, 30), [rx, ry] = mapUV(26, 75);
     ellipseMark(c, lx, ly + 70, 30, 44, eo(seg(t, 20.2, 20.6)), GOLDM, 6); ellipseMark(c, rx, ry, 50, 30, eo(seg(t, 20.55, 20.95)), GOLDM, 6); });
   if (t > 23) inDoc(c, DOCS.c1, null, () => {
-    uline(c, 340, 720, CARD_ROWS.owner + 14, eo(seg(t, 23.25, 24.0)), GOLDM); uline(c, 340, 500, CARD_ROWS.kisam + 14, eo(seg(t, 24.7, 25.3)), GOLDM);
-    if (t > 26.85) { const p = eo(seg(t, 26.85, 27.25)), A = [530, 600], B = [575, 652], C = [680, 520]; c.strokeStyle = GOLDM; c.lineWidth = 12; c.lineCap = 'round'; c.lineJoin = 'round'; c.beginPath(); c.moveTo(...A);
+    c.font = '700 50px "OdiaSerif"'; const w1 = c.measureText('ଓଡ଼ିଶା ସରକାର').width, w2 = c.measureText('ରାସ୍ତା').width;
+    uline(c, 336, 344 + w1, CARD_ROWS.owner + 16, eo(seg(t, 23.25, 24.0)), GOLDM); uline(c, 56, 344 + w2, CARD_ROWS.kisam + 16, eo(seg(t, 24.7, 25.3)), GOLDM);
+    if (t > 26.85) { const p = eo(seg(t, 26.85, 27.25)), A = [505, 600], B = [540, 642], C = [612, 545]; c.strokeStyle = GOLDM; c.lineWidth = 12; c.lineCap = 'round'; c.lineJoin = 'round'; c.beginPath(); c.moveTo(...A);
       if (p < .35) c.lineTo(lerp(A[0], B[0], p / .35), lerp(A[1], B[1], p / .35)); else { c.lineTo(...B); const q = (p - .35) / .65; c.lineTo(lerp(B[0], C[0], q), lerp(B[1], C[1], q)); } c.stroke(); } });
   if (t > 29.4) inDoc(c, DOCS.c2, null, () => {
-    uline(c, 340, 880, CARD_ROWS.owner + 14, eo(seg(t, 29.5, 30.5)), REDM); ellipseMark(c, 610, CARD_ROWS.owner - 14, 300, 62, eo(seg(t, 31.12, 31.5)), REDM, 6);
-    if (t > 31.15) { const a = ss(seg(t, 31.15, 31.25)), sc = lerp(1.35, 1, eo(seg(t, 31.15, 31.32))); c.save(); c.translate(770, 820); c.rotate(-.12); c.scale(sc, sc); c.globalAlpha *= a * .9;
+    c.font = '700 44px "OdiaSerif"'; const nw = c.measureText('ଶ୍ରୀ ହରିହର ମହାନ୍ତି').width;
+    uline(c, 336, 344 + nw, CARD_ROWS.owner + 16, eo(seg(t, 29.5, 30.5)), REDM); ellipseMark(c, 340 + nw / 2, CARD_ROWS.owner - 14, nw / 2 + 34, 58, eo(seg(t, 31.12, 31.5)), REDM, 6);
+    if (t > 31.15) { const a = ss(seg(t, 31.15, 31.25)), sc = lerp(1.35, 1, eo(seg(t, 31.15, 31.32))); c.save(); c.translate(560, 1118); c.rotate(-.06); c.scale(sc, sc); c.globalAlpha *= a * .9;
       c.strokeStyle = REDM; c.lineWidth = 6; c.strokeRect(-170, -48, 340, 96); c.lineWidth = 2.5; c.strokeRect(-160, -38, 320, 76);
       c.font = '700 54px "OdiaSerif"'; c.fillStyle = REDM; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('ସାବଧାନ୍', 0, 4); c.restore(); } });
   if (t > 33.5 && t < 37.95) inDoc(c, DOCS.deed, null, () => {
@@ -195,11 +198,11 @@ function smoke(c, t) {
   c.save(); c.filter = 'blur(4px)'; c.drawImage(SMC, 0, 0); c.filter = 'blur(1.5px)'; c.globalAlpha = .5; c.drawImage(SMC, 0, 0); c.filter = 'none'; c.restore();
 }
 function lens(c, t, c2, draw) {
-  const L = lensPath(t); if (L.on <= 0) return; const wide = ss(seg(t, 28.9, 29.5)) * (1 - ss(seg(t, 32.2, 33.0))), [x, y] = T2S(c2, L.x, L.z), R = (250 + 70 * wide) * L.lift, a = L.on;
+  const L = lensPath(t); if (L.on <= 0) return; const [x, y] = T2S(c2, L.x, L.z), R = L.tr * c2.s * L.mag * L.lift, a = L.on;
   const redRim = Math.max(Math.exp(-Math.pow((t - 31.35) / .35, 2)), t > 31.2 && t < 32.3 ? .5 : 0);
   c.save(); c.globalAlpha = a;
   c.fillStyle = 'rgba(30,20,10,.25)'; c.filter = 'blur(14px)'; c.beginPath(); c.arc(x + 18 * L.lift, y + 26 * L.lift, R + 10, 0, 7); c.fill(); c.filter = 'none';
-  c.save(); c.beginPath(); c.arc(x, y, R, 0, 7); c.clip(); const m = lerp(LENS_MAG, 1.55, wide) * (1 + (L.lift - 1) * .4);
+  c.save(); c.beginPath(); c.arc(x, y, R, 0, 7); c.clip(); const m = L.mag * L.lift;
   c.setTransform(c2.s * m, 0, 0, c2.s * m, x - L.x * c2.s * m, y - L.z * c2.s * m); draw(c);
   c.setTransform(1, 0, 0, 1, 0, 0); const gl = c.createRadialGradient(x - R * .35, y - R * .4, 0, x, y, R); gl.addColorStop(0, 'rgba(255,255,255,.10)'); gl.addColorStop(.7, 'rgba(255,255,255,0)'); gl.addColorStop(1, 'rgba(60,40,20,.18)'); c.fillStyle = gl; c.fillRect(x - R, y - R, 2 * R, 2 * R); c.restore();
   c.lineWidth = 16; c.strokeStyle = '#17120e'; c.beginPath(); c.arc(x, y, R + 8, 0, 7); c.stroke();
@@ -234,21 +237,39 @@ function scene3D(c, t) {
 }
 function overlays3D(c, t) {
   // readouts
-  readout(c, ss(seg(t, .3, .7)) * (1 - ss(seg(t, 2.65, 3.0))), '01  ·  THE PLOT', '₹' + inr(2000000 * eo(seg(t, .45, 1.9))), 'କୋଡ଼ିଏ ଲକ୍ଷରେ Plot କିଣିଲେ', 'TWENTY LAKH, ONE PLOT');
-  readout(c, ss(seg(t, 3.4, 3.7)) * (1 - ss(seg(t, 5.0, 5.35))), '02  ·  TIME', Math.round(90 * eio(seg(t, 3.5, 4.95))) + ' days', 'ତିନି ମାସ ପରେ', 'THREE MONTHS LATER');
-  readout(c, ss(seg(t, 44.3, 44.55)) * (1 - ss(seg(t, 45.6, 45.95))), '03  ·  REWIND', Math.round(90 * (1 - eio(seg(t, 44.4, 45.55)))) + ' days', 'Advance ଦେବା ପୂର୍ବରୁ', 'BEFORE THE ADVANCE');
+  readout(c, ss(seg(t, .3, .7)) * (1 - ss(seg(t, 2.65, 3.0))), '₹' + inr(2000000 * eo(seg(t, .45, 1.9))), 'କୋଡ଼ିଏ ଲକ୍ଷରେ Plot');
+  readout(c, ss(seg(t, 3.4, 3.7)) * (1 - ss(seg(t, 5.0, 5.35))), Math.round(90 * eio(seg(t, 3.5, 4.95))) + '|ଦିନ', 'ତିନି ମାସ ପରେ');
+  readout(c, ss(seg(t, 44.3, 44.55)) * (1 - ss(seg(t, 45.6, 45.95))), Math.round(90 * (1 - eio(seg(t, 44.4, 45.55)))) + '|ଦିନ', 'Advance ଦେବା ପୂର୍ବରୁ');
   // pins
-  const f = FIGS[1]; pin(c, ss(seg(t, 7.7, 8.1)) * (1 - ss(seg(t, 10.6, 10.95))), scr(f[0] * S, 1.9 * S, f[1] * S), 'ପାଖ ଜମି ମାଲିକ', 'THE NEIGHBOUR', '#e9bd6a', 210, -1);
-  pin(c, ss(seg(t, 11.05, 11.4)) * (1 - ss(seg(t, 12.45, 12.75))), scr(4.5 * S, .2 * S, 20 * S), 'Plot ୩୪୧ · ନିଜସ୍ୱ', 'THE LANE IS A PRIVATE PLOT', '#ff7a55', 170, -1);
-  pin(c, ss(seg(t, 46.9, 47.25)) * (1 - ss(seg(t, 48.1, 48.4))), scr(4.5 * S, .2 * S, 66 * S), 'ରାସ୍ତା ଅଧିକାର ✓', 'RIGHT OF WAY · REGISTERED', '#e9bd6a', 220, 1);
-  const hs = HOUSES[HOME]; pin(c, ss(seg(t, 49.7, 50.1)) * (1 - ss(seg(t, 51.4, 51.7))), scr(hs[0] * S, 7.4 * S, (hs[1] + hs[3]) / 2 * S), 'ଘର', 'HOME', '#e9bd6a', 200, -1);
-  // the end card
-  const e = ss(seg(t, 52.3, 52.9)) * (1 - ss(seg(t, 55.0, 55.55)));
-  if (e > 0) { c.save(); c.globalAlpha = e; c.textAlign = 'center'; c.shadowColor = 'rgba(8,5,3,.8)'; c.shadowBlur = 18;
-    c.font = '200 92px "InterT"'; c.letterSpacing = '18px'; c.fillStyle = '#f7efe2'; c.fillText('FOLLOW', 549, 520); c.letterSpacing = '0px';
-    c.fillStyle = 'rgba(233,189,106,.85)'; c.fillRect(540 - 60 * e, 548, 120 * e, 2);
-    c.font = '600 40px "OdiaSerif"'; c.fillStyle = '#f2e6d2'; c.fillText('Property ବିଷୟରେ ଜରୁରୀ ତଥ୍ୟ', 540, 612);
-    c.font = '600 19px "InterT"'; c.letterSpacing = '5px'; c.fillStyle = 'rgba(226,206,168,.85)'; c.fillText('ODISHA  ·  LAND  ·  PROPERTY', 540, 656); c.letterSpacing = '0px'; c.restore(); }
+  const f = FIGS[1]; pin(c, ss(seg(t, 7.7, 8.1)) * (1 - ss(seg(t, 10.6, 10.95))), scr(f[0] * S, 1.9 * S, f[1] * S), 'ପାଖ ଜମି ମାଲିକ', '#e9bd6a', 210, -1);
+  pin(c, ss(seg(t, 11.05, 11.4)) * (1 - ss(seg(t, 12.45, 12.75))), scr(4.5 * S, .2 * S, 20 * S), 'ରାସ୍ତା = Plot ୩୪୧ · ନିଜସ୍ୱ', '#ff7a55', 170, -1);
+  pin(c, ss(seg(t, 46.9, 47.25)) * (1 - ss(seg(t, 48.1, 48.4))), scr(4.5 * S, .2 * S, 66 * S), 'ରାସ୍ତା ଅଧିକାର · ନିଶ୍ଚିତ', '#e9bd6a', 220, 1);
+  const hs = HOUSES[HOME]; pin(c, ss(seg(t, 49.7, 50.1)) * (1 - ss(seg(t, 51.4, 51.7))), scr(hs[0] * S, 7.4 * S, (hs[1] + hs[3]) / 2 * S), 'ଘର', '#e9bd6a', 200, -1);
+  endCard(c, t);
+}
+const FC = mk(W, 300), fcx = FC.getContext('2d');
+function endCard(c, t) {
+  const e = ss(seg(t, 52.2, 52.8)) * (1 - ss(seg(t, 55.0, 55.55))); if (e <= 0) return;
+  const a1 = ss(seg(t, 52.2, 52.7)), a2 = ss(seg(t, 52.45, 53.05)), a3 = ss(seg(t, 52.85, 53.45)), a4 = ss(seg(t, 53.05, 53.65)), out = 1 - ss(seg(t, 55.0, 55.55));
+  c.save();
+  { const g = c.createRadialGradient(540, 610, 40, 540, 610, 560); g.addColorStop(0, `rgba(8,6,4,${.62 * e})`); g.addColorStop(1, 'rgba(8,6,4,0)'); c.fillStyle = g; c.fillRect(0, 200, W, 860); }
+  c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+  // overline: the channel's world, between two hairlines
+  c.globalAlpha = a1 * out; c.font = '500 30px "OdiaSerif"'; c.fillStyle = '#e3c58a'; c.letterSpacing = '3px'; c.fillText('ଓଡ଼ିଶା  ·  ଜମି  ·  ଘର', 540, 452); c.letterSpacing = '0px';
+  const hw = 150 * eo(seg(t, 52.25, 52.95)); c.fillStyle = 'rgba(227,197,138,.8)'; c.fillRect(540 - 175 - hw, 441, hw, 1.5); c.fillRect(540 + 175, 441, hw, 1.5);
+  // "Follow" in gold foil, with a gleam that crosses it once
+  fcx.setTransform(1, 0, 0, 1, 0, 0); fcx.clearRect(0, 0, W, 300); fcx.globalCompositeOperation = 'source-over'; fcx.textAlign = 'center'; fcx.textBaseline = 'alphabetic';
+  fcx.font = 'italic 500 188px "CormorantG"'; const gg = fcx.createLinearGradient(0, 70, 0, 250); gg.addColorStop(0, '#f8e7b2'); gg.addColorStop(.42, '#dcae58'); gg.addColorStop(.6, '#a8772a'); gg.addColorStop(1, '#ecc979');
+  fcx.fillStyle = gg; fcx.fillText('Follow', 540, 220);
+  const gx = lerp(-200, 1280, eio(seg(t, 53.2, 54.3))); fcx.globalCompositeOperation = 'source-atop'; const sh = fcx.createLinearGradient(gx - 120, 0, gx + 120, 0);
+  sh.addColorStop(0, 'rgba(255,250,230,0)'); sh.addColorStop(.5, 'rgba(255,250,230,.75)'); sh.addColorStop(1, 'rgba(255,250,230,0)'); fcx.fillStyle = sh; fcx.fillRect(0, 0, W, 300);
+  c.globalAlpha = a2 * out; c.shadowColor = 'rgba(6,4,2,.85)'; c.shadowBlur = 26; c.shadowOffsetY = 4; c.drawImage(FC, 0, 420 + (1 - eo(seg(t, 52.45, 53.2))) * 16); c.shadowBlur = 0; c.shadowOffsetY = 0;
+  // the ornament rule: ——— ◆ ———
+  c.globalAlpha = a3 * out; const rw = 210 * eo(seg(t, 52.85, 53.6)); c.fillStyle = 'rgba(227,197,138,.9)'; c.fillRect(540 - 22 - rw, 683, rw, 1.5); c.fillRect(540 + 22, 683, rw, 1.5);
+  c.save(); c.translate(540, 684); c.rotate(Math.PI / 4); c.strokeStyle = 'rgba(227,197,138,.95)'; c.lineWidth = 1.6; c.strokeRect(-7, -7, 14, 14); c.fillStyle = 'rgba(227,197,138,.95)'; c.fillRect(-3, -3, 6, 6); c.restore();
+  // the promise, in Odia
+  c.globalAlpha = a4 * out; c.font = '600 42px "OdiaSerif"'; c.fillStyle = '#f3e9d8'; c.shadowColor = 'rgba(6,4,2,.85)'; c.shadowBlur = 16; c.fillText('Property ବିଷୟରେ ଜରୁରୀ ତଥ୍ୟ ପାଇଁ', 540, 752);
+  c.restore();
 }
 
 // ———————————————— grain ————————————————
@@ -266,10 +287,7 @@ window.render = t0 => {
     if (!in2) scene3D(ctx, t);
     if (in2 || x2) { ctx.save(); ctx.globalAlpha = in2 ? 1 : (t < 30 ? ss(seg(t, TWO_A - .1, TWO_A + .3)) : 1 - ss(seg(t, TWO_B - .1, TWO_B + .02))); scene2D(ctx, t); ctx.restore(); }
     if (!in2) overlays3D(ctx, t);
-    const inkMode = tt => tt > 17.75 && tt < 42.75;
-    const capA = CAPS.reduce((m, [a, b]) => Math.max(m, ss(seg(t, a - .2, a + .2)) * (1 - ss(seg(t, b - .2, b + .2)))), 0);
-    if (!inkMode(t)) capBand(ctx, t, capA); else if (capA > 0) { const g = ctx.createLinearGradient(0, 1250, 0, 1560); g.addColorStop(0, 'rgba(250,246,238,0)'); g.addColorStop(.4, `rgba(250,246,238,${.82 * capA})`); g.addColorStop(.72, `rgba(250,246,238,${.82 * capA})`); g.addColorStop(1, 'rgba(250,246,238,0)'); ctx.fillStyle = g; ctx.fillRect(0, 1250, W, 310); }
-    captions(ctx, t, inkMode);
+    captions(ctx, t);
     grain(ctx, t);
   } catch (e) { console.error('RENDER ' + e.stack); throw e; }
 };

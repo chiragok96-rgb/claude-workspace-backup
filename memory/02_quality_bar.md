@@ -14,7 +14,8 @@
     soft dark shadow; fade in over 0.3 s, out over 0.28 s, rising 10 px (Manabasa, Danga, Kartika Wind).
   - Romanised Odia lines in **Inter Tight 400 (~39 px)** + one gold Cormorant italic word (Bali Jatra VO).
   - In-picture Odia text: **Noto Serif Oriya** (titles engraved/gilded into the world, e.g. ମାଣବସା ଗୁରୁବାର, ୫୬, ଲକ୍ଷ୍ମୀ ପୁରାଣ).
-- Never rounded "sticker" fonts, never childish display fonts.
+- Never rounded "sticker" fonts, never childish display fonts. No caps sublines; no bands behind captions (adapt the ink to the background instead);
+  for explainers, caption only the key words, never the whole narration (Plot · Right of Way v2).
 - Always place captions in a calm band of the picture (sand, plinth, floor, dark area). Check every caption against the frame.
 
 ## Transitions (the "Panchuka standard")

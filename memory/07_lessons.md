@@ -65,3 +65,8 @@ lamp flame → hearth fire loop.
 shadow bias −0.0006 / normalBias .0025 at 1:150 scale; low camera orbits must rise over roofs (a 1.1 s orbit clipped through a house);
 a 2D↔3D hand-over must hold the identical view on both sides through a ≥0.4 s crossfade (else ghosting); a light "flicker on" reads
 as a pop — ramp it; projected red on white reads terracotta (additive light); Hermite keys overshoot — use monotone (Fritsch–Carlson).
+Owner feedback on v1 (2026-11-26) → v2: inside a loupe every word, tick, underline and stamp must be WHOLE (frame the lens on the full
+phrase: page centre + page radius + gentle magnification ~1.3–1.5, and move the camera so the lens sits above the caption line);
+captions: no ALL-CAPS, no English sublines, no full narration — only a few key words (Odia + the property terms people use: Plot, Gate,
+Advance, Patta), and NO white/dark band behind them (it hid the picture) — text colour adapts to the luminance behind it, soft halo only;
+end card must be classic (gold-foil Cormorant italic, ornament rule, Odia line), not a plain caps word.

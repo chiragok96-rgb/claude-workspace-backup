@@ -150,6 +150,7 @@ for j in range(16): note('glass', ['D5', 'F#5', 'A5', 'D6', 'E6', 'F#6', 'A6'][j
 chord('cellos', ['D2', 'A2', 'D3'], 52.2, 5.0, .3, .45, 1.0, 3.0); chord('violins', ['F#4', 'A4', 'D5', 'E5'], 52.3, 4.8, .2, .32, 1.2, 3.0)
 for j, (t_, p) in enumerate([(52.35, 'A4'), (52.8, 'D5'), (53.2, 'E5'), (53.6, 'F#5'), (54.6, 'A5')]): note('piano', p, t_, 3.0, .26 - .02 * j, .4, .1, rel=2.0)
 note('harp', 'D4', 55.3, 3, .2, .3, -.2); note('harp', 'A4', 55.4, 3, .2, .3, .2)
+for j, p in enumerate(['A6', 'D7', 'F#7']): note('glockenspiel', p, 53.25 + j * .12, 1.6, .07, .16, -.3 + j * .3)   # the gleam across "Follow"
 
 # ———————— mix ————————
 E = np.clip(env * 4, 0, 1)
