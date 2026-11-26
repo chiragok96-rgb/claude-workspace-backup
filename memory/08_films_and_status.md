@@ -4,6 +4,7 @@
 | Film | Project dir (repo → restored) | Entry / render | Final deliverable(s) in `deliverables/` | Status |
 |---|---|---|---|---|
 | **Plot · Right of Way** (new Odisha property channel, film 1, 55.7 s VO) | `projects/plot1` → `/home/user/plot1` | `film.js` (+ `world.js` three.js model/projector, `proj.js`, `table.js` records, `layout.js`), `mix.py` | `Plot_RightOfWay_v2.mp4` (v1 kept); storyboard `Plot_RightOfWay_STORYBOARD_v1*.jpg` | **latest, delivered 2026-11-25** |
+| Srimandir 3D (building Puri temple, 84.4 s VO, Blender Cycles one take) | `projects/srimandir` → `/home/user/srimandir` | `build.py` (+ `temple.py`, `world.py`, `people.py`, `kitchen.py`, `rath.py`, `anim.py`), `render.py`, `finish.py`, `mix.py` | `Srimandir_3D_v1.mp4` (delivered 2026-11-26) | weak: mannequin-like people in close shots, simplified carving; v2 = better figures + re-render close ranges (5–10 s, 24–26 s, 62–72 s) |
 | Manabasa Gurubara (Lakshmi Purana, 55.8 s VO) | `projects/manabasa` → `/home/user/manabasa` | `film.js` (+ `sc_flow.js`, `sc_new.js`, `sc_final.js`, `sc_temple.js`, `sc_people.js`, `sc_jhoti.js`, `sc_lane.js`), `mix.py` | `Manabasa_Gurubara_final_v7.mp4` (delivered); older: `_v6`, `_v5_onetake`, `_final` | done unless owner sends more notes |
 | Aa Ka Ma Bai / Boita Bandana (Danga, 53.6 s VO) | `projects/danga` | `film.js`, `sc_*.js`, `mix.py` | `AaKaMaBai_BoitaBandana_final_v2.mp4` | done |
 | Kartika Wind (Bali Jatra, 49 s VO) | `projects/bj-wind` | `film.js` (render film.js directly) | `KartikaWind_BaliJatra_v3.mp4` + cover | done (3rd most viewed) |

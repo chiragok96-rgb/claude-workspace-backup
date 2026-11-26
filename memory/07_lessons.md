@@ -70,3 +70,7 @@ phrase: page centre + page radius + gentle magnification ~1.3–1.5, and move th
 captions: no ALL-CAPS, no English sublines, no full narration — only a few key words (Odia + the property terms people use: Plot, Gate,
 Advance, Patta), and NO white/dark band behind them (it hid the picture) — text colour adapts to the luminance behind it, soft halo only;
 end card must be classic (gold-foil Cormorant italic, ornament rule, Odia line), not a plain caps word.
+
+- Odia text: use Noto Sans Oriya 2.x (fonts/NotoSansOriya-*.ttf, RAQM layout). The old Noto Serif Oriya 1.051 mis-renders conjuncts (ନ୍ଦ in ଶ୍ରୀମନ୍ଦିର stacked wrong); the fontsource Oriya subset lacks · , and quotes, so draw those in Cormorant.
+- Cycles clouds: build them in the world shader (ray-plane hit + noise), never as transparent planes (speckle at 12 spp).
+- Distributed renders: split by measured seconds per section, not frame count (kitchen/steam frames are 1.5–3x slower; helpers 1–2 finished last on Srimandir). Helpers are pixel-identical (check frame diff 0). The session proxy cannot delete other branches: temp render branches need deleting by the owner or by each helper on its own branch.

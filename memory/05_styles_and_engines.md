@@ -63,3 +63,5 @@ e.g. #18 Klimt gold leaf), claude-drawing (83 painterly styles), OpenVideoHarnes
   and swinging leaves), projection shader (top-down canvas → emissive add × (0.42+0.58·N·up)), key light that can run like the sun, Opuscar
   `makePost` (DOF, bloom, grade). `proj.js` layers (soft washes, running gold path, cadastral map), `table.js` vector records (map sheet,
   patta cards, stamp-paper deed, registered deed with embossed seal), `film.js` loupe, pins, readouts, smoke words, monotone camera keys.
+
+- **Blender render farm** (`scripts/tools/render_chunk.sh` + `merge_chunk.sh`): helpers (Haiku sessions "Render helper N", reuse them) render a contiguous block of `render-jobs/<film>/scene.blend` with that film's `render.py`, pack losslessly (libx264rgb -qp 0, bit-exact) in 60-frame segments, push to `render-<film>-pN`; the orchestrator merges + verifies a check frame. Blender (bpy 5.0.1, Py 3.11) comes from the claude-workspace-backup environment setup script into /home/user/bpyenv. Use 10–12 helpers by default.
