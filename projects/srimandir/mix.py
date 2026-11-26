@@ -153,6 +153,12 @@ shankha(80.3, 2.0, 1.2); ghanta(80.35, 1.0); ghanta(81.2, .7, .3)               
 for j, p in enumerate(['D3', 'A3', 'D4', 'F#4', 'A4', 'D5']): note('harp', p, 81.6 + j * .09, 3.2, .2, .32, (j - 2.5) * .15)
 X.add(music, S.note('cellos', 'D2', 3.0, .25, attack=1.0, release=1.6), 81.4, .4, 0); X.add(music, S.note('violins', 'A4', 3.0, .15, attack=1.2, release=1.6), 81.6, .3, 0)
 
+# a quiet string bed under the whole film (cellos and violins drone on D), a mardala-like pulse while the tower rises and at Rath Yatra
+for t_ in np.arange(1.5, DUR - 3, 7.5):
+    X.add(music, S.note('cellos', 'D2', 8.4, .11, attack=2.2, release=2.5), t_, .35, -.15); X.add(music, S.note('violins', 'A3' if int(t_ / 7.5) % 2 else 'F#4', 8.4, .06, attack=2.6, release=2.5), t_ + .4, .25, .2)
+for k, t_ in enumerate(np.arange(7.4, 14.3, .652)): hit('frame_drum', 'small', t_, .08 + .1 * k / 11, .3, -.1)
+for k, t_ in enumerate(np.arange(64.6, 72.0, .33)): hit('frame_drum', 'small' if k % 2 else None, t_, .16 if k % 4 == 0 else .09, .3, .15)
+
 # ———————— mix ————————
 E = np.clip(env * 4, 0, 1)
 bus = music * .9 * duck[:, None] + fx * 1.1 * (1 - .3 * E)[:, None] + amb * 1.2 * (1 - .4 * E)[:, None]

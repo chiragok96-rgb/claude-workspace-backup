@@ -8,21 +8,87 @@ FD = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fonts')
 def od(sz, w=600): return ImageFont.truetype(os.path.join(FD, f'NotoSansOriya-{min((400, 500, 600, 700), key=lambda k: abs(k - w))}.ttf'), sz, layout_engine=ImageFont.Layout.RAQM)   # Noto Sans Oriya 2.x: correct conjuncts (ନ୍ଦ, ନ୍ତ, ଷ୍ଟ...)
 def cg(sz, w=600): f = ImageFont.truetype(os.path.join(FD, 'CormorantGaramond-Italic.ttf'), sz); f.set_variation_by_axes([w]); return f
 CAPS = [  # start, end, text (*gold*), place
-    (14.4, 17.0, 'ରେଖା ଦେଉଳ · *୨୧୪ ଫୁଟ*', 'bottom'),
     (20.55, 22.2, '“*White Pagoda*”', 'top'),
-    (28.5, 30.4, '*ଜଗମୋହନ*', 'top'),
-    (35.2, 37.8, 'ନାଟମଣ୍ଡପ *·* ଭୋଗମଣ୍ଡପ', 'top'),
-    (40.7, 42.6, '*ରୋଷଘର*', 'top'),
     (46.0, 48.9, 'ନିଆଁ ତଳେ, ସିଝେ *ଉପର ହାଣ୍ଡି*', 'top'),
     (49.4, 53.2, '*୧୮* ଥର ଆକ୍ରମଣ', 'top'),
-    (56.6, 59.8, 'କୂର୍ମବେଢ଼ା *·* ମେଘନାଦ ପାଚେରି', 'top'),
     (69.4, 71.0, '*ରଥଯାତ୍ରା*', 'top'),
     (71.1, 72.6, '*ବାଇଶି* ପାହାଚ', 'top'),
-    (72.8, 75.0, 'ଅଷ୍ଟଧାତୁର *ନୀଳଚକ୍ର*', 'bottom'),
     (75.4, 79.6, 'ପ୍ରତିଦିନ *ବାନା* ବଦଳ', 'bottom'),
     (80.2, 81.55, '*ଜୟ ଜଗନ୍ନାଥ*', 'bottom'),
 ]
 Y = {'top': 352, 'bottom': 1420}
+import numpy as np
+# premium labels: the named part is traced in a glowing gold line (from the render's object-index mask) and a name tag hangs above it
+LABELS = [  # start, end, mask indices, Odia name, English, extras
+    (14.4, 17.0, (1, 8), 'ରେଖା ଦେଉଳ', 'REKHA DEULA', 'height'),
+    (28.5, 30.4, (2,), 'ଜଗମୋହନ', 'JAGAMOHANA', ''),
+    (35.2, 36.65, (3,), 'ନାଟମଣ୍ଡପ', 'NATAMANDAPA', ''),
+    (36.55, 37.9, (4,), 'ଭୋଗମଣ୍ଡପ', 'BHOGAMANDAPA', ''),
+    (40.7, 42.6, (5,), 'ରୋଷଘର', 'ROSAGHARA', ''),
+    (56.6, 58.3, (7,), 'କୂର୍ମବେଢ଼ା', 'KURMA BEDHA', ''),
+    (58.2, 59.9, (6,), 'ମେଘନାଦ ପାଚେରି', 'MEGHANADA PACHERI', ''),
+    (66.0, 69.2, (9,), 'ନନ୍ଦିଘୋଷ', 'NANDIGHOSA', ''),
+    (72.8, 75.0, (8,), 'ନୀଳଚକ୍ର', 'NILACHAKRA · ASHTADHATU', ''),
+]
+HALO = (75.3, 84.4, (8,))   # the flag and the wheel glow in the evening light
+GOLD = (240, 198, 104)
+def cgr(sz): return ImageFont.truetype(os.path.join(FD, 'CormorantGaramond.ttf'), sz)
+_mcache = {}
+def mask(fi, ids):
+    k = (fi, ids)
+    if k in _mcache: return _mcache[k]
+    p = os.path.join(IN, 'idx', f'f_{fi:05d}.png')
+    if not os.path.exists(p): _mcache[k] = None; return None
+    a = np.asarray(Image.open(p)); m = np.isin(a, ids)
+    _mcache[k] = m; return m
+def anchor(fi, ids):
+    """the top-centre of the part, smoothed over ±4 frames so the tag glides"""
+    pts = []
+    for g in range(fi - 4, fi + 5):
+        m = mask(g, ids)
+        if m is None or m.sum() < 30: continue
+        ys, xs = np.nonzero(m); top = np.percentile(ys, 1.5); band = xs[ys <= top + (ys.max() - top) * .08]
+        pts.append((float(np.median(band)), float(top), float(np.percentile(ys, 99.5)), float(np.percentile(xs, 99))))
+    if not pts: return None
+    return tuple(float(np.mean([p[i] for p in pts])) * 1.5 for i in range(4))
+def outline(im, m, a, fill=.10, width=4, glow=9):
+    M_ = Image.fromarray((m * 255).astype(np.uint8)).resize(im.size, Image.BILINEAR)
+    edge = Image.fromarray(np.clip(np.asarray(M_.filter(ImageFilter.MaxFilter(2 * width + 1)), np.int16) - np.asarray(M_, np.int16), 0, 255).astype(np.uint8))
+    g = edge.filter(ImageFilter.GaussianBlur(glow)); g = Image.fromarray(np.clip(np.asarray(g, np.float32) * 2.2, 0, 255).astype(np.uint8))
+    for lay, k in ((g, .85 * a), (edge, a), (M_, fill * a)):
+        col = Image.new('RGBA', im.size, (*GOLD, 0)); col.putalpha(lay.point(lambda v, k=k: int(v * k))); im.alpha_composite(col)
+def tag(im, x, y_top, odia, eng, a, rise):
+    """a name tag: Odia in gold, English in spaced capitals between hairlines, a leader line down to a diamond on the part"""
+    ty = int(min(1440, max(330, y_top - 120))) - int(rise * 14); x = int(min(900, max(180, x)))
+    layer = Image.new('RGBA', im.size, (0, 0, 0, 0)); sh = Image.new('RGBA', im.size, (0, 0, 0, 0)); dl, ds = ImageDraw.Draw(layer), ImageDraw.Draw(sh)
+    f1 = od(58, 600); f2 = cgr(25); e = '  '.join(eng); e = ' '.join(eng)
+    A = int(255 * a)
+    dl.text((x, ty), odia, font=f1, fill=(*GOLD, A), anchor='ms'); ds.text((x, ty + 2), odia, font=f1, fill=(6, 4, 2, int(210 * a)), anchor='ms')
+    ew = dl.textlength(e, font=f2); dl.text((x, ty + 40), e, font=f2, fill=(248, 240, 226, A), anchor='ms'); ds.text((x, ty + 42), e, font=f2, fill=(6, 4, 2, int(210 * a)), anchor='ms')
+    for sx in (-1, 1):
+        x0 = x + sx * (ew / 2 + 14); dl.line((x0, ty + 31, x0 + sx * 46 * a, ty + 31), fill=(*GOLD, int(220 * a)), width=2)
+    ay = int(max(ty + 60, y_top)); 
+    if ay > ty + 64:
+        dl.line((x, ty + 54, x, ty + 54 + (ay - ty - 60) * a), fill=(*GOLD, int(230 * a)), width=2)
+        dl.regular_polygon((x, ty + 54 + (ay - ty - 60) * a, 7), 4, fill=(*GOLD, A))
+    sh = sh.filter(ImageFilter.GaussianBlur(8)); im.alpha_composite(sh); im.alpha_composite(sh); im.alpha_composite(layer)
+def height_line(im, an, a):
+    """the measured height beside the tower: a fine gold rule with end ticks, '୨୧୪ ଫୁଟ' at its middle"""
+    xc, top, bot, right = an; x = int(min(1020, right + 40)); top = int(max(270, top)); bot = int(min(1460, bot))
+    if bot - top < 120: return
+    layer = Image.new('RGBA', im.size, (0, 0, 0, 0)); sh = Image.new('RGBA', im.size, (0, 0, 0, 0)); dl, ds = ImageDraw.Draw(layer), ImageDraw.Draw(sh)
+    yb = bot - (bot - top) * a
+    dl.line((x, bot, x, yb), fill=(*GOLD, 235), width=2); dl.line((x - 12, bot, x + 12, bot), fill=(*GOLD, 235), width=2)
+    if a > .97: dl.line((x - 12, top, x + 12, top), fill=(*GOLD, 235), width=2)
+    f = od(40, 600); ym = (top + bot) // 2
+    if a > .5:
+        al = int(255 * ss((a - .5) / .4)); dl.text((x - 14, ym), '୨୧୪ ଫୁଟ', font=f, fill=(*GOLD, al), anchor='rm'); ds.text((x - 14, ym + 2), '୨୧୪ ଫୁଟ', font=f, fill=(6, 4, 2, int(al * .8)), anchor='rm')
+    sh = sh.filter(ImageFilter.GaussianBlur(7)); im.alpha_composite(sh); im.alpha_composite(layer)
+def halo(im, m, a):
+    M_ = Image.fromarray((m * 255).astype(np.uint8)).resize(im.size, Image.BILINEAR).filter(ImageFilter.MaxFilter(5))
+    for r, k in ((70, .22), (26, .16)):
+        g = M_.filter(ImageFilter.GaussianBlur(r)); col = Image.new('RGBA', im.size, (255, 214, 140, 0)); col.putalpha(g.point(lambda v, k=k: int(min(255, v * 2.4) * k * a))); im.alpha_composite(col)
+
 def ss(x): x = max(0., min(1., x)); return x * x * (3 - 2 * x)
 def parts_of(s):
     """runs of (text, gold, latin): Odia letters go to the Odia font; punctuation and Latin to Cormorant (the Odia font has no · , “ ”)"""
@@ -74,6 +140,19 @@ for fn in files:
     if os.path.exists(dst): continue
     t = fi / FPS
     im = Image.open(os.path.join(IN, fn)).convert('RGB').resize((1080, 1920), Image.LANCZOS).filter(ImageFilter.UnsharpMask(1.2, 40, 2)).convert('RGBA')
+    for t0_, t1_, ids, odn, eng, ex in LABELS:
+        k = ss((t - t0_) / .45) * (1 - ss((t - t1_ + .35) / .35))
+        if k <= 0: continue
+        m = mask(fi, ids)
+        if m is None or m.sum() < 30: continue
+        outline(im, m, k); an = anchor(fi, ids)
+        if an:
+            tag(im, an[0], an[1], odn, eng, k, 1 - ss((t - t0_) / .6))
+            if ex == 'height': height_line(im, an, ss((t - t0_ - .2) / 1.2) * (1 - ss((t - t1_ + .35) / .35)))
+    k = ss((t - HALO[0]) / 1.0)
+    if k > 0:
+        m = mask(fi, HALO[2])
+        if m is not None and m.sum() > 10: halo(im, m, k)
     for a_, b_, txt, pl in CAPS:
         k = ss((t - a_ + .05) / .35) * (1 - ss((t - b_ + .3) / .32))
         if k > 0: draw_line(im, txt, 540, Y[pl] + (1 - ss((t - a_) / .5)) * 10, k)

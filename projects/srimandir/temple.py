@@ -7,10 +7,10 @@ TER = 3.0            # the inner terrace (Kurmabedha compound) is 3 m above the 
 
 def side_offsets():
     """saptaratha: (y0, y1, projection) along one face, as fractions of the half-width, centre → corner, with recessed notches"""
-    core = [(0, .2, .10), (.22, .40, .06), (.42, .60, .03), (.62, 1.0, 0.)]
+    core = [(0, .2, .17), (.23, .40, .105), (.43, .60, .05), (.63, 1.0, 0.)]   # deep pagas: strong vertical ribs
     out = []; prev = 0
     for a, b, p in core:
-        if a > prev: out.append((prev, a, -.014))
+        if a > prev: out.append((prev, a, -.03))
         out.append((a, b, p)); prev = b
     return out
 
@@ -52,7 +52,7 @@ def rib_amalaka(n=36, depth=.11):
 # ———————————— the rekha deula ————————————
 H_PITHA, H_BADA, H_GANDI = 2.4, 17.0, 52.0
 def gandi_w(z, w0):
-    u = (z - H_BADA) / (H_GANDI - H_BADA); return w0 * (1 - .47 * u ** 1.75)
+    u = (z - H_BADA) / (H_GANDI - H_BADA); return w0 * (1 - .50 * u ** 2.3)   # convex: straight low, rounding into the shoulder
 
 def vimana(mats, C, cx=0., cy=0., w0=11.5, z0=TER, t0=7.6, t_bada=9.8, t_top=14.05, blocks=True):
     """returns the list of (object, arrival time) — the deula built stone upon stone"""
@@ -100,7 +100,7 @@ def vimana(mats, C, cx=0., cy=0., w0=11.5, z0=TER, t0=7.6, t_bada=9.8, t_top=14.
                 for sy in (-1, 1):
                     r = w * .19; extra.append(lathe([(r * .55, 0), (r, .18), (r * 1.02, .3), (r, .42), (r * .55, .55)], 24, rib_amalaka(16, .14), sx * w * .86, sy * w * .86, z))
         t = t_bada + (t_top - t_bada) * (i / n_g) ** 1.15
-        course(f'v_gandi{i}', plan(w, kk), z, z + .55 - .012, t, extra=extra or None, bev=.045)
+        course(f'v_gandi{i}', plan(w * (1.028 if bh < .55 and zr > H_BADA + 3 else 1.0), kk), z, z + .55 - .012, t, extra=extra or None, bev=.045)   # bhumi bands
         z += .55; i += 1
     # mastaka: beki (neck), amalaka (ribbed disc), khapuri (cap), kalasha, ayudha (the Nilachakra) and the flags
     zt = z0 + H_GANDI; wt = gandi_w(H_GANDI, w0)
@@ -115,7 +115,7 @@ def vimana(mats, C, cx=0., cy=0., w0=11.5, z0=TER, t0=7.6, t_bada=9.8, t_top=14.
     top = z0 + H_GANDI + 10.6
     return out, top, wt
 
-def nilachakra(mats, C, cx, cy, z, R=1.7):
+def nilachakra(mats, C, cx, cy, z, R=1.75):
     """the eight-metal wheel: rim, hub, eight spokes with petals, standing in the east–west plane, on a short staff"""
     parts = []
     def torus(R, r, seg=96, rs=12):
@@ -157,7 +157,7 @@ def flag(mats, C, name, x, y, z, L=7.0, Hh=2.6, mat='flag', segs=(28, 8)):
         for j in range(nv): Fc.append((i * (nv + 1) + j, (i + 1) * (nv + 1) + j, (i + 1) * (nv + 1) + j + 1, i * (nv + 1) + j + 1))
     ob = mesh_obj(name, V, Fc, mats[mat], C, smooth=True)
     sd = ob.modifiers.new('solid', 'SOLIDIFY'); sd.thickness = .02
-    w = ob.modifiers.new('wave', 'WAVE'); w.use_normal = False; w.use_y = False; w.use_x = True; w.height = .35; w.width = 2.2; w.narrowness = 1.2; w.speed = .18
+    w = ob.modifiers.new('wave', 'WAVE'); w.use_normal = False; w.use_y = False; w.use_x = True; w.height = .55; w.width = 2.6; w.narrowness = 1.0; w.speed = .22
     w.start_position_x = x; w.start_position_y = y; w.falloff_radius = 0
     return ob
 
@@ -186,7 +186,7 @@ def pidha_deul(mats, C, name, cx, cy, w0, h_bada, pots=(5, 4, 3), pidha_h=1.05, 
     N = len(pieces)
     for i, (kind, w, za, zb, k) in enumerate(pieces):
         t = t0 + (t1 - t0 - .9) * (i / N) ** 1.1
-        course(f'{name}_{kind}{i}', plan(w, k), za, zb - .01, t, bev=.06 if kind.startswith('pidha') else .04)
+        course(f'{name}_{kind}{i}', plan(w, k), za, zb - .01, t, bev=.06 if kind.startswith('pidha') else .04, mat=mats['ochre'] if kind == 'kanthi' else stone)
     # crown: the ghanta (bell), amalaka, khapuri, kalasha
     wt = w
     gh = lathe([(wt * 1.0, 0), (wt * .95, .6), (wt * .8, 1.6), (wt * .55, 2.4), (wt * .35, 2.8)], 64, rib_amalaka(32, .05))
@@ -216,7 +216,7 @@ def natamandapa(mats, C, cx, cy, wx, wy, h, z0=TER, t0=0., t1=1.):
             ob = mesh_obj(f'nata_pil{s}{k}', V, Fc, stone, C); bevel(ob, .03); out.append((ob, t0 + .6 + k * .07))
     return out, zz
 
-def wall_ring(mats, C, name, x0, y0, x1, y1, z0, h, th, t0, t1, gates=(), mat='laterite', course_h=.6):
+def wall_ring(mats, C, name, x0, y0, x1, y1, z0, h, th, t0, t1, gates=(), mat='laterite', course_h=.6, merlons=False):
     """a stone enclosure built course by course; gates = [(side, centre, width)] leave openings"""
     out = []; n = int(h / course_h)
     for k in range(n):
@@ -234,9 +234,14 @@ def wall_ring(mats, C, name, x0, y0, x1, y1, z0, h, th, t0, t1, gates=(), mat='l
     for sd, (ax0, ay0), (ax1, ay1), ax in [('S', (x0 - .3, y0 - th / 2 - .15), (x1 + .3, y0 + th / 2 + .15), 0), ('N', (x0 - .3, y1 - th / 2 - .15), (x1 + .3, y1 + th / 2 + .15), 0), ('W', (x0 - th / 2 - .15, y0), (x0 + th / 2 + .15, y1), 1), ('E', (x1 - th / 2 - .15, y0), (x1 + th / 2 + .15, y1), 1)]:
         cuts = sorted([(c - w / 2, c + w / 2) for s, c, w in gates if s == sd]); lo = ax0 if ax == 0 else ay0; hi = ax1 if ax == 0 else ay1; p = lo
         for a, b in cuts + [(hi, hi)]:
-            if a > p + .1: segs.append(boxv(p, ay0, za, a, ay1, za + .35) if ax == 0 else boxv(ax0, p, za, ax1, a, za + .35))
+            if a > p + .1:
+                segs.append(boxv(p, ay0, za, a, ay1, za + .35) if ax == 0 else boxv(ax0, p, za, ax1, a, za + .35))
+                if merlons:   # crenellations along the outer wall
+                    m = p + .6
+                    while m + 1.2 < a:
+                        segs.append(boxv(m, ay0 + .2, za + .35, m + 1.2, ay1 - .2, za + 1.25) if ax == 0 else boxv(ax0 + .2, m, za + .35, ax1 - .2, m + 1.2, za + 1.25)); m += 2.6
             p = b
-    V, Fc = merge(segs); ob = mesh_obj(f'{name}_coping', V, Fc, mats[mat], C); bevel(ob, .05); out.append((ob, t1 + .1))
+    V, Fc = merge(segs); ob = mesh_obj(f'{name}_coping', V, Fc, mats['stone'], C); bevel(ob, .05); out.append((ob, t1 + .1))   # white-washed coping
     return out
 
 def gate_tower(mats, C, name, cx, cy, w, along_x=True, z0=0., t0=0., t1=1., mat='stone'):

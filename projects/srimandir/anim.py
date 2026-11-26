@@ -4,7 +4,7 @@ from geo import *
 
 KEYS = [
  (0.0,  (70, -380, 3.6),   (8, 0, 18),      30, 8),     # over the morning sea, toward Puri
- (2.6,  (48, -215, 6.0),   (4, 0, 10),      30, 8),     # over the surf and the beach
+ (2.6,  (48, -215, 6.0),   (20, -110, 3.0), 30, 8),     # over the surf and the beach
  (5.2,  (32, -105, 8),     (2, -4, 6),      32, 8),     # onto the site
  (7.4,  (24, -46, 6.5),    (2, -8, 4.0),    35, 4),     # the first stones are laid
  (9.8,  (30, -44, 15),     (0, 0, 13),      30, 5.6),
@@ -38,7 +38,7 @@ KEYS = [
  (74.7, (27, -30, 68.5),   (0, 0, 68.2),    60, 5.6),   # the Nilachakra
  (77.6, (25, -31, 61),     (6, 0, 59),      52, 5.6),   # the sevayat climbing
  (79.9, (21, -29, 72),     (0, 0, 72),      50, 5.6),   # the flag changed
- (84.4, (245, -305, 165),  (20, 0, 22),     28, 11),    # you built Puri's Srimandir
+ (84.4, (150, 165, 88),    (22, -12, 12),   30, 11),    # you built Puri's Srimandir: the whole complex, sea beyond
 ]
 
 def camera(cam, tgt, sc):

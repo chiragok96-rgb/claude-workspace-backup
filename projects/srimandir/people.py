@@ -8,25 +8,64 @@ def _cyl(r0, r1, z0, z1, n=10, x=0, y=0, sx=1.0, sy=1.0):
     Fc = [(i, (i + 1) % n, n + (i + 1) % n, n + i) for i in range(n)] + [tuple(range(n))[::-1], tuple(range(n, 2 * n))]
     return V, Fc
 
-def figure_mesh(name, kind, mats, h=1.68):
-    """kind: 'dhoti' (bare-chested man, white dhoti, uttariya), 'sari' (woman), 'kurta'. Two materials: cloth (random per instance), skin."""
-    s = h / 1.7; cloth, skin = [], []
-    head = lathe([(0, -.11), (.075, -.09), (.098, -.02), (.09, .06), (.05, .1), (0, .115)], 12); skin.append(([(x * s, y * s, (z + 1.58) * s) for x, y, z in head[0]], head[1]))
-    skin.append(_cyl(.045 * s, .05 * s, 1.40 * s, 1.50 * s, 8))   # neck
+def _limb(p0, p1, r0, r1, n=8):
+    """a tapered tube from p0 to p1 (a bone with flesh), closed at both ends"""
+    from mathutils import Vector
+    A, B = Vector(p0), Vector(p1); d = (B - A); L_ = d.length or 1e-4; z = d / L_
+    x = z.cross(Vector((0, 0, 1)) if abs(z.z) < .9 else Vector((1, 0, 0))).normalized(); y = z.cross(x)
+    V = []
+    for P, r in ((A, r0), (B, r1)):
+        for i in range(n):
+            a = 2 * math.pi * i / n; q = P + x * (r * math.cos(a)) + y * (r * math.sin(a)); V.append(tuple(q))
+    Fc = [(i, (i + 1) % n, n + (i + 1) % n, n + i) for i in range(n)] + [tuple(range(n))[::-1], tuple(range(n, 2 * n))]
+    return V, Fc
+
+def _ball(c, r, n=8):
+    v, f = lathe([(0, -r), (r * .7, -r * .7), (r, 0), (r * .7, r * .7), (0, r)], n); return [(x + c[0], y + c[1], z + c[2]) for x, y, z in v], f
+
+# arm poses: (elbow, wrist) for the +x arm in units of a 1.7 m figure (the -x arm mirrors x unless given separately); legs: (knee, ankle) per side
+POSES = {
+    'stand':   dict(arm=(((.23, .0, 1.12), (.25, .04, .84)), None), leg=(((.09, .0, .47), (.09, .0, .07)), ((-.09, .0, .47), (-.09, .0, .07)))),
+    'namaste': dict(arm=(((.21, .14, 1.13), (.03, .24, 1.27)), None), leg=(((.09, .0, .47), (.09, .0, .07)), ((-.09, .0, .47), (-.09, .0, .07)))),
+    'pull':    dict(arm=(((.25, -.07, 1.13), (.17, -.22, .93)), None), leg=(((.1, .2, .47), (.1, .3, .07)), ((-.1, -.16, .45), (-.1, -.36, .1)))),
+    'walk':    dict(arm=(((.22, .1, 1.12), (.22, .2, .88)), ((-.22, -.1, 1.12), (-.22, -.2, .88))), leg=(((.09, .14, .47), (.09, .22, .07)), ((-.09, -.12, .47), (-.09, -.24, .1)))),
+    'dance':   dict(arm=(((.36, .02, 1.58), (.13, .04, 1.86)), ((-.45, .02, 1.38), (-.72, .04, 1.43))), leg=(((.24, .05, .5), (.2, .0, .07)), ((-.24, .05, .5), (-.2, .0, .07)))),
+}
+
+def figure_mesh(name, kind, mats, h=1.68, pose='stand'):
+    """kind: 'dhoti' (bare-chested man, knee-length dhoti, uttariya), 'sari' (woman), 'kurta'. Jointed arms/legs in a pose.
+    Two materials: cloth (random per instance), skin."""
+    s = h / 1.7; S = lambda p: (p[0] * s, p[1] * s, p[2] * s); cloth, skin, hairl = [], [], []
+    P = POSES[pose]
+    head = lathe([(0, -.11), (.072, -.095), (.095, -.03), (.092, .05), (.06, .1), (0, .118)], 14); skin.append(([S((x, y, z + 1.585)) for x, y, z in head[0]], head[1]))
+    skin.append(_limb(S((0, .0, 1.38)), S((0, .0, 1.5)), .05 * s, .045 * s))                    # neck
+    hair = lathe([(0, -.02), (.097, .03), (.09, .1), (0, .125)], 12)
+    hairl.append(([S((x, y - .012, z + 1.6)) for x, y, z in hair[0]], hair[1]))
+    hairl.append(_ball(S((0, -.1, 1.62 if kind == 'sari' else 1.7)), .05 * s))
+    torso = [(.92, .165, .11), (1.05, .14, .1), (1.2, .165, .11), (1.32, .195, .115), (1.41, .175, .1)]
+    for (za, ra, ya), (zb, rb, yb) in zip(torso, torso[1:]):
+        V, Fc = _cyl(ra * s, rb * s, za * s, zb * s, 14, sy=ya / ra); (cloth if kind in ('kurta', 'sari') else skin).append((V, Fc))
+    for sx in (-1, 1):
+        skin.append(_ball(S((sx * .19, 0, 1.39)), .058 * s))                                        # shoulder
+        arm = P['arm'][0] if (sx == 1 or P['arm'][1] is None) else P['arm'][1]
+        if sx == -1 and P['arm'][1] is None: arm = tuple((-p[0], p[1], p[2]) for p in arm)
+        el, wr = arm; sh = (sx * .19, 0, 1.38)
+        skin.append(_limb(S(sh), S(el), .046 * s, .038 * s)); skin.append(_ball(S(el), .038 * s)); skin.append(_limb(S(el), S(wr), .036 * s, .028 * s))
+        skin.append(_ball(S((wr[0], wr[1], wr[2] - .03)), .042 * s))                               # hand
+        kn, an = P['leg'][0] if sx == 1 else P['leg'][1]; hp = (sx * .09, 0, .93)
+        skin.append(_limb(S(hp), S(kn), .07 * s, .05 * s)); skin.append(_limb(S(kn), S(an), .048 * s, .034 * s))
+        skin.append(_limb(S((an[0], an[1] - .04, .03)), S((an[0], an[1] + .14, .03)), .035 * s, .03 * s))   # foot
     if kind == 'sari':
-        cloth.append(_cyl(.20 * s, .15 * s, 0, .95 * s, 14, sy=.8)); cloth.append(_cyl(.15 * s, .17 * s, .95 * s, 1.18 * s, 12, sy=.75)); cloth.append(_cyl(.17 * s, .13 * s, 1.18 * s, 1.42 * s, 12, sy=.7))
-        hair = lathe([(0, -.02), (.09, .02), (.08, .1), (0, .12)], 10); cloth.append(([(x * s, (y - .03) * s, (z + 1.6) * s) for x, y, z in hair[0]], hair[1]))
+        cloth.append(_cyl(.24 * s, .17 * s, .02 * s, .98 * s, 16, sy=.8))                           # the pleated skirt to the ankle
+        cloth.append(_limb(S((.16, .02, 1.36)), S((-.14, .05, .95)), .07 * s, .09 * s, 10))        # the pallu across the chest
     else:
-        cloth.append(_cyl(.17 * s, .12 * s, .1 * s, .95 * s, 12, sy=.75))               # dhoti
-        skin.append(_cyl(.045 * s, .04 * s, 0, .12 * s, 6, x=.07 * s)); skin.append(_cyl(.045 * s, .04 * s, 0, .12 * s, 6, x=-.07 * s))
-        (cloth if kind == 'kurta' else skin).append(_cyl(.14 * s, .17 * s, .95 * s, 1.25 * s, 12, sy=.68)); (cloth if kind == 'kurta' else skin).append(_cyl(.17 * s, .12 * s, 1.25 * s, 1.42 * s, 12, sy=.65))
-        if kind == 'dhoti': cloth.append(([(x * s, y * s, z) for x, y, z in _cyl(.175, .15, 1.15 * s, 1.3 * s, 12, sy=.7)[0]], _cyl(.175, .15, 1.15 * s, 1.3 * s, 12, sy=.7)[1]))
-    for sx in (-1, 1):   # arms, slightly away from the body
-        V, Fc = _cyl(.042 * s, .034 * s, .78 * s, 1.38 * s, 7, x=sx * .2 * s); skin.append(([(x + sx * (1.38 * s - z) * .06, y, z) for x, y, z in V], Fc))
-    me = bpy.data.meshes.new(name); V, Fc = merge(cloth + skin); me.from_pydata(V, [], Fc); me.validate()
-    me.materials.append(mats['garment']); me.materials.append(mats['skin'])
-    nc = len(merge(cloth)[1])
-    for i, p in enumerate(me.polygons): p.material_index = 0 if i < nc else 1; p.use_smooth = True
+        dz = .1 if kind == 'kurta' else .44
+        cloth.append(_cyl(.2 * s, .16 * s, dz * s, .98 * s, 14, sy=.75))                            # dhoti (to the shin for labourers)
+        if kind == 'dhoti': cloth.append(_limb(S((.17, .0, 1.38)), S((-.15, .02, 1.0)), .05 * s, .06 * s, 8))   # uttariya over the shoulder
+    me = bpy.data.meshes.new(name); V, Fc = merge(cloth + skin + hairl); me.from_pydata(V, [], Fc); me.validate()
+    me.materials.append(mats['garment']); me.materials.append(mats['skin']); me.materials.append(mats['hair'])
+    nc = len(merge(cloth)[1]); ns = len(merge(skin)[1])
+    for i, p in enumerate(me.polygons): p.material_index = 0 if i < nc else (1 if i < nc + ns else 2); p.use_smooth = True
     return me
 
 def people_mats(M):
@@ -39,13 +78,13 @@ def people_mats(M):
     s = mat_basic('skin', (.36, .21, .13), .55)
     try: s.node_tree.nodes['Principled BSDF'].inputs['Subsurface Weight'].default_value = .15
     except Exception: pass
-    M['garment'] = g; M['skin'] = s
+    M['garment'] = g; M['skin'] = s; M['hair'] = mat_basic('hair', (.02, .018, .016), .5)
     M['dark_army'] = mat_basic('army', (.06, .05, .045), .85)
 
-def figure_collection(M, name='figures'):
+def figure_collection(M, name='figures', pose='stand', kinds=('dhoti', 'sari', 'kurta', 'dhoti', 'sari')):
     c = bpy.data.collections.new(name)   # not linked to the scene: used only by instancing
-    for i, k in enumerate(('dhoti', 'sari', 'kurta', 'dhoti', 'sari')):
-        me = figure_mesh(f'fig_{k}{i}', k, M, h=random.Random(i).uniform(1.55, 1.78)); ob = bpy.data.objects.new(f'fig_{k}{i}', me); c.objects.link(ob)
+    for i, k in enumerate(kinds):
+        me = figure_mesh(f'{name}_{k}{i}', k, M, h=random.Random(i).uniform(1.55, 1.78), pose=pose); ob = bpy.data.objects.new(f'{name}_{k}{i}', me); c.objects.link(ob)
     return c
 
 def crowd(name, pts, figs, C, bob=.04, face=None, spread=.5, lean=0.):
@@ -89,13 +128,15 @@ def climber(M, C, path, t0, t1):
         if parent: ob.parent = parent
         return ob
     root = bpy.data.objects.new('sevayat', None); C.objects.link(root)
-    body = part('sev_body', *merge([_cyl(.15, .17, 0, .3, 12, sy=.7), _cyl(.17, .13, .3, .55, 12, sy=.65)]), 'skin', root)
-    part('sev_dhoti', *_cyl(.17, .13, -.45, .05, 12, sy=.75), 'flag_white', root)
+    tor = [(-.02, .165, .11), (.12, .14, .1), (.28, .165, .11), (.4, .195, .115), (.5, .175, .1)]
+    body = part('sev_body', *merge([_cyl(ra, rb, za, zb, 14, sy=ya / ra) for (za, ra, ya), (zb, rb, yb) in zip(tor, tor[1:])] + [_ball((.19, 0, .48), .058), _ball((-.19, 0, .48), .058), _limb((0, 0, .48), (0, 0, .6), .05, .045)]), 'skin', root)
+    hr = lathe([(0, -.02), (.097, .03), (.09, .1), (0, .125)], 12); part('sev_hair', *merge([([(x, y - .012, z + .69) for x, y, z in hr[0]], hr[1]), _ball((0, -.1, .79), .05)]), 'hair', root)
+    part('sev_dhoti', *merge([_cyl(.21, .17, -.42, .07, 14, sy=.75), _limb((.17, 0, .47), (-.15, .02, .1), .05, .06)]), 'flag_white', root)
     hd = lathe([(0, -.11), (.075, -.09), (.098, -.02), (.09, .06), (.05, .1), (0, .115)], 12); part('sev_head', [(x, y, z + .72) for x, y, z in hd[0]], hd[1], 'skin', root)
     limbs = []
     for nm, x, z0, ln, rr in (('armL', .2, .5, -.62, .042), ('armR', -.2, .5, -.62, .042), ('legL', .08, -.05, -.85, .06), ('legR', -.08, -.05, -.85, .06)):
         piv = bpy.data.objects.new('sev_' + nm, None); C.objects.link(piv); piv.parent = root; piv.location = (x, 0, z0)
-        V, Fc = _cyl(rr, rr * .8, ln, 0, 8); part('sev_' + nm + '_m', V, Fc, 'skin', piv); limbs.append(piv)
+        V, Fc = merge([_cyl(rr, rr * .75, ln, 0, 8), _ball((0, .03 if 'leg' in nm else 0, ln - .03), rr * 1.05)]); part('sev_' + nm + '_m', V, Fc, 'skin', piv); limbs.append(piv)
     for t, x, y, z, rot in path:
         root.location = (x, y, z); root.rotation_euler = (0, 0, rot); root.keyframe_insert('location', frame=F(t)); root.keyframe_insert('rotation_euler', frame=F(t))
     # climbing cycle: arms reach up alternately, legs push

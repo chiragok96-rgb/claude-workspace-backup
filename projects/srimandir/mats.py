@@ -40,19 +40,28 @@ def cloth(name, col, sheen=.6):
     except Exception: pass
     return m
 
+def arrival_glow(m):
+    """a stone glows warm gold while it is being laid: driven by the object's colour (R = 1 normal, 0 = full glow)"""
+    nt = m.node_tree; N = nt.nodes; L = nt.links; b = N['Principled BSDF']
+    oi = N.new('ShaderNodeObjectInfo'); sp = N.new('ShaderNodeSeparateColor'); L.new(oi.outputs['Color'], sp.inputs[0])
+    inv = N.new('ShaderNodeMath'); inv.operation = 'SUBTRACT'; inv.inputs[0].default_value = 1; L.new(sp.outputs[0], inv.inputs[1])
+    k = N.new('ShaderNodeMath'); k.operation = 'MULTIPLY'; k.inputs[1].default_value = 2.6; L.new(inv.outputs[0], k.inputs[0])
+    b.inputs['Emission Color'].default_value = (1.0, .66, .26, 1); L.new(k.outputs[0], b.inputs['Emission Strength'])
+
 def make():
     M = {}
-    M['stone'] = mat_stone('limestone', (.66, .60, .51), var=.1, rough=.85, scale=1.4, bump=.45, dirt=.22, joints=(99., 1.45))
-    M['laterite'] = mat_stone('laterite', (.48, .29, .19), var=.16, rough=.92, scale=2.2, bump=.6, dirt=.18, joints=(.6, 1.15))
+    M['stone'] = mat_stone('limeplaster', (.80, .765, .69), var=.07, rough=.8, scale=1.4, bump=.4, dirt=.34, joints=(99., 1.45))   # lime-plastered white, grey in the recesses
+    M['laterite'] = mat_stone('laterite', (.55, .26, .15), var=.16, rough=.92, scale=2.2, bump=.6, dirt=.18, joints=(.6, 1.15))
     M['steps'] = mat_stone('steps', (.50, .45, .39), var=.1, rough=.7, scale=2, bump=.25, dirt=.3, joints=(99., 2.2))
     M['kalasha'] = mat_basic('gilt', (.83, .62, .28), .28, 1.0)
-    M['chakra'] = mat_basic('ashtadhatu', (.74, .55, .32), .3, 1.0)
+    M['chakra'] = mat_basic('ashtadhatu', (.11, .09, .075), .3, .9)   # the eight-metal wheel reads near-black
     M['wood'] = mat_basic('wood', (.30, .19, .11), .7)
     M['trunk'] = mat_stone('trunk', (.42, .36, .29), var=.15, rough=.9, scale=3, bump=.6, dirt=0)
     M['leaf'] = mat_basic('palmleaf', (.10, .22, .045), .55)
     M['coconut'] = mat_basic('coconut', (.25, .3, .09), .5)
     M['sand'] = sand('sand'); M['water'] = water('sea')
-    M['flag'] = cloth('flag_red', (.62, .045, .03)); M['flag2'] = cloth('flag_yellow', (.85, .55, .06))
+    M['flag'] = cloth('flag_red', (.72, .05, .03)); M['flag2'] = cloth('flag_yellow', (.92, .62, .05))
+    M['ochre'] = mat_basic('ochre_band', (.62, .16, .06), .7); M['plaster_dark'] = mat_stone('bada_plaster', (.70, .66, .59), var=.08, rough=.85, scale=1.4, bump=.4, dirt=.4, joints=(99., 1.45))
     for k, c in (('w1', (.86, .84, .79)), ('w2', (.84, .74, .58)), ('w3', (.76, .56, .36)), ('w4', (.80, .64, .56))):
         M['house_' + k] = mat_stone('house_' + k, c, var=.06, rough=.92, scale=.6, bump=.15, dirt=.3)
     M['window'] = mat_basic('window', (.05, .04, .035), .5)
@@ -60,5 +69,6 @@ def make():
     M['sail'] = cloth('sail', (.86, .81, .70), .3)
     M['clay'] = mat_stone('clay', (.55, .27, .14), var=.12, rough=.8, scale=6, bump=.4, dirt=.1)
     M['ghost'] = mat_basic('ghost', (.9, .88, .84), .6)
+    for k in ('stone', 'laterite', 'plaster_dark', 'clay', 'ochre'): arrival_glow(M[k])
     M['farland'] = mat_stone('farland', (.30, .32, .17), var=.25, rough=.95, scale=.004, bump=0, dirt=0)
     return M
