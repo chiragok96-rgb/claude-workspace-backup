@@ -1,0 +1,91 @@
+<title>Dream Home Storyboard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter+Tight:wght@400;500;600&family=Noto+Serif+Oriya:wght@500;700&display=swap">
+<style>
+/* One reading column; a timeline table per beat. Single committed look: night-navy blueprint, ivory, gold. */
+:root{--ground:#0f1420;--panel:#161d2c;--line:#2a3448;--ivory:#efe8d8;--muted:#a3a7b3;--gold:#d2a95c;--ok:#8fbf95;
+--display:"Cormorant Garamond",Georgia,serif;--body:"Inter Tight",system-ui,sans-serif;--odia:"Noto Serif Oriya","Kalinga",serif;color-scheme:dark}
+html,body{background:var(--ground);color:var(--ivory)}
+body{font:15.5px/1.6 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 80px;margin:0}
+.wrap{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+h1,h2{font-family:var(--display);font-weight:500;margin:0;line-height:1.1;text-wrap:balance}
+h1{font-size:clamp(40px,7vw,66px)} h2{font-size:clamp(26px,4vw,36px)}
+p{margin:0;max-width:68ch}.muted{color:var(--muted)}
+.eyebrow{font:600 11.5px/1 var(--body);letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.od{font-family:var(--odia)}.acc{font-family:var(--display);font-style:italic;color:var(--gold)}
+section{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px 20px;display:flex;flex-direction:column;gap:8px}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:11px 13px;border-bottom:1px solid var(--line)}
+th{font:600 11px/1.3 var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--gold);background:var(--panel)}
+tr:last-child td{border-bottom:0}
+td.t{font-variant-numeric:tabular-nums;color:var(--gold);white-space:nowrap}
+td .od{font-size:15.5px}
+ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;max-width:70ch}
+</style>
+<div class="wrap">
+<header style="display:flex;flex-direction:column;gap:14px">
+<span class="eyebrow">PropertyKatha · Video 02 · Storyboard for approval</span>
+<h1>The Dream Home <span class="acc">PMAY-U 2.0</span></h1>
+<p>One unbroken camera move around a single house that starts as a gold blueprint line on night paper, becomes a real lit home, gets buried under loan paperwork, and is lifted free by the subsidy. Same premium family as The Gate: Odia key words with small gold English labels, no overlaps, a score cut to the frame.</p>
+<p class="muted">57.2 s voiceover · 1080 × 1920 · 30 fps · no cuts. Pictures come with the first real test frames, not sketches.</p>
+</header>
+
+<section>
+<span class="eyebrow">How it will be made (fast and cheap)</span>
+<div class="card">
+<ul>
+<li><b>three.js 3D</b> (renders in minutes, no Blender): the house, the paper stack, coins, the dusk sky. 3D only where it costs no more than 2D.</li>
+<li><b>Code-drawn 2D</b> for every document: loan file, EMI calendar, the three eligibility meters, the checklist, the website and bank cards.</li>
+<li><b>Captions, score and mix</b> reuse The Gate v2's system: same safe zones, adaptive legibility, original sampled-instrument score hit-synced to picture.</li>
+<li>Estimated render: about 15–25 minutes on this machine. No helper sessions needed.</li>
+</ul>
+</div>
+</section>
+
+<section>
+<span class="eyebrow">Beat by beat · timings measured from your voiceover</span>
+<div class="tbl"><table>
+<thead><tr><th>Time</th><th>Voice</th><th>Picture (one continuous camera)</th><th>On screen</th><th>Sound</th></tr></thead>
+<tbody>
+<tr><td class="t">0.0–3.3</td><td class="od">ନିଜର ଗୋଟିଏ ଘର... ଏ ସ୍ୱପ୍ନ କାହାର ବା ନଥାଏ?</td>
+<td><b>Hook.</b> Frame 1 is already moving: a gold ink line races across deep-navy blueprint paper and draws a house. On "ସ୍ୱପ୍ନ" the drawing lifts into a real 3D house, windows glowing warm at dusk.</td>
+<td><span class="od">ନିଜ ଘରର ସ୍ୱପ୍ନ</span> · A HOME OF YOUR OWN</td><td>Pen scratch, rising felt piano, a soft swell as the house lifts.</td></tr>
+<tr><td class="t">3.8–8.9</td><td class="od">ହେଲେ... Home Loan, EMI, ଆଉ ଟଙ୍କାର ହିସାବ।</td>
+<td>Camera pulls back: loan papers, an EMI calendar and ₹ coin stacks rise around the house and start to bury it. Each word drops a new weight, in sync.</td>
+<td>Home Loan · EMI · <span class="od">ଟଙ୍କାର ହିସାବ</span> (one per thud)</td><td>Three paper/coin thuds on the three words; music darkens.</td></tr>
+<tr><td class="t">9.4–17.2</td><td class="od">କିନ୍ତୁ ଜାଣିଛନ୍ତି? Government ର Scheme ରେ ଏକ ଲକ୍ଷ ଅଶୀ ହଜାର ଟଙ୍କା ପର୍ଯ୍ୟନ୍ତ Interest Subsidy ମିଳିପାରେ!</td>
+<td>A beam of light cuts the stack; coins lift off and float away. A gold counter climbs to <b>₹1,80,000</b> above the house.</td>
+<td>₹1,80,000 (gold, lining numerals) · <span class="acc">Interest Subsidy</span></td><td>Silence-then-rise on "କିନ୍ତୁ"; bright celesta as the counter lands.</td></tr>
+<tr><td class="t">17.4–18.3</td><td>PMAY Urban 2.0</td>
+<td>Title moment: the scheme name sets in large, clean type on the paper sky. No government logo or emblem is imitated.</td>
+<td><span class="acc">PMAY-Urban 2.0</span></td><td>Soft timpani + chord.</td></tr>
+<tr><td class="t">18.8–29.7</td><td class="od">Income ନଅ ଲକ୍ଷ · Value ପଞ୍ଚତିରିଶ ଲକ୍ଷ · Home Loan ପଚିଶ ଲକ୍ଷ ଭିତରେ...</td>
+<td>Three elegant gold gauges rise one by one beside the house, each filling to its limit exactly as it's spoken, each earning a tick. On "କାମରେ ଆସିପାରେ" the three ticks merge into a warm glow around the home.</td>
+<td>Income ≤ ₹9 lakh · House value ≤ ₹35 lakh · Home loan ≤ ₹25 lakh (Odia hero + English label each)</td><td>A tick sound per gauge; the harmony brightens step by step.</td></tr>
+<tr><td class="t">30.2–35.2</td><td class="od">ନିଜର ପକ୍କା ଘର ନଥିବା ସହ ଅନ୍ୟ Eligibility Rules...</td>
+<td>A paper checklist slides in: "No pucca house of your own", then two faint lines for "other rules" that fill with ink.</td>
+<td><span class="od">ପକ୍କା ଘର ନଥିବା</span> · NO PUCCA HOUSE OF YOUR OWN</td><td>Pen ticks.</td></tr>
+<tr><td class="t">35.6–43.1</td><td class="od">Home Loan ନେବା ପୂର୍ବରୁ, Official Website ରେ ଆଉ ନିଜ Bank ରେ Eligibility Check କରନ୍ତୁ।</td>
+<td>Two cards: a clean generic browser card ("PMAY-U 2.0 · official website") and a bank passbook card. A gold check sweeps across both.</td>
+<td><span class="acc">Eligibility Check</span> · BEFORE YOU TAKE THE LOAN</td><td>Typing clicks, a confident resolve.</td></tr>
+<tr><td class="t">43.6–47.8</td><td class="od">କାରଣ ଘର କିଣିବା କେବଳ ଟଙ୍କାର ହିସାବ ନୁହେଁ... ବର୍ଷ ବର୍ଷର ସ୍ୱପ୍ନ।</td>
+<td>All the paper and numbers dissolve into gold dust; calendar pages turn into stars over the house. The home stands alone, lit, at blue hour.</td>
+<td><span class="od">ବର୍ଷ ବର୍ଷର ସ୍ୱପ୍ନ</span> · A DREAM YEARS IN THE MAKING</td><td>Strings swell to the emotional peak.</td></tr>
+<tr><td class="t">48.6–57.2</td><td class="od">ଚିହ୍ନାଜଣାରେ କେହି...? ତାଙ୍କୁ ପଠାନ୍ତୁ। ... Follow କରନ୍ତୁ।</td>
+<td>Gentle push toward the glowing door; end card above the roofline (logo, PropertyKatha, Follow). The last frame matches the first for a clean loop.</td>
+<td><span class="od">ଏହି Reel ତାଙ୍କୁ ପଠାନ୍ତୁ</span> · SEND THIS TO THEM · end card</td><td>Two-note logo sting, soft fade.</td></tr>
+</tbody></table></div>
+</section>
+
+<section>
+<span class="eyebrow">Notes</span>
+<ul>
+<li>Figures shown exactly as in your script: ₹1,80,000 subsidy, income ₹9 lakh, house value ₹35 lakh, loan ₹25 lakh.</li>
+<li>I won't print a website address or any official logo. The card says "PMAY-U 2.0 official website" so nothing can be mistaken for the real portal.</li>
+<li>Deliverables as before: full mix, no music, voice only, cover image.</li>
+</ul>
+</section>
+</div>
