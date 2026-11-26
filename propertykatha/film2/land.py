@@ -161,7 +161,7 @@ def ground_z(x, y):
     return h * rd + 0.10 * rd - 0.02 * (1 - rd) + 0.01 * sin(y * 1.9)
 
 # ---------------------------------------------------------------- palm
-def palm_mesh(seed, height=9.0, lean=0.6, nfr=17):
+def palm_mesh(seed, height=9.0, lean=0.6, nfr=24):
     rnd = random.Random(seed)
     bm = bmesh.new()
     # trunk: tapered tube along a gentle curve, with growth rings
@@ -185,9 +185,9 @@ def palm_mesh(seed, height=9.0, lean=0.6, nfr=17):
     for j in range(nfr):
         az = 2 * pi * j / nfr + rnd.uniform(-0.15, 0.15)
         tier = j % 3
-        up = R([38, 18, -4][tier] + rnd.uniform(-8, 8))
+        up = R([44, 22, 2][tier] + rnd.uniform(-8, 8))
         Lf = rnd.uniform(3.6, 4.6) * (0.85 if tier == 0 else 1.0)
-        droop = rnd.uniform(1.1, 1.7) + 0.3 * tier
+        droop = rnd.uniform(1.6, 2.4) + 0.4 * tier
         dirh = Vector((cos(az), sin(az), 0))
         side = Vector((-sin(az), cos(az), 0))
         n = 26
@@ -317,15 +317,17 @@ def pillar(x, y=0.0):
 # ---------------------------------------------------------------- build world
 terrain()
 GATE_OPEN = float(os.environ.get("GATE_OPEN", "0"))   # 0 closed .. 1 open
-gl = gate_leaf(-1.95, 0.0, "gateL"); gr = gate_leaf(0.0, 1.95, "gateR")
+leaves = []
+if GATE_OPEN >= 0:
+    leaves = [(gate_leaf(-1.95, 0.0, "gateL"), -1.95, 1), (gate_leaf(0.0, 1.95, "gateR"), 1.95, -1)]
 # hinge pivots at the pillars
-for o, hx, sg in ((gl, -1.95, 1), (gr, 1.95, -1)):
+for o, hx, sg in leaves:
     me = o.data; me.transform(Matrix.Translation((-hx, 0, 0))); o.location = (hx, 0, 0)
     o.rotation_euler = (0, 0, sg * R(100) * GATE_OPEN)
 pillar(-2.3); pillar(2.3)
 wall(-2.62, -40); wall(2.62, 40)
 # chain + padlock across the meeting stiles (only when closed)
-if GATE_OPEN < 0.05:
+if 0 <= GATE_OPEN < 0.05:
     for i in range(9):
         a = i / 8
         x = -0.22 + 0.44 * a; z = 1.05 - 0.08 * sin(pi * a)
@@ -340,6 +342,33 @@ if GATE_OPEN < 0.05:
     bd.rotation_euler = (R(88), R(1.5), 0)
     B.box((bw + 0.02, 0.012, bh + 0.02), (0, -0.066, 1.85), m=M_POST)
 
+# the plot: brass-capped survey pegs with gold ribbon at y 40..58
+M_GOLD = B.mat("goldr", (0.95, 0.68, 0.25), rough=0.35, metal=0.6)
+for (px, py) in ((-7, 40), (7, 40), (-7, 58), (7, 58)):
+    B.box((0.08, 0.08, 0.55), (px, py, ground_z(px, py) + 0.27), m=M_POST)
+    B.sph(0.06, (px, py, ground_z(px, py) + 0.58), m=M_BRASS)
+for (a, b) in (((-7, 40), (7, 40)), ((7, 40), (7, 58)), ((7, 58), (-7, 58)), ((-7, 58), (-7, 40))):
+    mx, my = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2; L = ((b[0]-a[0])**2 + (b[1]-a[1])**2) ** .5
+    o = B.box((L, 0.02, 0.008), (mx, my, 0.45), m=M_GOLD); o.rotation_euler = (0, 0, atan2(b[1]-a[1], b[0]-a[0]))
+if os.environ.get("HOUSE") == "1":
+    # a calm modern Odisha home: white plaster volumes, teak slats, laterite plinth, warm interior glow
+    M_WALLW = B.mat("wallw", (0.86, 0.83, 0.77), rough=0.8); M_TEAK = B.mat("teak", (0.36, 0.17, 0.07), rough=0.55)
+    M_GLASS = B.mat("glow", (1.0, 0.72, 0.42), rough=0.3, emit=(1.0, 0.64, 0.32), es=1.1)
+    hx, hy = 0.0, 51.0
+    B.box((10.5, 7.5, 0.45), (hx, hy, 0.22), m=M_LAT)                       # plinth
+    B.box((6.2, 6.4, 3.0), (hx - 2.0, hy + 0.4, 1.95), m=M_WALLW)            # ground-floor block
+    B.box((3.4, 0.08, 2.3), (hx - 2.6, hy - 2.84, 1.7), m=M_GLASS)           # big glazing
+    for k in range(11):                                                      # teak screen
+        B.box((0.07, 0.07, 2.5), (hx + 1.6 + k * 0.26, hy - 2.7, 1.7), m=M_TEAK)
+    B.box((5.2, 6.0, 2.8), (hx + 1.6, hy + 0.8, 4.85), m=M_WALLW)            # upper block, cantilevered
+    B.box((3.8, 0.08, 1.6), (hx + 1.6, hy - 2.24, 4.9), m=M_GLASS)
+    B.box((11.2, 8.0, 0.22), (hx - 0.2, hy + 0.4, 3.5), m=M_WALLW)           # first-floor slab overhang
+    B.box((6.0, 6.8, 0.22), (hx + 1.6, hy + 0.8, 6.33), m=M_WALLW)           # roof slab
+    B.box((1.3, 0.1, 2.4), (hx + 0.6, hy - 2.84, 1.65), m=M_TEAK)            # door
+    for (lx, ly) in ((-4.5, hy - 4.6), (4.5, hy - 4.6)):                     # gate-post lamps
+        B.box((0.3, 0.3, 1.2), (lx, ly, 0.6), m=M_LAT); B.box((0.22, 0.22, 0.25), (lx, ly, 1.33), m=M_GLASS)
+    pl = bpy.data.lights.new("porch", type='POINT'); pl.energy = 300; pl.color = (1, 0.65, 0.35); pl.shadow_soft_size = 1.0
+    po = bpy.data.objects.new("porch", pl); B.link(po); po.location = (hx - 1.5, hy - 4.0, 2.6)
 # palms: three variants, instanced along both sides of the road and in the fields
 pm = [palm_mesh(s, height=random.uniform(8, 11), lean=random.uniform(0.3, 1.2)) for s in (1, 2, 3)]
 spots = [(-5.5, 3.5), (6.2, 6.0), (-8.0, 14), (9.5, 18), (-4.8, 26), (5.6, 33), (-13, 8), (15, 12), (-18, 22),
@@ -381,6 +410,8 @@ for i in range(40):
 # ---------------------------------------------------------------- light + sky
 SUNROT, ELEV = float(os.environ.get("SUNROT", "40")), float(os.environ.get("ELEV", "4"))
 w, nt, sky, bg = B.world_sky(sun_rotation=SUNROT, elev=ELEV, sun_intensity=1.0, aerosol=2.4, ambient=0.10)
+for nd in nt.nodes:
+    if nd.type == 'MATH' and nd.operation == 'MULTIPLY': nd.inputs[1].default_value = float(os.environ.get("SKYCAM", "0.6"))
 B.sky_clouds(nt, sky, bg, sun_rotation=SUNROT, elev=ELEV, cover=0.52, cover2=0.7)
 B.sun_rig(sun_rotation=SUNROT, elev=ELEV, energy=6.5, color=(1.0, 0.62, 0.32), fill=float(os.environ.get("FILL","0.2")), bounce=1.0)
 # warm bounce card from behind camera-left: lifts the shadow side of gate/board (cinema fill)
@@ -402,7 +433,15 @@ if os.environ.get("HAZE", "1") == "1":
 if shot == "hook":
     cam, tgt = B.camera((2.9, -5.6, 0.55), (-0.35, 0.0, 1.6), lens=38, fstop=2.8)
 elif shot == "aerial":
-    cam, tgt = B.camera((-3.0, -14.0, 15.0), (0.5, 22.0, 0.0), lens=26, fstop=None)
+    cam, tgt = B.camera((-1.5, -10.0, 30.0), (0.5, 26.0, 0.0), lens=24, fstop=None)
+elif shot == "road":
+    cam, tgt = B.camera((0.7, -16.0, 1.3), (0.0, 30.0, 1.6), lens=28, fstop=None)
+elif shot == "slam":
+    cam, tgt = B.camera((0.4, -3.4, 1.35), (0.0, 3.0, 1.45), lens=24, fstop=5.6)
+elif shot == "open":
+    cam, tgt = B.camera((0.3, -4.5, 1.5), (0.0, 30.0, 1.5), lens=26, fstop=None)
+elif shot == "house":
+    cam, tgt = B.camera((1.2, 24.0, 1.7), (0.0, 50.0, 2.6), lens=30, fstop=None)
 SC.cycles.volume_step_rate = 4.0
 SC.cycles.volume_bounces = 0
 B.render(out, int(1080 * scale), int(1920 * scale), samples=spp, exposure=float(os.environ.get("EXPO", "-0.3")))

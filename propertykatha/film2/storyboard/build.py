@@ -30,14 +30,26 @@ def arrow(x1, y1, x2, y2, c=G):
     return f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{c}" stroke-width=".8" stroke-dasharray="2 1.5"/><circle cx="{x2}" cy="{y2}" r="1.2" fill="{c}"/>'
 def svg(inner, aria): return f'<svg viewBox="0 0 90 160" role="img" aria-label="{html.escape(aria)}">{inner}</svg>'
 
-B = []
+import base64
+KF = '/home/user/claude-workspace-backup/propertykatha/film2/look/kf/'
+IMGS = [KF+'g_b1.jpg', KF+'g_b2.jpg', KF+'g_b3.jpg', KF+'g_b4.jpg', KF+'g_b5.jpg',
+        '/home/user/claude-workspace-backup/propertykatha/film2/storyboard/v1_18.6.jpg', '/home/user/claude-workspace-backup/propertykatha/film2/storyboard/v1_21.0.jpg', '/home/user/claude-workspace-backup/propertykatha/film2/storyboard/v1_26.5.jpg', '/home/user/claude-workspace-backup/propertykatha/film2/storyboard/v1_31.2.jpg', '/home/user/claude-workspace-backup/propertykatha/film2/storyboard/v1_35.6.jpg', '/home/user/claude-workspace-backup/propertykatha/film2/storyboard/v1_40.2.jpg',
+        KF+'g_b12.jpg', KF+'g_b13.jpg']
+TAGS = ['Cycles keyframe']*5 + ['v1 paper scene (kept, polished)']*6 + ['Cycles keyframe']*2
+def thumb(i, aria):
+    from PIL import Image; import io
+    im = Image.open(IMGS[i]).convert('RGB'); im.thumbnail((360, 640)); bio = io.BytesIO(); im.save(bio, 'JPEG', quality=80)
+    return (f'<figure class="kf"><img alt="{html.escape(aria)}" src="data:image/jpeg;base64,{base64.b64encode(bio.getvalue()).decode()}">'
+            f'<figcaption>{TAGS[i]}</figcaption></figure>')
+B = []; NB = [0]
 def beat(tc, vo, tr, sketch, aria, picture, camera, chips, sound):
     ch = ''
     for c in chips:
         h, l = c[0], c[1]; kind = c[2] if len(c) > 2 else ''
         cls = 'h acc' if kind == 'acc' else 'h'
         ch += f'<span class="chip {"warn" if kind=="warn" else ""}"><span class="{cls}">{html.escape(h)}</span><span class="l">{html.escape(l)}</span></span>'
-    B.append(f'''<article class="beat">{svg(sketch, aria)}<div class="sheet"><span class="tc">{tc}</span>
+    i = NB[0]; NB[0] += 1
+    B.append(f'''<article class="beat">{thumb(i, aria)}<div class="sheet"><span class="tc">{tc}</span>
 <p class="vo">{html.escape(vo)}<small>{html.escape(tr)}</small></p>
 <dl><dt>Picture</dt><dd>{picture}</dd><dt>Camera</dt><dd>{camera}</dd>
 <dt>On screen</dt><dd><div class="ost">{ch or '<span class="muted">No overlay: the text is in the scene.</span>'}</div></dd>
@@ -95,7 +107,7 @@ beat('10.96 – 16.63 s', 'ଆଉ ସେ ଭୁଲ୍ କହୁନଥିଲେ�
      + '<line x1="44" y1="160" x2="46" y2="112" stroke="' + G + '" stroke-width="1.4"/>' + label(68, 120, 'Govt road ends', G)
      + label(30, 76, "Neighbour's land", '#f0b49e') + text(45, 140, 'ସରକାରୀ Road ନୁହେଁ', 6.4),
      'Aerial view: the neighbour\'s boundary encloses the road; the government road stops short',
-     'The camera cranes up over the gate. From high above, survey lines draw themselves on the ground in light: the neighbour\'s boundary (laterite red, dashed) encloses the road, and the gold government-road line stops short at the field edge. Our plot sits beyond, cut off.',
+     'The camera cranes up over the gate. From high above, survey lines draw themselves on the ground in light: the neighbour\'s boundary (laterite red, dashed) encloses the road, and the gold government-road line stops short at the field edge. Our plot, marked by brass pegs and gold ribbon, sits beyond, cut off.',
      'One continuous crane from 1.5 m to about 40 m, the gate bars passing just under the lens.',
      [('ସେ ଭୁଲ୍ କହୁନଥିଲେ', "He wasn't wrong"), ('ସରକାରୀ Road ନୁହେଁ', 'Not always a government road')],
      'String swell; a fine shimmer as each survey line draws.')
@@ -107,10 +119,10 @@ beat('16.95 – 18.81 s', 'Advance ପୂର୍ବରୁ,', 'Before you pay the 
      + '<line x1="50" y1="120" x2="70" y2="104" stroke="' + G + '" stroke-width="1.6"/>'
      + text(45, 36, 'Advance ପୂର୍ବରୁ', 7.4) + label(45, 42, 'Before you pay the advance'),
      'Pull back: the land is a scale model on a teak desk, cheque book and pen beside it',
-     'The rise keeps going and tilt-shift softens the edges until the land is revealed as an architect\'s scale model on a teak desk in a lamp-lit records room. Beside it lie a cheque book open at "ADVANCE" and an uncapped fountain pen, waiting.',
-     'Continuous rise and pull-back, about 1:100 scale change, landing on a lamp-lit tabletop angle.',
+     'The camera reaches a straight-down view. The land\'s colour drains along the survey lines into cream paper: fields become parcels, the road becomes a numbered strip. We are now on the map, with no cut.',
+     'The crane finishes its tilt to straight down; the move carries on across the paper.',
      [('Advance ପୂର୍ବରୁ', 'Before you pay the advance')],
-     'Room tone crossfades from outdoors to indoors: wall clock, ceiling fan; one low piano note.')
+     'Wind fades under a paper rustle and a wall clock; one low piano note.')
 # 7
 beat('19.02 – 22.77 s', 'Bhulekh Map ରେ ରାସ୍ତାର Plot Number ବାହାର କରି ପଟ୍ଟା ଦେଖନ୍ତୁ।', "Find the road's plot number on the Bhulekh map and check its patta.",
      desk() + paper(10, 40, 70, 84, -2) + '<g stroke="#8f7c5f" stroke-width=".5" fill="none"><rect x="16" y="46" width="24" height="30"/><rect x="50" y="46" width="24" height="30"/><rect x="16" y="88" width="24" height="30"/><rect x="50" y="88" width="24" height="30"/></g>'
@@ -118,7 +130,7 @@ beat('19.02 – 22.77 s', 'Bhulekh Map ରେ ରାସ୍ତାର Plot Number 
      + paper(52, 112, 30, 36, 8, '#f3ead6') + text(67, 124, 'ପଟ୍ଟା', 4.4, '#3a2a1a') + lines(57, 130, 18, 4)
      + text(45, 28, 'Bhulekh Map', 8, G, 'Cormorant Garamond', 500, style='font-style:italic') + label(45, 34, "Find the road's plot number"),
      'Cadastral map beside the model; a gold line traces road plot 412; the patta slides out',
-     'The camera glides off the model onto a cadastral map sheet laid beside it; the model\'s road continues as a printed parcel. A gold ink line traces the road parcel and its number, 412, embosses in. Then the patta card slides out from under the map toward the lens. The map is styled like Bhulekh but is not a copy of the government site.',
+     'As in v1: a gold ink line traces the road parcel on the map and its number, 412, embosses in; then the patta lifts off the map toward the lens. The map is styled like Bhulekh but is not a copy of the government site.',
      'Low glide over the paper, focus racing from the map to the patta.',
      [('Bhulekh Map', "Find the road's plot number", 'acc'), ('ପଟ୍ଟା ଦେଖନ୍ତୁ', 'Check its patta (record of rights)')],
      'Pen nib on paper as the line draws; a paper slide.')
@@ -175,8 +187,8 @@ beat('42.71 – 48.05 s', 'Gate ଲାଗିବା ପରେ ନୁହେଁ —
      + '<g stroke="#0b0806" stroke-width="1.1"><line x1="8" y1="64" x2="8" y2="98"/><line x1="12" y1="64" x2="12" y2="98"/><line x1="16" y1="66" x2="16" y2="96"/><line x1="74" y1="66" x2="74" y2="96"/><line x1="78" y1="64" x2="78" y2="98"/><line x1="82" y1="64" x2="82" y2="98"/></g>'
      + palm(20, 94, .9) + palm(70, 92, .8) + text(45, 40, 'ରାସ୍ତାର ଅଧିକାର', 8) + label(45, 46, 'Secure the right of way first'),
      'Back inside the model at full scale: the gate swings open onto a golden road',
-     'The camera turns back to the model and dives into it. The tilt-shift melts away and the scale becomes real again: we are back at the gate, which now swings open. Sunlight floods through and the road ahead glows gold all the way to the plot.',
-     'Dive from the tabletop down to road level, the reverse of beat 6, then forward through the open gate.',
+     'The papers slide away and the map\'s road strip turns back into land under the camera; we tilt up and descend to the gate, which now swings open. Sunlight floods through and the road ahead glows gold all the way to the plot.',
+     'The reverse of beat 6: from straight down over the map to road level, then forward through the open gate.',
      [('Gate ଲାଗିବା ପରେ ନୁହେଁ', 'Not after the gate'), ('Advance ଦେବା ପୂର୍ବରୁ', 'Before the advance'), ('ରାସ୍ତାର ଅଧିକାର', 'Secure the right of way first')],
      'The harmony turns to D major, the gate creaks open, birds return.')
 # 13
@@ -186,7 +198,7 @@ beat('48.40 – 55.56 s', 'ଘରେ କେହି ଜମି କିଣିବା�
      + '<rect x="33" y="54" width="24" height="7" rx="3.5" fill="#5a3a22"/>' + text(45, 59.2, 'FOLLOW', 3, IV, 'Inter Tight', 600)
      + text(45, 130, 'ତାଙ୍କୁ ପଠାନ୍ତୁ', 7) + label(45, 136, 'Send this to them'),
      'Glide down the open road to a home on the plot; logo and Follow end card',
-     'Through the gate and down the golden road to the plot, where a home now stands with warm windows. "ତାଙ୍କୁ ପଠାନ୍ତୁ" with a small send arrow, then the end card: logo, PropertyKatha in Cormorant and a Follow pill on a soft cream glow. The last frames match frame 1, so the reel loops seamlessly.',
+     'Through the gate and down the golden road to the plot, where a calm modern home now stands with warm windows (its design will be refined). "ତାଙ୍କୁ ପଠାନ୍ତୁ" with a small send arrow, then the end card: logo, PropertyKatha in Cormorant and a Follow pill on a soft cream glow. The last frames match frame 1, so the reel loops seamlessly.',
      'Forward glide that slows to a rest; the end card resolves in the sky above the house.',
      [('ଘରେ କେହି ଜମି କିଣିବାକୁ ଭାବୁଛନ୍ତି?', 'Someone at home buying land?'), ('ତାଙ୍କୁ ପଠାନ୍ତୁ', 'Send this to them'), ('Follow', 'PropertyKatha', 'acc')],
      'Strings rise into a short two-note logo sting; the room tone fades out.')
