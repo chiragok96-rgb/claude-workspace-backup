@@ -7,7 +7,8 @@ set -euo pipefail
 PART="$1"; SPEC="$2"; CHECK=1560
 ROOT="$(git rev-parse --show-toplevel)"; cd "$ROOT"
 git fetch -q origin propertykatha-backup
-if [ -d /tmp/pk_src ]; then (cd /tmp/pk_src && git checkout -q --detach FETCH_HEAD); else git worktree add -q --detach /tmp/pk_src FETCH_HEAD; fi
+REV=$(git rev-parse FETCH_HEAD); git worktree remove --force /tmp/pk_src 2>/dev/null || true; git worktree prune
+git worktree add -q --detach /tmp/pk_src "$REV"
 SRC=/tmp/pk_src/propertykatha/film2
 PY=/home/user/bpyenv/bin/python
 if [ ! -x "$PY" ]; then
