@@ -161,10 +161,11 @@ function update(t){world.windUniform.value=t;world.skyU.uT.value=t;const c=camAt
   // mood: day-dusk to darker burden, light returns
   const dark=ss(5.6,8.8,t)*(1-ss(10.4,12.6,t));sunL.intensity=1.6*(1-.55*dark)*(1-.6*ss(43.6,46,t));hemi.intensity=.55*(1-.3*dark);
   // burden objects drop on the words (Home Loan 6.35, EMI 7.45, coins 8.05)
-  const drop=(t0,y1)=>{const k=clamp((t-t0)/.45);const b=k<1?(1-k*k)*7:0;const bo=k>=1?Math.exp(-(t-t0-.45)*8)*Math.abs(Math.sin((t-t0-.45)*22))*.18:0;return y1+b+bo};
+  const slide=(t0)=>{const k=clamp((t-t0)/.45);return k<1?(1-k*k)*9:0};
+  const drop=(t0,y1)=>{const k=clamp((t-t0)/.45);const b=0;const bo=k>=1?Math.exp(-(t-t0-.45)*8)*Math.abs(Math.sin((t-t0-.45)*22))*.18:0;return y1+b+bo};
   const lift=ss(10.4,11.8,t),gone=Math.max(.001,1-ss(11.2,11.85,t));
-  stack.loan.position.set(-2.7-lift*7,drop(6.35,3.4)+lift*1.2,4.6);stack.loan.rotation.set(-.05,.22,.06+lift*.6);stack.loan.scale.setScalar(gone);stack.loan.visible=t>6.0&&t<11.9;
-  stack.emi.position.set(2.9+lift*7,drop(7.45,2.45)+lift*1.2,5.0);stack.emi.rotation.set(-.05,-.24,-.05-lift*.5);stack.emi.scale.setScalar(gone);stack.emi.visible=t>7.1&&t<11.9;
+  stack.loan.position.set(-2.7-slide(6.35)-lift*7,drop(6.35,3.4)+lift*1.2,4.6);stack.loan.rotation.set(-.05,.22,.06+lift*.6);stack.loan.scale.setScalar(gone);stack.loan.visible=t>6.0&&t<11.9;
+  stack.emi.position.set(2.9+slide(7.45)+lift*7,drop(7.45,2.45)+lift*1.2,5.0);stack.emi.rotation.set(-.05,-.24,-.05-lift*.5);stack.emi.scale.setScalar(gone);stack.emi.visible=t>7.1&&t<11.9;
   stack.coins.children.forEach(cn=>{const {k,s,r}=cn.userData;const t0=8.05+s*.06+k*.012;const kk=clamp((t-t0)/.25);cn.visible=t>t0-.3;
     const fl=ss(10.5+r*.4,11.9,t);const gone=1-ss(11.2+r*.3,11.85,t);cn.position.y=.06+k*.125+(1-kk*kk)*4+fl*(1.2+r*1.4);cn.rotation.set(fl*r*3,fl*2,fl*r*2);cn.scale.setScalar(Math.max(.001,gone))});
   stack.coins.visible=t>7.6&&t<16;

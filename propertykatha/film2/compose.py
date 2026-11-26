@@ -137,7 +137,7 @@ def blit(frame, blk, cx, base_y, alpha=1.0, sweep=1.0, dy=0.0, scale=1.0, glint=
     if g.max() > 0:                                                                               # backing adapts to what is behind
         if blk.dark: F[...] = F * (1 - 0.75 * g * alpha)[..., None] + np.array([250, 242, 226], np.float32) * (0.75 * g * alpha)[..., None]
         else:
-            k = ((0.55 + 0.75 * cl((lum - 0.40) / 0.25)) * g * alpha)[..., None]
+            k = np.minimum(0.85, (0.55 + 1.45 * cl((lum - 0.40) / 0.25)) * g * alpha)[..., None]
             F[...] = F * (1 - k) + np.array([52, 34, 20], np.float32) * k
     if not blk.dark: F *= (1 - s * alpha)[..., None]                                             # soft shadow
     col = sub[..., :3]
