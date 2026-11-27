@@ -143,7 +143,7 @@ def nilachakra(mats, C, cx, cy, z, R=1.75):
     V, Fc = merge(parts)
     ob = mesh_obj('nilachakra', [(x + cx, y + cy, zz + z + R + .6) for x, y, zz in V], Fc, mats['chakra'], C, smooth=True)
     staff = boxv(-.09, -.09, 0, .09, .09, R + .7); s = mesh_obj('chakra_staff', [(x + cx, y + cy, zz + z) for x, y, zz in staff[0]], staff[1], mats['chakra'], C)
-    pole = lathe([(.07, 0), (.06, 7.5), (.03, 7.8)], 12); p = mesh_obj('flag_pole', [(x + cx, y + cy, zz + z + 2 * R + .9) for x, y, zz in pole[0]], pole[1], mats['wood'], C, smooth=True)
+    pole = lathe([(.07, 0), (.06, 10.0), (.03, 10.3)], 12); p = mesh_obj('flag_pole', [(x + cx, y + cy, zz + z + 2 * R + .9) for x, y, zz in pole[0]], pole[1], mats['wood'], C, smooth=True)
     return ob, s, p, z + 2 * R + .9
 
 def flag(mats, C, name, x, y, z, L=7.0, Hh=2.6, mat='flag', segs=(28, 8)):

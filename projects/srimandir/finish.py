@@ -7,19 +7,34 @@ F0 = int(sys.argv[3]) if len(sys.argv) > 3 else 0; F1 = int(sys.argv[4]) if len(
 FD = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fonts')
 def od(sz, w=600): return ImageFont.truetype(os.path.join(FD, f'NotoSansOriya-{min((400, 500, 600, 700), key=lambda k: abs(k - w))}.ttf'), sz, layout_engine=ImageFont.Layout.RAQM)   # Noto Sans Oriya 2.x: correct conjuncts (ନ୍ଦ, ନ୍ତ, ଷ୍ଟ...)
 def cg(sz, w=600): f = ImageFont.truetype(os.path.join(FD, 'CormorantGaramond-Italic.ttf'), sz); f.set_variation_by_axes([w]); return f
-CAPS = [  # start, end, Odia (*gold*), concise English line, place
-    (20.55, 22.2, '*ଧଳା ଦେଉଳ*', 'sailors called it the White Pagoda', 'top'),
-    (46.0, 48.9, 'ନିଆଁ ତଳେ, ସିଝେ *ଉପର ହାଣ୍ଡି*', 'fire below, yet the topmost pot cooks first', 'top'),
-    (49.4, 53.2, '*୧୮* ଥର ଆକ୍ରମଣ', 'attacked eighteen times, still standing', 'top'),
-    (69.4, 71.0, '*ରଥଯାତ୍ରା*', 'the Lord comes out to his people', 'top'),
-    (75.4, 79.6, 'ପ୍ରତିଦିନ *ବାନା* ବଦଳ', 'every evening, climbed by hand, the flag is changed', 'bottom'),
-    (80.2, 81.55, '*ଜୟ ଜଗନ୍ନାଥ*', 'glory to the Lord of the universe', 'top'),
+CAPS = [  # start, end, text (*gold*), place — the Odia key word in the picture; English lives in the subtitles
+    (20.55, 22.2, '“*White Pagoda*”', 'top'),
+    (46.0, 48.9, 'ନିଆଁ ତଳେ, ସିଝେ *ଉପର ହାଣ୍ଡି*', 'top'),
+    (49.4, 53.2, '*୧୮* ଥର ଆକ୍ରମଣ', 'top'),
+    (69.4, 70.9, '*ରଥଯାତ୍ରା*', 'top'),
+    (75.4, 79.6, 'ପ୍ରତିଦିନ *ବାନା* ବଦଳ', 'top'),
+    (80.2, 81.55, '*ଜୟ ଜଗନ୍ନାଥ*', 'top'),
+]
+SUBS = [  # concise English subtitles, one per voice line (start, end)
+    (0.15, 5.5, 'Imagine building the Lord a house of stone in Puri'), (5.55, 7.5, 'one that can be seen from the sea.'),
+    (7.62, 10.0, 'So set stone upon stone.'), (10.17, 12.85, 'The higher it rises, the slimmer it must get'), (12.95, 14.1, 'or it will fall.'),
+    (14.3, 17.0, 'This is the 214-foot *Rekha Deula.*'), (17.26, 21.6, 'So tall that sailors called it the “*White Pagoda*”.'),
+    (21.85, 25.3, 'But the sanctum is small. Where will devotees stand?'), (25.43, 29.8, 'So build a hall of tiered roofs in front: the *Jagamohana.*'),
+    (30.04, 32.7, 'Dance and offerings need room too,'), (32.84, 37.5, 'so two more halls in line: *Natamandapa* and *Bhogamandapa.*'),
+    (37.69, 40.6, 'How do you cook for thousands of devotees?'), (40.71, 42.55, 'Build the kitchen, the *Rosaghara.*'),
+    (42.66, 45.8, 'Clay pots stacked on wood-fired stoves.'), (45.91, 49.0, 'Fire only at the bottom, yet the *top pot* cooks too.'),
+    (49.24, 53.1, 'Such wealth drew *eighteen* invasions.'), (53.32, 56.45, 'So, two stone walls around it:'),
+    (56.57, 59.7, '*Kurma Bedha* inside, *Meghanada Pacheri* outside.'), (59.9, 62.65, 'But not everyone may enter the walls.'),
+    (62.77, 65.45, 'So once a year, the Lord himself comes out.'), (65.58, 69.2, 'Three new chariots, pulled by devotees down the Bada Danda.'),
+    (69.4, 70.9, 'This is the *Rath Yatra.*'), (71.08, 72.55, 'In front, the *twenty-two steps.*'), (72.69, 74.85, 'On the spire, the *Nilachakra* of eight metals.'),
+    (74.98, 80.05, 'And a sevayat climbs it every day, just to change the *flag.*'), (80.25, 81.45, '*Jay Jagannath.*'), (81.58, 84.4, 'You have built Puri’s *Srimandir.*'),
 ]
 Y = {'top': 352, 'bottom': 1388}
-import numpy as np
+CLEAN = len(sys.argv) > 5 and sys.argv[5] == 'clean'
+import numpy as np, math
 # premium labels: the named part is traced in a glowing gold line (from the render's object-index mask) and a name tag hangs above it
 LABELS = [  # start, end, mask indices, Odia name, English, extras
-    (14.4, 17.0, (1, 8), 'ରେଖା ଦେଉଳ', 'REKHA DEULA', 'height'),
+    (14.4, 17.0, (1,), 'ରେଖା ଦେଉଳ', 'REKHA DEULA', 'height'),
     (28.5, 30.4, (2,), 'ଜଗମୋହନ', 'JAGAMOHANA', ''),
     (35.2, 36.65, (3,), 'ନାଟମଣ୍ଡପ', 'NATAMANDAPA', ''),
     (36.55, 37.9, (4,), 'ଭୋଗମଣ୍ଡପ', 'BHOGAMANDAPA', ''),
@@ -30,7 +45,7 @@ LABELS = [  # start, end, mask indices, Odia name, English, extras
     (66.0, 69.2, (9,), 'ନନ୍ଦିଘୋଷ', 'NANDIGHOSA', ''),
     (72.8, 75.0, (8,), 'ନୀଳଚକ୍ର', 'NILACHAKRA · ASHTADHATU', ''),
 ]
-HALO = (75.3, 84.4, (8,))   # the flag and the wheel glow in the evening light
+HALO = (79.6, 81.9, (8,))   # a short, soft glow as the new flag rises   # the flag and the wheel glow in the evening light
 GOLD = (240, 198, 104)
 def cgr(sz): return ImageFont.truetype(os.path.join(FD, 'CormorantGaramond.ttf'), sz)
 _mcache = {}
@@ -51,12 +66,12 @@ def anchor(fi, ids):
         pts.append((float(np.median(band)), float(top), float(np.percentile(ys, 99.5)), float(np.percentile(xs, 99))))
     if not pts: return None
     return tuple(float(np.mean([p[i] for p in pts])) * 1.5 for i in range(4))
-def outline(im, m, a, fill=.10, width=4, glow=9):
+def outline(im, m, a, fill=.05, width=3, glow=9, col=GOLD):
     M_ = Image.fromarray((m * 255).astype(np.uint8)).resize(im.size, Image.BILINEAR)
     edge = Image.fromarray(np.clip(np.asarray(M_.filter(ImageFilter.MaxFilter(2 * width + 1)), np.int16) - np.asarray(M_, np.int16), 0, 255).astype(np.uint8))
     g = edge.filter(ImageFilter.GaussianBlur(glow)); g = Image.fromarray(np.clip(np.asarray(g, np.float32) * 2.2, 0, 255).astype(np.uint8))
     for lay, k in ((g, .85 * a), (edge, a), (M_, fill * a)):
-        col = Image.new('RGBA', im.size, (*GOLD, 0)); col.putalpha(lay.point(lambda v, k=k: int(v * k))); im.alpha_composite(col)
+        col_ = Image.new('RGBA', im.size, (*col, 0)); col_.putalpha(lay.point(lambda v, k=k: int(v * k))); im.alpha_composite(col_)
 _placed = []
 def tag(im, x, y_top, odia, eng, a, rise):
     """a premium name tag: a dark glass plate with a fine gold rule, the Odia name in gold foil, the English in spaced capitals,
@@ -88,6 +103,57 @@ def tag(im, x, y_top, odia, eng, a, rise):
         yb = y1 + (ay - y1 - 8) * a
         dl.line((x, y1, x, yb), fill=(*GOLD, int(230 * a)), width=2); dl.regular_polygon((x, yb, 7), 4, fill=(*GOLD, A))
 
+WHITE = (255, 246, 226)
+_lpos = {}
+def label_pos(L):
+    """one still place per label, chosen once: the clean sky or ground band where the text covers least of the part (and of other labels)"""
+    t0_, t1_, ids, odn, eng = L[:5]
+    if L in _lpos: return _lpos[L]
+    f0, f1 = int(t0_ * FPS), int(t1_ * FPS); U = None; ax = []
+    for g in range(f0, f1 + 1, 3):
+        m = mask(g, ids)
+        if m is None: continue
+        U = m if U is None else (U | m)
+        if m.sum() > 30: ys, xs = np.nonzero(m); ax.append(np.median(xs))
+    if U is None: _lpos[L] = None; return None
+    U = np.asarray(Image.fromarray((U * 255).astype(np.uint8)).resize((1080, 1920)).filter(ImageFilter.MaxFilter(31))) > 0
+    xc = float(np.median(ax)) * 1.5 if ax else 540.
+    d0 = ImageDraw.Draw(Image.new('L', (8, 8))); w = max(d0.textlength(odn, font=od(54, 700)), d0.textlength('  '.join(eng.split()), font=cgr(22)) * 1.25) + 40
+    best = None
+    for y in list(range(300, 620, 30)) + list(range(1170, 1300, 30)):
+        for dx in (0, -160, 160, -300, 300):
+            x = min(1080 - w / 2 - 40, max(w / 2 + 40, xc + dx)); box = (x - w / 2, y - 58, x + w / 2, y + 40)
+            cov = U[int(box[1]):int(box[3]), int(box[0]):int(box[2])].mean()
+            clash = any(not (box[2] < b[0] or box[0] > b[2] or box[3] < b[1] or box[1] > b[3]) and not (t1_ < bt0 or t0_ > bt1) for (b, bt0, bt1) in _lpos.values() if b)
+            sc = cov * 10 + clash * 50 + abs(dx) / 600 + (0 if y < 900 else 1.2)
+            if best is None or sc < best[0]: best = (sc, x, y, box)
+    _lpos[L] = ((best[3]), t0_, t1_); return _lpos[L]
+def name_label(im, L, an, a, la):
+    """Odia name in gold foil with the English in fine spaced capitals beneath, no plate; a hairline leader to the part"""
+    pos = label_pos(L)
+    if not pos: return
+    (x0, y0, x1, y1) = pos[0]; x = (x0 + x1) / 2; y = y0 + 58; odn, eng = L[3], L[4]
+    layer = Image.new('RGBA', im.size, (0, 0, 0, 0)); sh = Image.new('RGBA', im.size, (0, 0, 0, 0)); dl, ds = ImageDraw.Draw(layer), ImageDraw.Draw(sh)
+    f1 = od(54, 700); f2 = cgr(22); e = '  '.join(' '.join(w_) for w_ in eng.split('  ')) if False else ' '.join(eng)
+    A = int(255 * a)
+    ds.ellipse((x0 - 30, y - 70, x1 + 30, y + 58), fill=(6, 4, 2, int(70 * a)))   # a soft dusk behind the words so they read on any ground
+    ds.text((x, y + 2), odn, font=f1, fill=(6, 4, 2, int(A * .85)), anchor='ms'); ds.text((x, y + 34), e, font=f2, fill=(6, 4, 2, int(A * .85)), anchor='ms')
+    dl.text((x, y), odn, font=f1, fill=(*GOLD, A), anchor='ms'); dl.text((x, y + 32), e, font=f2, fill=(246, 238, 224, A), anchor='ms')
+    w2 = dl.textlength(e, font=f2)
+    for sx in (-1, 1):
+        xa = x + sx * (w2 / 2 + 12); dl.line((xa, y + 24, xa + sx * 26, y + 24), fill=(*GOLD, int(200 * a)), width=1)
+    if an and la > 0:   # the leader: from the text's edge to a point on the part, drawn out as the label arrives
+        tx, ty = an[0], an[1] + .28 * (an[2] - an[1])   # a point well inside the part (the tower body, not its finial)
+        sy = y + 48 if ty > y else y - 50
+        ex, ey = x + (tx - x) * la, sy + (ty - sy) * la
+        ds.line((x, sy + 2, ex, ey + 2), fill=(6, 4, 2, int(A * .6)), width=3); dl.line((x, sy, ex, ey), fill=(*GOLD, int(220 * a)), width=2)
+        if la > .98: dl.ellipse((tx - 5, ty - 5, tx + 5, ty + 5), fill=(*GOLD, A))
+    sh = sh.filter(ImageFilter.GaussianBlur(16)); im.alpha_composite(sh); im.alpha_composite(sh); im.alpha_composite(layer)
+def subtitle(im, txt, a):
+    """the English line low in the frame (baseline <= 1468), on a faint shadow band, Cormorant italic with one gold accent"""
+    band = Image.new('L', (1, 300)); band.putdata([int(80 * a * math.sin(math.pi * i / 299) ** 1.5) for i in range(300)])
+    sh = Image.new('RGBA', im.size, (0, 0, 0, 0)); sh.paste((4, 3, 2, 255), (0, 1250, 1080, 1550), band.resize((1080, 300)))
+    im.alpha_composite(sh); draw_line(im, txt, 540, 1452, a, sz=38)
 def height_line(im, an, a):
     """the measured height beside the tower: a fine gold rule with end ticks, '୨୧୪ ଫୁଟ' at its middle"""
     xc, top, bot, right = an; x = int(min(1020, right + 40)); top = int(max(270, top)); bot = int(min(1460, bot))
@@ -162,24 +228,25 @@ for fn in files:
     t = fi / FPS
     im = Image.open(os.path.join(IN, fn)).convert('RGB').resize((1080, 1920), Image.LANCZOS).filter(ImageFilter.UnsharpMask(1.2, 40, 2)).convert('RGBA')
     _placed.clear()
-    for t0_, t1_, ids, odn, eng, ex in LABELS:
+    for t0_, t1_, ids, odn, eng, ex in ([] if CLEAN else LABELS):
         k = ss((t - t0_) / .45) * (1 - ss((t - t1_ + .35) / .35))
         if k <= 0: continue
         m = mask(fi, ids)
         if m is None or m.sum() < 30: continue
-        outline(im, m, k); an = anchor(fi, ids)
-        if an:
-            tag(im, an[0], an[1], odn, eng, k, 1 - ss((t - t0_) / .6))
-            if ex == 'height': height_line(im, an, ss((t - t0_ - .2) / 1.2) * (1 - ss((t - t1_ + .35) / .35)))
-    k = ss((t - HALO[0]) / 1.0)
+        ko = ss((t - t0_) / .2) * (1 - ss((t - t0_ - .45) / .6))   # the outline only flashes as the name arrives
+        if ko > 0: outline(im, m, ko * .75, col=WHITE if set(ids) & {1, 6, 7} else GOLD)
+        an = anchor(fi, ids); name_label(im, (t0_, t1_, ids, odn, eng, ex), an, k, ss((t - t0_ - .15) / .5))
+        if an and ex == 'height': height_line(im, an, ss((t - t0_ - .2) / 1.2) * (1 - ss((t - t1_ + .35) / .35)))
+    k = 0 if CLEAN else .6 * ss((t - HALO[0]) / .5) * (1 - ss((t - HALO[1] + .8) / .8))
     if k > 0:
         m = mask(fi, HALO[2])
         if m is not None and m.sum() > 10: halo(im, m, k)
-    for a_, b_, txt, en, pl in CAPS:
-        k = ss((t - a_ + .05) / .35) * (1 - ss((t - b_ + .3) / .32)); k2 = ss((t - a_ - .25) / .4) * (1 - ss((t - b_ + .3) / .32))
-        dy = (1 - ss((t - a_) / .5)) * 10
-        if k > 0: draw_line(im, txt, 540, Y[pl] + dy, k)
-        if k2 > 0: draw_line(im, en, 540, Y[pl] + 62 + dy, k2, sz=34)
-    end_title(im, t)
+    for a_, b_, txt, pl in ([] if CLEAN else CAPS):
+        k = ss((t - a_ + .05) / .35) * (1 - ss((t - b_ + .3) / .32))
+        if k > 0: draw_line(im, txt, 540, Y[pl] + (1 - ss((t - a_) / .5)) * 10, k)
+    for a_, b_, txt in ([] if CLEAN else SUBS):
+        k = ss((t - a_ + .1) / .25) * (1 - ss((t - b_) / .2))
+        if k > 0: subtitle(im, txt, k)
+    if not CLEAN: end_title(im, t)
     im.convert('RGB').save(dst, quality=95)
 print('finished')

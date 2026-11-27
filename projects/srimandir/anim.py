@@ -25,7 +25,7 @@ KEYS = [
  (43.7, (84, -61, 2.2),    (84, -76, 1.6),  24, 5),     # through the kitchen door
  (45.7, (84, -72.5, 2.0),  (84, -84, 1.8),  28, 4),     # pots stacked on the chulha
  (47.6, (84.3, -79.5, 3.6),(84, -84.6, 3.3), 32, 3.5),  # the topmost pot steams
- (49.2, (84, -82.5, 5.6),  (84, -84.6, 6.5), 28, 5),    # rise with the steam
+ (49.1, (84.2, -81.2, 4.3), (84, -84.6, 4.1), 30, 4),    # stay on the steaming top pot
  (50.4, (84.5, -80, 9),    (84, -84, 3),    24, 8),     # out through the roof
  (53.2, (130, -210, 175),  (25, 0, 10),     28, 11),    # high above: the armies come
  (57.4, (165, -235, 150),  (25, 0, 5),      30, 11),    # two walls
@@ -33,8 +33,11 @@ KEYS = [
  (62.6, (150, -22, 13),    (240, 0, 8),     30, 8),     # out of Singhadwara onto Bada Danda
  (65.6, (256, -22, 7.5),   (228, 0, 8.5),   32, 8),     # three new raths: Nandighosa from the front
  (69.0, (246, -13, 4.5),   (231, 0, 7.5),   30, 7),     # the ropes, the pull: horses, the Lord under the hood
- (70.8, (200, -2, 10),     (150, 0, 8),     30, 8),
- (72.4, (114, 0, 3.2),     (98, 0, 5),      26, 8),     # back through the gate: the 22 steps
+ (69.95, (227, -13.5, 6.5), (205, 0, 8),    30, 8),     # past the rath's side, clear of its canopy
+ (70.8, (200, -5, 10),     (150, 0, 8),     30, 8),
+ (71.7, (127, -.5, 3.4),    (100, 0, 4.5),   26, 8),     # through the middle of the gate opening
+ (72.15, (113.5, -4.5, 2.6), (100, 0, 4.2),  26, 8),
+ (72.7, (110.5, -3.6, 3.0), (99, 0, 4.6),    26, 8),     # back through the gate: the 22 steps
  (73.5, (102, -32, 34),    (10, 0, 60),     38, 8),     # rising beside the compound toward the spire
  (74.7, (27, -30, 68.5),   (0, 0, 68.2),    60, 5.6),   # the Nilachakra
  (76.2, (18, -8, 52.5),     (8.6, .3, 52.5),  50, 5.6),   # the sevayat climbing, close

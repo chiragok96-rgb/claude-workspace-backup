@@ -46,7 +46,8 @@ def arrival_glow(m):
     oi = N.new('ShaderNodeObjectInfo'); sp = N.new('ShaderNodeSeparateColor'); L.new(oi.outputs['Color'], sp.inputs[0])
     inv = N.new('ShaderNodeMath'); inv.operation = 'SUBTRACT'; inv.inputs[0].default_value = 1; L.new(sp.outputs[0], inv.inputs[1])
     k = N.new('ShaderNodeMath'); k.operation = 'MULTIPLY'; k.inputs[1].default_value = 1.5; L.new(inv.outputs[0], k.inputs[0])
-    b.inputs['Emission Color'].default_value = (1.0, .66, .26, 1); L.new(k.outputs[0], b.inputs['Emission Strength'])
+    mx = N.new('ShaderNodeMix'); mx.data_type = 'RGBA'; L.new(sp.outputs[2], mx.inputs['Factor']); mx.inputs['A'].default_value = (1.0, .95, .88, 1); mx.inputs['B'].default_value = (1.0, .66, .26, 1)
+    L.new(mx.outputs['Result'], b.inputs['Emission Color']); L.new(k.outputs[0], b.inputs['Emission Strength'])   # B = 1 warm gold, B = 0 soft white (the walls)
 
 def flag_mat():
     """the Patitapabana bana: red-orange cloth with the crescent and sun near the hoist (a texture drawn here, mapped by the flag's UVs)"""

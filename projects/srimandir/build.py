@@ -20,7 +20,7 @@ CW = coll('world'); CT = coll('temple'); CX = coll('extras')
 WD.terrain(M, CW); WD.sea(M, CW)
 SUN_KEYS = [(0, 6, 100), (7, 9, 104), (20, 15, 112), (40, 22, 150), (52, 20, 205), (60, 16, 230), (72, 11, 245), (84.4, 6.5, 255)]   # golden morning → long afternoon shadows → evening glow
 sky, sun = WD.sky_and_sun(sc, SUN_KEYS); WD.sky_clouds(sc, sky, dur=DUR)
-WD.palms(M, CW, WD.palm_spots()); WD.town(M, CW); WD.ship(M, CX, -66, -323, math.radians(-60))
+WD.palms(M, CW, WD.palm_spots()); WD.town(M, CW); WD.ship(M, CX, -52, -290, math.radians(-60)); bpy.data.objects['ship'].scale = (.55, .55, .55)   # a smaller boita, beside the temple, never in front of it
 
 # ———————— the inner terrace (the site): a low stone platform on the sand ————————
 V, Fc = boxv(-38, -45, -1, 92, 45, TP.TER - .01); terr = mesh_obj('terrace', V, Fc, M['stone'], CT); bevel(terr, .08)
@@ -46,9 +46,9 @@ for k in range(6):
         for fc in fcurves(ob.animation_data.action):
             for kp in fc.keyframe_points:
                 if int(round(kp.co[0])) == F(t_fall): kp.interpolation = 'QUAD'; kp.easing = 'EASE_IN'
-        hide(ob, t_in - .25, 13.95); GHOST.append((ob.name, t_fall))
+        hide(ob, 12.2, 14.35); GHOST.append((ob.name, t_fall))
 ch, st, pole, z_pole = TP.nilachakra(M, CT, 0, 0, v_top); BUILD += [(st, 14.85), (ch, 15.05), (pole, 15.25)]
-BUILD += [(TP.flag(M, CT, 'flag_big', .08, 0, z_pole + 7.2, 7.5, 2.8, 'flagcloth'), 15.45), (TP.flag(M, CT, 'flag_small', .08, 0, z_pole + 4.4, 4.5, 1.6, 'flag2'), 15.6)]
+BUILD += [(TP.flag(M, CT, 'flag_big', .08, 0, z_pole + 9.7, 7.5, 2.8, 'flagcloth'), 15.45), (TP.flag(M, CT, 'flag_small', .08, 0, z_pole + 6.75, 5.2, 1.7, 'flag2'), 15.6)]
 j_out, j_top = TP.pidha_deul(M, CT, 'jaga', 27, 0, 10.5, 12, (5, 4, 3), 1.05, TP.TER, 26.6, 29.6); BUILD += j_out
 n_out, n_top = TP.natamandapa(M, CT, 51.5, 0, 9.5, 9.0, 11, TP.TER, 33.0, 35.6); BUILD += n_out
 b_out, b_top = TP.pidha_deul(M, CT, 'bhoga', 71, 0, 7.6, 8, (4, 3, 2), .95, TP.TER, 34.9, 37.4); BUILD += b_out
@@ -79,11 +79,20 @@ BUILD += TP.gate_tower(M, CT, 'singhadwara', 128, 0, 8, True, 0, 58.6, 59.9, 'sa
 for nm, (x, y, ax) in (('gateW', (-75, 0, True)), ('gateN', (20, 98, False)), ('gateS', (20, -98, False))): BUILD += TP.gate_tower(M, CT, nm, x, y, 6, ax, 0, 58.8, 59.9, 'laterite')
 BUILD += TP.gate_tower(M, CT, 'innerE', 92, 0, 6, True, TP.TER, 56.4, 57.4, 'laterite')
 BUILD += TP.steps22(M, CT, 92 + 3.5, 92 + 3.5 + 13.2, 0, 8, TP.TER, 71.1, 72.2)
+M['diya'] = mat_basic('diya', (1, .6, .25), 1.0); _bd = M['diya'].node_tree.nodes['Principled BSDF']; _bd.inputs['Emission Color'].default_value = (1, .62, .28, 1); _bd.inputs['Emission Strength'].default_value = 8
+for _i in range(0, 22, 3):
+    for _s in (1, -1):
+        _x = 95.5 + (_i + .5) * 13.2 / 22; _z = TP.TER - (_i + 1) * TP.TER / 22 + .05
+        V, Fc = boxv(_x - .12, _s * 4.25 - .12, _z, _x + .12, _s * 4.25 + .12, _z + .14); _d = mesh_obj(f'diya{_i}_{_s}', V, Fc, M['diya'], CT)
+        _ld = bpy.data.lights.new(f'diyaL{_i}_{_s}', 'POINT'); _ld.energy = 140; _ld.color = (1, .7, .4); _ld.shadow_soft_size = .3
+        _lo = bpy.data.objects.new(f'diyaL{_i}_{_s}', _ld); CT.objects.link(_lo); _lo.location = (_x, _s * 3.7, _z + .55)
 
 # ———————— people ————————
 CP = coll('people')
-door = PP.scatter((15.8, -6.5, 22.5, 6.5), 70, 1, lambda x, y: TP.TER, minsep=.62); dc = PP.crowd('devotees_door', door, FIG_NAM, CP, face=math.pi / 2, spread=.45); hide(dc, 21.4, 26.5)
-dc.keyframe_insert('location', frame=F(25.6)); dc.location.x += 3.0; dc.keyframe_insert('location', frame=F(26.5))   # they turn back out before the hall rises
+door = PP.scatter((15.8, -6.5, 22.5, 6.5), 70, 1, lambda x, y: TP.TER, minsep=.62)
+for _sg in (1, -1):   # they crowd the small door, then part to both sides and walk clear before the hall rises
+    _pts = [p for p in door if (p[1] >= 0) == (_sg > 0)]; dc = PP.crowd(f'devotees_door{_sg}', _pts, FIG_NAM, CP, face=math.pi / 2, spread=.45, bob=.04); hide(dc, 21.4, 30.4)
+    dc.keyframe_insert('location', frame=F(24.2)); dc.location.y += _sg * 16.5; dc.location.x -= 3.0; dc.keyframe_insert('location', frame=F(26.2))
 spect = PP.scatter((140, 17, 480, 34), 1500, 2, minsep=.75) + PP.scatter((140, -34, 480, -17), 1500, 3, minsep=.75); sc_ = PP.crowd('spectators', spect, FIG_NAM, CP); hide(sc_, 60.0)
 # ———————— nacha and bhoga at the Natamandapa: Odissi dancers on the terrace, servitors carrying pots of mahaprasad ————————
 PP.dancers(M, CP, [(46.0 + i * 1.6, -12.4 - (i % 2) * 1.5, TP.TER, (i % 3 - 1) * .45 + math.pi * .15) for i in range(8)], 32.8, 38.6)
@@ -114,8 +123,8 @@ path += [(77.2, wt * .78 + .45, .3, T_ + 52.4, math.pi / 2), (77.8, wt * .75 + .
          (79.0, 1.6, .3, T_ + 60.5, math.pi / 2), (79.25, .2, -.5, z_pole - 2.2, 0.), (82.0, .2, -.5, z_pole - 2.2, 0.)]     # past the kalasha to the wheel
 PP.climber(M, CX, path, 74.9, 82.0, 79.3)
 fb = bpy.data.objects['flag_big']   # the old flag comes down the pole into his hands...
-fb.keyframe_insert('location', frame=F(79.35)); fb.location.z = -6.6; fb.keyframe_insert('location', frame=F(79.95)); fb.hide_render = True; fb.keyframe_insert('hide_render', frame=F(80.0))
-nf = TP.flag(M, CT, 'flag_new', .08, 0, z_pole + 7.2, 7.5, 2.8, 'flagcloth'); nf.location.z = -6.6; nf.keyframe_insert('location', frame=F(80.0)); nf.location.z = 0; nf.keyframe_insert('location', frame=F(80.9)); hide(nf, 80.0)   # ...and the new one rises
+fb.keyframe_insert('location', frame=F(79.35)); fb.location.z = -9.1; fb.keyframe_insert('location', frame=F(79.95)); fb.hide_render = True; fb.keyframe_insert('hide_render', frame=F(80.0))
+nf = TP.flag(M, CT, 'flag_new', .08, 0, z_pole + 9.7, 7.5, 2.8, 'flagcloth'); nf.location.z = -9.1; nf.keyframe_insert('location', frame=F(80.0)); nf.location.z = 0; nf.keyframe_insert('location', frame=F(80.9)); hide(nf, 80.0)   # ...and the new one rises
 # ———————— the site at dawn: dressed stones waiting on the sand ————————
 rnd2 = random.Random(8)
 for k in range(34):
@@ -142,17 +151,19 @@ for i, (x, y) in enumerate(TEAMS):
 def _clear(x, y): return not ((20 < x < 32.8 and -61 < y < -53) or (-28.8 < x < -15.2 and -57 < y < -49))
 mas = [p for p in PP.scatter((17, -64, 36, -49), 34, 31, minsep=1.1) + PP.scatter((-31, -60, -12, -45), 30, 32, minsep=1.1) if _clear(p[0], p[1])]
 mc = PP.crowd('masons', mas, FIG_WALK, CP, bob=.02); hide(mc, -1, 21.0)   # only by the stone piles on the sand: nobody stands where the temple rises
+_ga = _gb.inputs['Alpha']
+for _t, _v in ((12.2, 0), (12.7, .38), (13.6, .38), (14.3, 0)): _ga.default_value = _v; _ga.keyframe_insert('default_value', frame=F(_t))
 # the ship rolls gently
 shp = bpy.data.objects['ship']
 for k in range(0, 85):
-    shp.rotation_euler = (math.radians(1.6 * math.sin(k * 1.3)), math.radians(.8 * math.sin(k * .9)), math.radians(-60)); shp.location.z = -1.2 + .25 * math.sin(k * 1.1); shp.location.x = -70 + k * .2
+    shp.rotation_euler = (math.radians(1.6 * math.sin(k * 1.3)), math.radians(.8 * math.sin(k * .9)), math.radians(-60)); shp.location.z = -.7 + .15 * math.sin(k * 1.1); shp.location.x = -56 + k * .2
     shp.keyframe_insert('rotation_euler', frame=F(k)); shp.keyframe_insert('location', frame=F(k))
 if STATIC:
     pass
 else:
     for ob, t in BUILD:
         d_ = .32 if ob.name.startswith(('v_', 'jaga', 'bhoga', 'nata')) else .45
-        if ob.name.count('_') >= 2 and ob.name.startswith('v_') or ob.name.startswith(('wheel', 'step', 'ros_wall')) or ob.parent is not None:
+        if ob.name.count('_') >= 2 and ob.name.startswith('v_') or ob.name.startswith(('wheel', 'step', 'ros_wall', 'kurma', 'megha', 'singhadwara', 'gateW', 'gateN', 'gateS', 'innerE')) or ob.parent is not None:
             appear(ob, t, d_, 2.0 if ob.name.startswith('v_') else 1.4)          # stone upon stone, close up
         else:   # each part slides in from a side and locks into place: the temple assembles itself
             rr = random.Random(ob.name); ax = rr.random() < .5; sgn = 1 if rr.random() < .5 else -1; mag = rr.uniform(3.5, 6.5)
@@ -160,7 +171,7 @@ else:
             ob.location = (loc.x + off[0], loc.y + off[1], loc.z + off[2]); ob.keyframe_insert('location', frame=F(t - d_ * 1.3) - 1)
             ob.location = loc; ob.keyframe_insert('location', frame=F(t)); hide(ob, t - d_ * 1.3)
         # a stone glows warm gold while it is laid, then settles to its own colour
-        ob.color = (0, 1, 1, 1); ob.keyframe_insert('color', frame=F(t - d_) - 1); ob.keyframe_insert('color', frame=F(t))
+        ob.color = (.55, 1, 0, 1) if ob.name.startswith(('kurma', 'megha')) else (0, 1, 1, 1); ob.keyframe_insert('color', frame=F(t - d_) - 1); ob.keyframe_insert('color', frame=F(t))
         ob.color = (1, 1, 1, 1); ob.keyframe_insert('color', frame=F(t + .75))
 # ———————— white dust bursting out when the over-tall tower cracks (13.0 s) ————————
 dm = bpy.data.materials.new('dustcloud'); dm.use_nodes = True; nt = dm.node_tree; N_ = nt.nodes; nt.nodes.remove(N_['Principled BSDF'])

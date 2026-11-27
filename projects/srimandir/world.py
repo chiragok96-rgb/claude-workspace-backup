@@ -37,8 +37,8 @@ def sea(mats, C):
     bpy.ops.mesh.primitive_plane_add(size=2, location=(400, -1000, -.15)); ob = bpy.context.object; ob.name = 'sea'
     for c in ob.users_collection: c.objects.unlink(ob)
     C.objects.link(ob)
-    oc = ob.modifiers.new('ocean', 'OCEAN'); oc.geometry_mode = 'GENERATE'; oc.spatial_size = 140; oc.repeat_x = 25; oc.repeat_y = 16; oc.resolution = 10
-    oc.wave_scale = 3.2; oc.choppiness = 1.4; oc.wind_velocity = 14; oc.wave_alignment = .6; oc.wave_direction = math.radians(80); oc.use_foam = True; oc.foam_layer_name = 'foam'; oc.foam_coverage = -.1
+    oc = ob.modifiers.new('ocean', 'OCEAN'); oc.geometry_mode = 'GENERATE'; oc.spatial_size = 90; oc.repeat_x = 39; oc.repeat_y = 25; oc.resolution = 11
+    oc.wave_scale = 1.7; oc.choppiness = 1.1; oc.wind_velocity = 10; oc.wave_alignment = .6; oc.wave_direction = math.radians(80); oc.use_foam = True; oc.foam_layer_name = 'foam'; oc.foam_coverage = -.1
     oc.time = 0; ob.data.materials.append(mats['water'])
     ob.location = (-1500, -2450, -.2)
     # beyond the simulated tiles: a far sea to the horizon, and the far land to the north
