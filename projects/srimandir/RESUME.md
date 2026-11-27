@@ -18,7 +18,7 @@
 | `mats.py` | All materials, including `arrival_glow` (gold vs white via object colour B channel) |
 | `world.py` | Ocean (Cycles), sky, lighting |
 | `anim.py` | Camera path: Bezier AUTO_CLAMPED keyframes, 24 fps |
-| `seg.py` | Scene assembly: imports all above, builds the full blend |
+| `seg.py` | VO audio phrase segmenter (NOT the scene assembler; see build.py) |
 | `render.py` | Resumable Cycles renderer: `python render.py <blend> <out> <start> <end> <step> <pct> <spp>` |
 | `finish.py` | Post-processing: upscale 720→1080, name labels, Odia captions, English subtitles, outline flash, halo. `CLEAN` mode skips all text. |
 | `mix.py` | Audio score: tanpura, bansuri, ghungroo, ducked under VO |
@@ -62,10 +62,10 @@ cp projects/srimandir/events.json /home/user/srimandir/
 
 # 3. Generate the blend file (~2 min)
 cd /home/user/srimandir
-/home/user/bpyenv/bin/python seg.py   # writes scene.blend
+/home/user/bpyenv/bin/python build.py   # writes srimandir.blend (NOT seg.py — that is the VO segmenter)
 
 # 4. Render all 2026 frames (use distributed helpers — see below)
-/home/user/bpyenv/bin/python render.py scene.blend final3 0 2025 1 100 12
+/home/user/bpyenv/bin/python render.py srimandir.blend final3 0 2025 1 100 12
 # Output: final3/f_00000.png … f_02025.png + final3/idx/ (label masks)
 
 # 5. Finish (upscale + overlays) — both versions
@@ -106,8 +106,8 @@ Then re-encode from step 6 above. No Blender re-render needed.
 
 ### Scene fix (geometry, materials, animation, camera)
 1. Edit the relevant `.py` file.
-2. Regenerate the blend: `python seg.py`
-3. Re-render only the affected frames: `python render.py scene.blend final3 <start> <end> 1 100 12`
+2. Regenerate the blend: `python build.py`
+3. Re-render only the affected frames: `python render.py srimandir.blend final3 <start> <end> 1 100 12`
    - Delete existing PNGs in that range first so render.py doesn't skip them.
    - **Camera fixes:** after moving a Bezier key, re-render the full span between its neighbouring keys (the tangents change).
 4. Re-finish the same range (step above).
@@ -115,7 +115,7 @@ Then re-encode from step 6 above. No Blender re-render needed.
 
 ### Distributed rendering (for large ranges)
 Use `scripts/tools/render_chunk2.sh` with fresh Haiku helper sessions:
-- Push `render-jobs/srimandir3/{scene.blend, render.py}` to a job branch.
+- Push `render-jobs/srimandir3/{srimandir.blend, render.py}` to a job branch.
 - Each helper runs: `bash scripts/tools/render_chunk2.sh srimandir3 <first> <last> <check_frame> <partN> <branch-name>`
 - Merge with: `bash scripts/tools/merge2.sh srimandir3 /home/user/srimandir/final3 /path/to/check_ref.png <state_dir> N:branch-name ...`
 - Keep chunks to ~60 min of render time (the 2-hour helper limit kills longer ones).

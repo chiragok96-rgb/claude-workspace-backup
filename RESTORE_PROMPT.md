@@ -6,13 +6,15 @@
 
 ```
 This repo is my film studio and its memory. Before anything else:
-1) Run `bash scripts/bootstrap.sh --instruments` (add `--asr` too if I am about to send a new voiceover) and then `bash scripts/verify.sh --render` (it must end with ALL GOOD; fix anything that fails).
-2) Read CLAUDE.md and every file in memory/ (start with memory/README.md; 01, 02, 07 and 08 carefully).
+1) Run `bash scripts/bootstrap.sh --instruments` (add `--asr` too if I am about to send a new voiceover) and then `bash scripts/verify.sh --render` (it must end ALL GOOD; fix anything that fails).
+2) Read CLAUDE.md (auto-loaded), then read CURRENT_STATE.md for the current project status and any pending work.
 3) Treat them as my standing instructions, taste, workflow and lessons. Work only under /home/user, keep my existing work untouched,
    and commit/push to the `stage` branch.
-4) Reply with a short summary: what was restored, which checks passed, the latest film and its status, and the 5 rules you consider
-   most important for my videos. Then wait for my next request.
+4) The other knowledge files (CREATIVE_PREFERENCES.md, STYLE_INDEX.md, REPO_INDEX.md, PROVEN_WORKFLOWS.md, KNOWN_ERRORS.md) are
+   read on demand — CLAUDE.md tells you when. memory/ is the legacy archive; it is still valid, read it when you need deep context.
+5) Reply with a short summary: what was restored, which checks passed, the current film in progress (from CURRENT_STATE.md), and
+   the 5 rules you consider most important. Then wait for my next request.
 ```
 
-The "memory" is `CLAUDE.md` + `memory/` plus the code itself: chats cannot move between sessions, but this repo carries
-everything needed to work the same way.
+The "memory" is `CLAUDE.md` + the new knowledge files + `memory/` archive + the code itself: chats cannot move between sessions,
+but this repo carries everything needed to work the same way.
