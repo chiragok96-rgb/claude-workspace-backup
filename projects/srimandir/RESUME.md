@@ -28,6 +28,21 @@
 | `fonts/` | Cormorant Garamond (italic + regular), Noto Sans/Serif Oriya, with OFL licences |
 | `events.json` | Timing events for the construction sequence |
 
+## Reusing this as a template for OTHER temple videos
+
+The owner plans to make many temple-construction videos this way: same code, same camera/build system, new temple each time. Default to changing as little as possible — only touch what the new temple actually needs different.
+
+**Decide per new video, in this order:**
+1. **Only the temple's shape differs, construction logic is the same** → copy this folder to `projects/<new-temple-name>/`, edit only `temple.py` (geometry: tiers, roofs, gates, wall layout) and keep `build.py`, `anim.py`, `mats.py`, `world.py`, `people.py`, `kitchen.py`, `finish.py` unchanged. Cheapest path — reuse almost everything.
+2. **The build sequence also differs** (e.g. no kitchen, different gate count, different flag ritual) → also edit `build.py`, but keep the camera path (`anim.py`) and materials (`mats.py`) as a starting point and only nudge keyframes where the new geometry needs it.
+3. **Only cosmetic differences** (name cards, Odia text, subtitle wording, highlight colour) → edit only `finish.py`. No Blender re-render needed at all — fastest and cheapest of all.
+
+**Rule of thumb:** never rebuild `world.py` (ocean/sky/lighting), `people.py` (devotee figures), `mats.py`'s base materials (the `arrival_glow` gold/white system), or `anim.py`'s camera rig unless the owner specifically asks for a different look — these are reusable across temples and rebuilding them from scratch is the expensive path.
+
+**Fonts, textures (`flag_tex.png`), and the audio pipeline (`mix.py`)** are fully reusable as-is for any Odia-culture temple film; only the VO/music content changes if the new film needs a different voiceover.
+
+---
+
 ## How to rebuild from scratch
 
 ```bash
