@@ -36,8 +36,13 @@ _Last updated: 2026-11-27_
 - Not yet wired into `.claude/settings.json` as an MCP server
 - Action needed: add it to MCP config if owner wants it persistent
 
-## Srimandir RESUME.md known error
-`projects/srimandir/RESUME.md` says "python seg.py # writes scene.blend" — this is WRONG.
-- `seg.py` = VO phrase segmenter (audio only)
-- `build.py` = actual scene assembler → `srimandir.blend`
-- Needs correction in RESUME.md
+## Odia voiceover script — in progress
+- `projects/srimandir/SCRIPT_ODIA_v1.md` written (2026-11-27)
+- 186 words; at natural Odia pace runs 74–93 s (fits 84 s film at ~2.2 w/s)
+- Awaiting owner proofread (see proofread list in the file) and recording
+- If owner wants strict 60 s cut: say so; trim to ~150 words
+
+## Open items (not yet done)
+- **flag_small z fix**: change `z_pole + 6.75` → `z_pole + 8.1` in both `build.py` files; rebuild blend; re-render frame 403
+- **claude-mem telemetry**: run `npx claude-mem telemetry disable` (privacy rule)
+- **context-mode MCP**: not yet wired into `.claude/settings.json`; add if owner wants it persistent
